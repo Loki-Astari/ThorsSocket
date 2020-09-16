@@ -199,6 +199,11 @@ void SSLObj::accept()
 void SSLObj::connect(int fd, std::string const& host, int port)
 {
     Connection::connect(fd, host, port);
+    doConnect();
+}
+
+void SSLObj::doConnect()
+{
     int ret = SSL_connect(ssl);
     if (ret != 1)
     {

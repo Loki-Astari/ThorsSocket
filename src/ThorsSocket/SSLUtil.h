@@ -64,6 +64,7 @@ class SSLObj: public Connection
         virtual int read(int fd, char* buffer, std::size_t len) override;
         virtual int write(int fd, char const* buffer, std::size_t len) override;
         int errorCode(int ret);
+        void doConnect();
 };
 
 inline ConnectionBuilder createSSLBuilder(SSLctx& sslContext)
