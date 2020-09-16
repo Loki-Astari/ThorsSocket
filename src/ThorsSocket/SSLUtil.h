@@ -1,6 +1,7 @@
 #ifndef THORS_ANVIL_DB_COMMON_SSL_UTIL_H
 #define THORS_ANVIL_DB_COMMON_SSL_UTIL_H
 
+#include "Connection.h"
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <string>
@@ -35,7 +36,6 @@ class SSLMethod
         SSLMethod& operator=(SSLMethod const&)  = delete;
 };
 
-
 class SSLctx
 {
     friend class SSLObj;
@@ -49,7 +49,7 @@ class SSLctx
         SSLctx& operator=(SSLctx const&)        = delete;
 };
 
-class SSLObj
+class SSLObj: public Connection
 {
     SSL*                ssl;
     public:
@@ -59,10 +59,10 @@ class SSLObj
         SSLObj(SSLObj const&)                   = delete;
         SSLObj& operator=(SSLObj const&)        = delete;
 
-        void accept();
-        void connect();
-        int read(char* buffer, std::size_t len);
-        int write(char const* buffer, std::size_t len);
+        virtual void accept() override;
+        virtual void connect(int fd, std::string const& host, int port) override;
+        virtual int read(int fd, char* buffer, std::size_t len) override;
+        virtual int write(int fd, char const* buffer, std::size_t len) override;
         int errorCode(int ret);
 };
 

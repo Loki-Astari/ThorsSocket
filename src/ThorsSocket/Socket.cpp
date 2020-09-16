@@ -120,49 +120,14 @@ BaseSocket& BaseSocket::operator=(BaseSocket&& move) noexcept
     return *this;
 }
 
-ConnectSocket::ConnectSocket(std::string const& host, int port)
-    : DataSocket(::socketWrapper(PF_INET, SOCK_STREAM, 0), true)
-{
-    SocketAddrIn serverAddr{};
-
-    serverAddr.sin_family       = AF_INET;
-    serverAddr.sin_port         = htons(port);
-    //serverAddr.sin_addr.s_addr  = inet_addr(host.c_str());
-
-    HostEnt* serv;
-    while (true)
-    {
-        serv = ::gethostbyname(host.c_str());
-        if (serv == nullptr)
-        {
-            if (h_errno == TRY_AGAIN)
-            {
-                continue;
-            }
-            throw std::runtime_error(Utility::buildErrorMessage("ThorsAnvil::ThorsIO::ConnectSocket::", __func__,
-                                                       ": gethostbyname: ", Utility::systemErrorMessage()));
-        }
-        break;
-    }
-    bcopy((char *)serv->h_addr, (char *)&serverAddr.sin_addr.s_addr, serv->h_length);
-
-    if (::connectWrapper(getSocketId(), reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
-    {
-        close();
-        throw std::domain_error(Utility::buildErrorMessage("ThorsAnvil::ThorsIO::ConnectSocket::", __func__,
-                                                   ": connect: ", Utility::systemErrorMessage()));
-    }
-#if 0
-    makeSocketNonBlocking();
-    SSLMethod   method(Common::SSLMethodType::Client);
-    ctx     = std::make_unique<SSLctx>(method);
-    ssl     = std::make_unique<SSLObj>(*ctx, getSocketId());
-    ssl->connect();
-#endif
-}
-DataSocket::DataSocket(int socketId, bool blocking)
+DataSocket::DataSocket(int socketId, bool blocking, bool server)
     : BaseSocket(socketId, blocking)
+    , connection(new Connection)
 {
+    if (server)
+    {
+        connection->accept();
+    }
 }
 
 std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_t size, std::size_t alreadyGot)
@@ -177,15 +142,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
     while (dataRead < size)
     {
         // The inner loop handles interactions with the socket.
-        std::size_t get;
-        if (!ssl)
-        {
-            get = ::readWrapper(getSocketId(), buffer + dataRead, size - dataRead);
-        }
-        else
-        {
-            get = ssl->read(buffer + dataRead, size - dataRead);
-        }
+        std::size_t get = connection->read(getSocketId(), buffer + dataRead, size - dataRead);
         if (get == static_cast<std::size_t>(-1))
         {
             switch (errno)
@@ -259,15 +216,7 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
 
     while (dataWritten < size)
     {
-        std::size_t put;
-        if (!ssl)
-        {
-            put = ::writeWrapper(getSocketId(), buffer + dataWritten, size - dataWritten);
-        }
-        else
-        {
-            put  = ssl->write(buffer + dataWritten, size - dataWritten);
-        }
+        std::size_t put = connection->write(getSocketId(), buffer + dataWritten, size - dataWritten);
         if (put == static_cast<std::size_t>(-1))
         {
             switch (errno)
@@ -329,6 +278,12 @@ void DataSocket::putMessageClose()
     }
 }
 
+ConnectSocket::ConnectSocket(std::string const& host, int port)
+    : DataSocket(::socketWrapper(PF_INET, SOCK_STREAM, 0), true, false)
+{
+    connection->connect(getSocketId(), host, port);
+}
+
 ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
     : BaseSocket(::socketWrapper(PF_INET, SOCK_STREAM, 0), blocking)
 {
@@ -366,5 +321,5 @@ DataSocket ServerSocket::accept(bool blocking)
         throw std::runtime_error(Utility::buildErrorMessage("ThorsAnvil::Socket::ServerSocket:", __func__,
                                                    ": accept: ", Utility::systemErrorMessage()));
     }
-    return DataSocket(newSocket, blocking);
+    return DataSocket(newSocket, blocking, true);
 }

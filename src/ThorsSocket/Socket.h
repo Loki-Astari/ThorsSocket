@@ -1,7 +1,7 @@
 #ifndef THORSANVIL_NISSE_CORE_SOCKET_SOCKET_H
 #define THORSANVIL_NISSE_CORE_SOCKET_SOCKET_H
 
-#include "SSLUtil.h"
+#include "Connection.h"
 #include <string>
 #include <utility>
 #include <functional>
@@ -9,19 +9,6 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 
-
-using SocketAddr    = struct sockaddr;
-using SocketStorage = struct sockaddr_storage;
-using SocketAddrIn  = struct sockaddr_in;
-using HostEnt       = struct hostent;
-
-inline int closeWrapper(int fd)                                                     {return ::close(fd);}
-inline int socketWrapper(int family, int type, int protocol)                        {return ::socket(family, type, protocol);}
-inline int connectWrapper(int fd, SocketAddr* serverAddr, std::size_t sizeAddress)  {return ::connect(fd, serverAddr, sizeAddress);}
-inline int acceptWrapper(int sockfd, sockaddr* addr, socklen_t* len)                {return ::accept(sockfd, addr, len);}
-inline ssize_t readWrapper(int fd, void* buf, size_t count) {return ::read(fd, buf, count);}
-inline ssize_t writeWrapper(int fd, void const* buf, size_t count)                  {return ::write(fd, buf, count);}
-inline int fcntlWrapper(int fd, int cmd, int value)                                 {return ::fcntl(fd, cmd, value);}
 
 namespace ThorsAnvil::ThorsIO
 {
@@ -69,8 +56,7 @@ class DataSocket: public BaseSocket
 {
     public:
         // @method
-        DataSocket(int socketId, bool blocking = false);                        // Normal
-        DataSocket(int socketId, SSLctx& sslContext, bool blocking = false);    // SSL
+        DataSocket(int socketId, bool blocking = false, bool server = false);
 
         // @method
         // Reads data from a sokcet into a buffer.
@@ -95,7 +81,7 @@ class DataSocket: public BaseSocket
         // @return              closes the write end of the socket and flushes (write) data.
         void        putMessageClose();
     protected:
-        std::unique_ptr<SSLObj>     ssl;
+        std::unique_ptr<Connection>     connection;
 };
 
 // @class

@@ -196,8 +196,9 @@ void SSLObj::accept()
         throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLObj", "SSLObj", "SSL_accept() failed: ", SSLUtil::errorMessage()));
     }
 }
-void SSLObj::connect()
+void SSLObj::connect(int fd, std::string const& host, int port)
 {
+    Connection::connect(fd, host, port);
     int ret = SSL_connect(ssl);
     if (ret != 1)
     {
@@ -206,12 +207,12 @@ void SSLObj::connect()
     }
 }
 
-int SSLObj::read(char* buffer, std::size_t len)
+int SSLObj::read(int /*fd*/, char* buffer, std::size_t len)
 {
     return SSL_read(ssl, buffer, len);
 }
 
-int SSLObj::write(char const* buffer, std::size_t len)
+int SSLObj::write(int /*fd*/, char const* buffer, std::size_t len)
 {
     return SSL_write(ssl, buffer, len);
 }
