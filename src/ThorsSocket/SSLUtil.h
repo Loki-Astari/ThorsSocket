@@ -66,6 +66,11 @@ class SSLObj: public Connection
         int errorCode(int ret);
 };
 
+inline ConnectionBuilder createSSLBuilder(SSLctx& sslContext)
+{
+    return [&sslContext](int fd){return ConnectionItem{new SSLObj{sslContext, fd}};};
+}
+
 
 }
 

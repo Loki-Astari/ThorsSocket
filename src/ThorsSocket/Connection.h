@@ -35,6 +35,24 @@ class Connection
         virtual int write(int fd, char const* buffer, std::size_t size);
 };
 
+/*
+ * The DataSocket contains a pointer to a "Connection"
+ *
+ * By default this is created via a default builder.
+ * This default builder simply creates a Connection object.
+ *
+ * But you can pass a non default builder that build a
+ * different Connection type (such as SSLObj to handle SSL connections)
+ */
+using ConnectionItem    = std::unique_ptr<Connection>;
+using ConnectionBuilder = std::function<ConnectionItem(int fd)>;
+
+
+inline ConnectionBuilder createNormalBuilder()
+{
+    return [](int){return ConnectionItem{new Connection};};
+}
+
 }
 
 #endif
