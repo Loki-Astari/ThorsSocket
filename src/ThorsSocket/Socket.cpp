@@ -120,9 +120,9 @@ BaseSocket& BaseSocket::operator=(BaseSocket&& move) noexcept
     return *this;
 }
 
-DataSocket::DataSocket(int socketId, bool blocking, bool server)
+DataSocket::DataSocket(int socketId, bool blocking, bool server, ConnectionBuilder const& builder)
     : BaseSocket(socketId, blocking)
-    , connection(new Connection)
+    , connection(builder(socketId))
 {
     if (server)
     {
@@ -278,8 +278,8 @@ void DataSocket::putMessageClose()
     }
 }
 
-ConnectSocket::ConnectSocket(std::string const& host, int port)
-    : DataSocket(::socketWrapper(PF_INET, SOCK_STREAM, 0), true, false)
+ConnectSocket::ConnectSocket(std::string const& host, int port, ConnectionBuilder const& builder)
+    : DataSocket(::socketWrapper(PF_INET, SOCK_STREAM, 0), true, false, builder)
 {
     connection->connect(getSocketId(), host, port);
 }
@@ -307,7 +307,7 @@ ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
     }
 }
 
-DataSocket ServerSocket::accept(bool blocking)
+DataSocket ServerSocket::accept(bool blocking, ConnectionBuilder const& builder)
 {
     if (getSocketId() == invalidSocketId)
     {
@@ -321,5 +321,5 @@ DataSocket ServerSocket::accept(bool blocking)
         throw std::runtime_error(Utility::buildErrorMessage("ThorsAnvil::Socket::ServerSocket:", __func__,
                                                    ": accept: ", Utility::systemErrorMessage()));
     }
-    return DataSocket(newSocket, blocking, true);
+    return DataSocket(newSocket, blocking, true, builder);
 }

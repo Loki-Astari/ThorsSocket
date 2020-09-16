@@ -19,7 +19,6 @@ namespace ThorsAnvil::ThorsIO
 // All socket classes are movable but not copyable.
 class BaseSocket
 {
-
     int     socketId;
     protected:
         static constexpr int invalidSocketId      = -1;
@@ -52,11 +51,13 @@ class BaseSocket
 // @class
 // Data sockets define the read/write interface to a socket.
 // This class should not be directly created
+using ConnectionItem    = std::unique_ptr<Connection>;
+using ConnectionBuilder = std::function<ConnectionItem(int)>;
 class DataSocket: public BaseSocket
 {
     public:
         // @method
-        DataSocket(int socketId, bool blocking = false, bool server = false);
+        DataSocket(int socketId, bool blocking = false, bool server = false, ConnectionBuilder const& builder = [](int){return ConnectionItem{new Connection};});
 
         // @method
         // Reads data from a sokcet into a buffer.
@@ -91,7 +92,7 @@ class ConnectSocket: public DataSocket
 {
     public:
         // @method
-        ConnectSocket(std::string const& host, int port);
+        ConnectSocket(std::string const& host, int port, ConnectionBuilder const& builder = [](int){return ConnectionItem{new Connection};});
 };
 
 // @class
@@ -109,7 +110,7 @@ class ServerSocket: public BaseSocket
         // If this is a blocking socket wait for a connection.
         // @return              A <code>DataSocket</code> is returned so data can be exchange across the socket.
         // @param blocking      Passed to the constructor of the <code>DataSocket</code> that is returned.
-        DataSocket accept(bool blocking = false);
+        DataSocket accept(bool blocking = false, ConnectionBuilder const& builder = [](int){return ConnectionItem{new Connection};});
 };
 }
 
