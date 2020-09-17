@@ -44,7 +44,6 @@ class BaseSocket
         // User can manually call close
         // @method
         void close();
-    protected:
         void makeSocketNonBlocking();
 };
 
