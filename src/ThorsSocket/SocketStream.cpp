@@ -51,11 +51,11 @@ SocketStreamBuffer::~SocketStreamBuffer()
     // Logging so we know what happened.
     catch (std::exception const& e)
     {
-        VLOG_S(5) << "SocketStreamBuffer::~SocketStreamBuffer(). Exception: " << e.what();
+        ThorsCatchMessage("ThorsAnvil::ThorsIO::SocketStreamBuffer", "~SocketStreamBuffer", e.what());
     }
     catch (...)
     {
-        VLOG_S(5) << "SocketStreamBuffer::~SocketStreamBuffer(). Exception: UNKNOWN.";
+        ThorsCatchMessage("ThorsAnvil::ThorsIO::SocketStreamBuffer", "~SocketStreamBuffer", "UNKNOWN");
     }
 }
 

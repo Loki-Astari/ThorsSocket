@@ -60,11 +60,11 @@ BaseSocket::~BaseSocket()
     // Logging so we know what happened.
     catch (std::exception const& e)
     {
-        VLOG_S(5) << "BaseSocket::~BaseSocket(). Exception: " << e.what();
+        ThorsCatchMessage("ThorsAnvil::ThorsIO::BaseSocket", "~BaseSocket", e.what());
     }
     catch (...)
     {
-        VLOG_S(5) << "BaseSocket::~BaseSocket(). Exception: UNKNOWN.";
+        ThorsCatchMessage("ThorsAnvil::ThorsIO::BaseSocket", "~BaseSocket", "UNKNOWN");
     }
 }
 
