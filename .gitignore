@@ -11,7 +11,7 @@ profile/
 report/
 vera/
 dependency/
-build/
+build
 
 makefile_tmp
 Makefile.extra
