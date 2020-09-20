@@ -1,5 +1,6 @@
 #include "Socket.h"
 #include "SSLUtil.h"
+#include "ThorsLogging/ThorsLogging.h"
 #include "coverage/ThorMock.h"
 #include <fstream>
 #include <sys/socket.h>
@@ -159,7 +160,7 @@ TEST(SocketExceptionTest, baseSocket_InitFail)
 {
     ASSERT_THROW(
         {DerivedFromBase     derived(-1);},
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, baseSocketFailNonBlocking)
@@ -169,7 +170,7 @@ TEST(SocketExceptionTest, baseSocketFailNonBlocking)
 
     ASSERT_THROW(
         {doTest();},
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 
@@ -180,7 +181,7 @@ TEST(SocketExceptionTest, baseSocketCloseInvalidSocket)
 
     ASSERT_THROW(
         {derived1.close();},
-        std::logic_error
+        ThorsAnvil::Logging::LogicalException
     );
 }
 
@@ -191,7 +192,7 @@ TEST(SocketExceptionTest, CloseFail_EBADF)
     DerivedFromBase  socket(5);
     ASSERT_THROW(
         socket.close(),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 
@@ -227,7 +228,7 @@ TEST(SocketExceptionTest, CloseFail_Unknown)
     DerivedFromBase  socket(5);
     ASSERT_THROW(
         socket.close(),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, ConnectionSocketFailsToOpenSocket)
@@ -237,7 +238,7 @@ TEST(SocketExceptionTest, ConnectionSocketFailsToOpenSocket)
 
     ASSERT_THROW(
         doTest(),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, ConnectionSocketFailsToGetHostByName)
@@ -279,7 +280,7 @@ TEST(SocketExceptionTest, ConnectionSocketFailsConnect)
 
     ASSERT_THROW(
         doTest(),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, ServerSocketFailsToOpenSocket)
@@ -289,7 +290,7 @@ TEST(SocketExceptionTest, ServerSocketFailsToOpenSocket)
 
     ASSERT_THROW(
         doTest(),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, ServerSocketFailsToBind)
@@ -330,7 +331,7 @@ TEST(SocketExceptionTest, ServerSocketAcceptFailsInvalidId)
     ServerSocket    server2(std::move(server1));
     ASSERT_THROW(
         server1.accept(),
-        std::logic_error
+        ThorsAnvil::Logging::LogicalException
     );
 }
 TEST(SocketExceptionTest, ServerSocketAcceptFailsAcceptCall)
@@ -356,7 +357,7 @@ TEST(SocketExceptionTest, DataSocketaReadInvalidId)
 
     ASSERT_THROW(
         doTest(data1),
-        std::logic_error
+        ThorsAnvil::Logging::LogicalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaReadFailsEBADFOnRead)
@@ -368,7 +369,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEBADFOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaReadFailsEFAULTOnRead)
@@ -380,7 +381,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEFAULTOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaReadFailsEINVALOnRead)
@@ -392,7 +393,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEINVALOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaReadFailsENXIOOnRead)
@@ -404,7 +405,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsENXIOOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaReadFailsENOMEMOnRead)
@@ -416,7 +417,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsENOMEMOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaReadFailsEIOOnRead)
@@ -519,7 +520,7 @@ TEST(SocketExceptionTest, DataSocketaWriteInvalidId)
 
     ASSERT_THROW(
         doTest(data1),
-        std::logic_error
+        ThorsAnvil::Logging::LogicalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaWriteFailsEINVALOnRead)
@@ -531,7 +532,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEINVALOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaWriteFailsEBADFOnRead)
@@ -543,7 +544,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEBADFOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaWriteFailsECONNRESETOnRead)
@@ -555,7 +556,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsECONNRESETOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaWriteFailsENXIOOnRead)
@@ -567,7 +568,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsENXIOOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaWriteFailsEPIPEOnRead)
@@ -579,7 +580,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEPIPEOnRead)
 
     ASSERT_THROW(
         doTest(data),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaWriteFailsEDQUOTOnRead)
@@ -673,7 +674,7 @@ TEST(SocketExceptionTest, DataSocketaPutMessageCloseFails)
 
     ASSERT_THROW(
         data.putMessageClose(),
-        std::domain_error
+        ThorsAnvil::Logging::CriticalException
     );
 }
 TEST(SocketExceptionTest, DataSocketaWriteFailsEINTROnWrite)
