@@ -1,5 +1,6 @@
 #include "Connection.h"
 #include "ThorsIOUtil/Utility.h"
+#include "ThorsLogging/ThorsLogging.h"
 
 #include <netdb.h>
 #include <sys/types.h>
@@ -30,8 +31,9 @@ void Connection::connect(int fd, std::string const& host, int port)
             {
                 continue;
             }
-            throw std::runtime_error(Utility::buildErrorMessage("ThorsAnvil::ThorsIO::Connection::", __func__,
-                                                       ": gethostbyname: ", Utility::systemErrorMessage()));
+            ThorsLogAndThrow("ThorsAnvil::ThorsIO::Connection::",
+                             "connect",
+                             "::gethostbyname(): ", Utility::systemErrorMessage());
         }
         break;
     }
@@ -39,8 +41,9 @@ void Connection::connect(int fd, std::string const& host, int port)
 
     if (::connectWrapper(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
     {
-        throw std::domain_error(Utility::buildErrorMessage("ThorsAnvil::ThorsIO::Connection::", __func__,
-                                                   ": connect: ", Utility::systemErrorMessage()));
+        ThorsLogAndThrowCritical("ThorsAnvil::ThorsIO::Connection::",
+                                 "connect",
+                                 "::connect(): ", Utility::systemErrorMessage());
     }
 #if 0
     makeSocketNonBlocking();

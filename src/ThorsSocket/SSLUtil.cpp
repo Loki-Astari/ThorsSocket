@@ -1,5 +1,6 @@
 #include "SSLUtil.h"
 #include "ThorsIOUtil/Utility.h"
+#include "ThorsLogging/ThorsLogging.h"
 #include <sstream>
 
 using namespace ThorsAnvil::ThorsIO;
@@ -128,7 +129,9 @@ SSLctx::SSLctx(SSLMethod& method)
 {
     if (!ctx)
     {
-        throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLctx", "SSLctx", "SSL_CTX_new() failed: ", SSLUtil::errorMessage()));
+        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLctx",
+                         "SSLctx",
+                         "SSL_CTX_new() failed: ", SSLUtil::errorMessage());
     }
 }
 
@@ -139,20 +142,26 @@ SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const
     if (SSL_CTX_set_ecdh_auto(ctx, 1) != 1)
     {
         SSL_CTX_free(ctx);
-        throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLctx", "SSLctx", "SSL_CTX_set_ecdh_auto() failed: ", SSLUtil::errorMessage()));
+        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLctx",
+                         "SSLctx",
+                         "SSL_CTX_set_ecdh_auto() failed: ", SSLUtil::errorMessage());
     }
 #endif
 // SSL_CTX_set_cipher_list
     if (SSL_CTX_use_certificate_file(ctx, certFile.c_str(), SSL_FILETYPE_PEM) != 1)
     {
         SSL_CTX_free(ctx);
-        throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLctx", "SSLctx", "SSL_CTX_use_certificate_file() failed: ", SSLUtil::errorMessage()));
+        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLctx",
+                         "SSLctx",
+                         "SSL_CTX_use_certificate_file() failed: ", SSLUtil::errorMessage());
     }
 // SSL_CTX_set_default_passwd_cb_userdata
     if (SSL_CTX_use_PrivateKey_file(ctx, keyFile.c_str(), SSL_FILETYPE_PEM) != 1 )
     {
         SSL_CTX_free(ctx);
-        throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLctx", "SSLctx", "SSL_CTX_use_PrivateKey_file() failed: ", SSLUtil::errorMessage()));
+        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLctx",
+                         "SSLctx",
+                         "SSL_CTX_use_PrivateKey_file() failed: ", SSLUtil::errorMessage());
     }
 // SSL_CTX_check_private_key
 // SSL_CTX_load_verify_locations
@@ -172,12 +181,16 @@ SSLObj::SSLObj(SSLctx const& ctx, int fileDescriptor)
 {
     if (!ssl)
     {
-        throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLObj", "SSLObj", "SSL_new() failed: ", SSLUtil::errorMessage()));
+        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLObj",
+                         "SSLObj",
+                         "SSL_new() failed: ", SSLUtil::errorMessage());
     }
     if (SSL_set_fd(ssl, fileDescriptor) != 1)
     {
         SSL_free(ssl);
-        throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLObj", "SSLObj", "SSL_set_fd() failed: ", SSLUtil::errorMessage()));
+        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLObj",
+                         "SSLObj",
+                         "SSL_set_fd() failed: ", SSLUtil::errorMessage());
     }
 
 }
@@ -193,7 +206,9 @@ void SSLObj::accept()
 {
     if (SSL_accept(ssl) != 1)
     {
-        throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLObj", "SSLObj", "SSL_accept() failed: ", SSLUtil::errorMessage()));
+        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLObj",
+                         "accept",
+                         "SSL_accept() failed: ", SSLUtil::errorMessage());
     }
 }
 void SSLObj::connect(int fd, std::string const& host, int port)
@@ -208,7 +223,9 @@ void SSLObj::doConnect()
     if (ret != 1)
     {
         // If this fails we should close the file descriptor.
-        throw std::runtime_error(buildErrorMessage("ThorsAnvil::ThorsIO::SSLObj", "SSLObj", "SSL_connect() failed: ", SSLUtil::sslError(ssl, ret), " - ", SSLUtil::errorMessage()));
+        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLObj",
+                         "doConnect",
+                         "SSL_connect() failed: ", SSLUtil::sslError(ssl, ret), " - ", SSLUtil::errorMessage());
     }
 }
 

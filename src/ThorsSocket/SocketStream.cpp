@@ -1,4 +1,5 @@
 #include "SocketStream.h"
+#include "ThorsLogging/ThorsLogging.h"
 #include <iostream>
 
 using namespace ThorsAnvil::ThorsIO;
@@ -46,9 +47,15 @@ SocketStreamBuffer::~SocketStreamBuffer()
     {
         overflow();
     }
+    // Catch and drop any exceptions.
+    // Logging so we know what happened.
+    catch (std::exception const& e)
+    {
+        VLOG_S(5) << "SocketStreamBuffer::~SocketStreamBuffer(). Exception: " << e.what();
+    }
     catch (...)
     {
-        // Catch and drop exceptions
+        VLOG_S(5) << "SocketStreamBuffer::~SocketStreamBuffer(). Exception: UNKNOWN.";
     }
 }
 
