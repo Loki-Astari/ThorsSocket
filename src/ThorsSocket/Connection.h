@@ -2,6 +2,7 @@
 #define THORS_ANVIL_DB_CONNECTION_H
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <unistd.h>
 #include <fcntl.h>
