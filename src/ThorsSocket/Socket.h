@@ -2,6 +2,7 @@
 #define THORSANVIL_NISSE_CORE_SOCKET_SOCKET_H
 
 #include "Connection.h"
+#include <memory>
 #include <string>
 #include <utility>
 #include <functional>
