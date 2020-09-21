@@ -10,9 +10,9 @@ using ThorsAnvil::Utility::systemErrorMessage;
 
 SSLUtil::SSLUtil()
 {
-    //SSL_load_error_strings();
-    //SSL_library_init();
-    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, nullptr);
+    SSL_load_error_strings();
+    SSL_library_init();
+    //OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, nullptr);
 }
 
 SSLUtil& SSLUtil::getInstance()
