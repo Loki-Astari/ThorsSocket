@@ -5715,8 +5715,6 @@ if test "x$ac_cv_lib_crypto_SHA1_Init" = xyes; then :
 
                     crypto_ROOT_DIR=$with_cryptoroot
 
-                    crypto_ROOT_LIB=crypto
-
 
 fi
 
@@ -5739,6 +5737,8 @@ Error: Could not find libcrypto
                 " "$LINENO" 5
 
 fi
+
+    crypto_ROOT_LIB="ssl crypto"
 
 
     LDFLAGS="${ORIG_LDFLAGS}"
