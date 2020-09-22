@@ -17,6 +17,8 @@ using HostEnt       = struct hostent;
 inline int closeWrapper(int fd)                                                     {return ::close(fd);}
 inline int socketWrapper(int family, int type, int protocol)                        {return ::socket(family, type, protocol);}
 inline int connectWrapper(int fd, SocketAddr* serverAddr, std::size_t sizeAddress)  {return ::connect(fd, serverAddr, sizeAddress);}
+inline int bindWrapper(int fd, SocketAddr* serverAddr, std::size_t sizeAddress)     {return ::bind(fd, serverAddr, sizeAddress);}
+inline int listnWrapper(int fd, int backlog)                                        {return ::listen(fd, backlog);}
 inline int acceptWrapper(int sockfd, sockaddr* addr, socklen_t* len)                {return ::accept(sockfd, addr, len);}
 inline ssize_t readWrapper(int fd, void* buf, size_t count)                         {return ::read(fd, buf, count);}
 inline ssize_t writeWrapper(int fd, void const* buf, size_t count)                  {return ::write(fd, buf, count);}

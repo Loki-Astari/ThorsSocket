@@ -307,7 +307,7 @@ ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
     serverAddr.sin_port         = htons(port);
     serverAddr.sin_addr.s_addr  = INADDR_ANY;
 
-    if (::bind(getSocketId(), reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
+    if (bindWrapper(getSocketId(), reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
     {
         close();
         ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket::",
@@ -315,7 +315,7 @@ ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
                          "::bind() ", Utility::systemErrorMessage());
     }
 
-    if (::listen(getSocketId(), maxWaitingConnections) != 0)
+    if (listnWrapper(getSocketId(), maxWaitingConnections) != 0)
     {
         close();
         ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket::",

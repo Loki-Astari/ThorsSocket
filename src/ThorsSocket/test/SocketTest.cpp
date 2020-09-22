@@ -296,7 +296,7 @@ TEST(SocketExceptionTest, ServerSocketFailsToOpenSocket)
 TEST(SocketExceptionTest, ServerSocketFailsToBind)
 {
     MOCK_SYS(socketWrapper, [](int, int, int){return 5;});
-    MOCK_SYS(bind,          [](int, SocketAddr const*, std::size_t){return -1;});
+    MOCK_SYS(bindWrapper,   [](int, SocketAddr const*, std::size_t){return -1;});
     MOCK_SYS(closeWrapper,  [](int){return 0;});
 
     auto doTest = [](){ServerSocket   server(8080, true);};
@@ -309,8 +309,8 @@ TEST(SocketExceptionTest, ServerSocketFailsToBind)
 TEST(SocketExceptionTest, ServerSocketFailsToListen)
 {
     MOCK_SYS(socketWrapper, [](int, int, int){return 5;});
-    MOCK_SYS(bind,          [](int, SocketAddr const*, std::size_t){return 0;});
-    MOCK_SYS(listen,        [](int, int){return -1;});
+    MOCK_SYS(bindWrapper,   [](int, SocketAddr const*, std::size_t){return 0;});
+    MOCK_SYS(listnWrapper,  [](int, int){return -1;});
     MOCK_SYS(closeWrapper,  [](int){return 0;});
 
     auto doTest = [](){ServerSocket   server(8080, true);};
@@ -323,8 +323,8 @@ TEST(SocketExceptionTest, ServerSocketFailsToListen)
 TEST(SocketExceptionTest, ServerSocketAcceptFailsInvalidId)
 {
     MOCK_SYS(socketWrapper, [](int, int, int){return 5;});
-    MOCK_SYS(bind,          [](int, SocketAddr const*, std::size_t){return 0;});
-    MOCK_SYS(listen,        [](int, int){return 0;});
+    MOCK_SYS(bindWrapper,   [](int, SocketAddr const*, std::size_t){return 0;});
+    MOCK_SYS(listnWrapper,  [](int, int){return 0;});
     MOCK_SYS(closeWrapper,  [](int){return 0;});
 
     ServerSocket    server1(8080, true);
@@ -337,8 +337,8 @@ TEST(SocketExceptionTest, ServerSocketAcceptFailsInvalidId)
 TEST(SocketExceptionTest, ServerSocketAcceptFailsAcceptCall)
 {
     MOCK_SYS(socketWrapper, [](int, int, int){return 5;});
-    MOCK_SYS(bind,          [](int, SocketAddr const*, std::size_t){return 0;});
-    MOCK_SYS(listen,        [](int, int){return 0;});
+    MOCK_SYS(bindWrapper,   [](int, SocketAddr const*, std::size_t){return 0;});
+    MOCK_SYS(listnWrapper,  [](int, int){return 0;});
     MOCK_SYS(closeWrapper,  [](int){return 0;});
     MOCK_SYS(acceptWrapper, [](int, SocketAddr*, socklen_t*){return -1;});
 
