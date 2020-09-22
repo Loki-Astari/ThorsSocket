@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <functional>
 #include <string>
 #include <unistd.h>
 #include <fcntl.h>
