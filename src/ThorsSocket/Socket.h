@@ -53,9 +53,16 @@ class BaseSocket
 // This class should not be directly created
 class DataSocket: public BaseSocket
 {
+    private:
+        std::function<void()>  readYield;
+        std::function<void()>  writeYield;
+
     public:
         // @method
         DataSocket(int socketId, bool blocking = false, bool server = false, ConnectionBuilder const& builder = createNormalBuilder());
+
+        // @method
+        void setYield(std::function<void()>&& yr, std::function<void()>&& yw);
 
         // @method
         // Reads data from a sokcet into a buffer.

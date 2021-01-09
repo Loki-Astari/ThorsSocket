@@ -128,12 +128,20 @@ BaseSocket& BaseSocket::operator=(BaseSocket&& move) noexcept
 
 DataSocket::DataSocket(int socketId, bool blocking, bool server, ConnectionBuilder const& builder)
     : BaseSocket(socketId, blocking)
+    , readYield([](){})
+    , writeYield([](){})
     , connection(builder(socketId))
 {
     if (server)
     {
         connection->accept();
     }
+}
+
+void DataSocket::setYield(std::function<void()>&& yr, std::function<void()>&& yw)
+{
+    readYield = std::move(yr);
+    writeYield= std::move(yw);
 }
 
 std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_t size, std::size_t alreadyGot)
@@ -186,6 +194,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                 {
                     // Temporary error.
                     // Simply retry the read.
+                    readYield();
                     return {true, dataRead - alreadyGot};
                 }
                 case ECONNRESET:
@@ -268,6 +277,7 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
                 {
                     // Temporary error.
                     // Simply retry the read.
+                    writeYield();
                     return {true, dataWritten - alreadyPut};
                 }
                 default:
