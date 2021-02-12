@@ -700,8 +700,8 @@ GREP
 SED
 LIBTOOL
 COV
-crypto_ROOT_LIB
 crypto_ROOT_DIR
+crypto_ROOT_LIB
 CXX_STD_FLAG
 CXXSTDVER
 ExpFlag20
@@ -5664,6 +5664,9 @@ fi
 
 
 
+    crypto_ROOT_LIB=""
+    crypto_ROOT_DIR=""
+
 
 # Check whether --with-cryptoroot was given.
 if test "${with_cryptoroot+set}" = set; then :
@@ -5713,8 +5716,7 @@ if test "x$ac_cv_lib_crypto_SHA1_Init" = xyes; then :
 
             if test "$with_cryptoroot" != ""; then :
 
-                    crypto_ROOT_DIR=$with_cryptoroot
-
+                    crypto_ROOT_DIR="$with_cryptoroot"
 
 fi
 
@@ -5738,10 +5740,25 @@ Error: Could not find libcrypto
 
 fi
 
-    crypto_ROOT_LIB="ssl crypto"
+    # AC_CANONICAL_HOST is needed to access the 'host_os' variable
 
+    case "${host_os}" in
+        linux*)
+            crypto_ROOT_LIB="-lssl -lcrypto"
+            ;;
+        darwin*)
+            crypto_ROOT_LIB=""
+            ;;
+        *)
+            as_fn_error $? "\"OS $host_os is not supported\"" "$LINENO" 5
+            ;;
+    esac
 
     LDFLAGS="${ORIG_LDFLAGS}"
+    crypto_ROOT_LIB=${crypto_ROOT_LIB}
+
+    crypto_ROOT_DIR=${crypto_ROOT_DIR}
+
 
 
 # Find the code coverage tool.
@@ -17338,12 +17355,7 @@ ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
 if test x"${MISSING+set}" != xset; then
-  case $am_aux_dir in
-  *\ * | *\	*)
-    MISSING="\${SHELL} \"$am_aux_dir/missing\"" ;;
-  *)
-    MISSING="\${SHELL} $am_aux_dir/missing" ;;
-  esac
+  MISSING="\${SHELL} '$am_aux_dir/missing'"
 fi
 # Use eval to expand $SHELL
 if eval "$MISSING --is-lightweight"; then
