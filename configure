@@ -5740,19 +5740,7 @@ Error: Could not find libcrypto
 
 fi
 
-    # AC_CANONICAL_HOST is needed to access the 'host_os' variable
-
-    case "${host_os}" in
-        linux*)
-            crypto_ROOT_LIB="ssl crypto"
-            ;;
-        darwin*)
-            crypto_ROOT_LIB=""
-            ;;
-        *)
-            as_fn_error $? "\"OS $host_os is not supported\"" "$LINENO" 5
-            ;;
-    esac
+    crypto_ROOT_LIB="ssl crypto"
 
     LDFLAGS="${ORIG_LDFLAGS}"
     crypto_ROOT_LIB=${crypto_ROOT_LIB}
@@ -17355,7 +17343,12 @@ ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
 if test x"${MISSING+set}" != xset; then
-  MISSING="\${SHELL} '$am_aux_dir/missing'"
+  case $am_aux_dir in
+  *\ * | *\	*)
+    MISSING="\${SHELL} \"$am_aux_dir/missing\"" ;;
+  *)
+    MISSING="\${SHELL} $am_aux_dir/missing" ;;
+  esac
 fi
 # Use eval to expand $SHELL
 if eval "$MISSING --is-lightweight"; then
