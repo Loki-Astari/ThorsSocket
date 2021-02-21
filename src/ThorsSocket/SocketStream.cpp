@@ -59,6 +59,25 @@ SocketStreamBuffer::~SocketStreamBuffer()
     }
 }
 
+void SocketStreamBuffer::resizeInputBuffer(std::size_t inSize)
+{
+    char*  start    = eback();
+    char*  current  = gptr();
+
+    inBuffer.resize(inSize);
+    setg(&inBuffer[0], &inBuffer[current - start], &inBuffer[inBuffer.size()]);
+}
+
+void SocketStreamBuffer::resizeOutputBuffer(std::size_t outSize)
+{
+    char* start     = pbase();
+    char* current   = pptr();
+
+    outBuffer.resize(outSize);
+    setp(&outBuffer[0], &outBuffer[outBuffer.size()]);
+    pbump(current-start);
+}
+
 SocketStreamBuffer::int_type SocketStreamBuffer::underflow()
 {
     /*
@@ -275,6 +294,7 @@ std::streamsize SocketStreamBuffer::readFromStream(char_type* dest, std::streams
         }
     }
     setg(&inBuffer[0], &inBuffer[0], &inBuffer[read]);
+    std::cerr << "ReadFromStream(" << count << ", " << read << ")\n";
     return read;
 }
 std::streampos SocketStreamBuffer::seekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which)

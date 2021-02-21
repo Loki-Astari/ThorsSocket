@@ -8,6 +8,7 @@
 
 using ThorsAnvil::ThorsIO::DataSocket;
 using ThorsAnvil::ThorsIO::IOSocketStream;
+using ThorsAnvil::ThorsIO::SocketStreamBuffer;
 using ReadInfo = std::pair<bool, std::size_t>;
 
 TEST(SocketStreamTest, ReadNormal)
@@ -18,6 +19,20 @@ TEST(SocketStreamTest, ReadNormal)
 
     char data[16];
     stream.read(data,16);
+
+    ASSERT_EQ(std::string(data, data + 16), std::string("1234567890ABCDEF"));
+}
+TEST(SocketStreamTest, ReadNormalWithReSize)
+{
+    int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
+    DataSocket      dataSocket(socket);
+    IOSocketStream  stream(dataSocket);
+
+    char data[16];
+    stream.read(data, 8);
+    SocketStreamBuffer& buffer = dynamic_cast<SocketStreamBuffer&>(*stream.rdbuf());
+    buffer.resizeInputBuffer(16000);
+    stream.read(data + 8, 8);
 
     ASSERT_EQ(std::string(data, data + 16), std::string("1234567890ABCDEF"));
 }
@@ -125,6 +140,27 @@ TEST(SocketStreamTest, WriteNormal)
         std::string     line;
         std::getline(test, line);
         ASSERT_EQ("12345678", line);
+    }
+    unlink("test/data/SocketStreamTest-WriteNormal");
+}
+TEST(SocketStreamTest, WriteNormalWithResize)
+{
+    int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
+    {
+        DataSocket      dataSocket(socket, true);
+        IOSocketStream  stream(dataSocket);
+
+        char data[] = "12345678WXYZABCD";
+        stream.write(data, 8);
+        SocketStreamBuffer& buffer = dynamic_cast<SocketStreamBuffer&>(*stream.rdbuf());
+        buffer.resizeOutputBuffer(16000);
+        stream.write(data + 8, 8);
+    }
+    {
+        std::ifstream   test("test/data/SocketStreamTest-WriteNormal");
+        std::string     line;
+        std::getline(test, line);
+        ASSERT_EQ("12345678WXYZABCD", line);
     }
     unlink("test/data/SocketStreamTest-WriteNormal");
 }

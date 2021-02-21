@@ -41,6 +41,9 @@ class SocketStreamBuffer: public std::streambuf
                            char const* currentStart = nullptr, char const* currentEnd = nullptr);
         SocketStreamBuffer(SocketStreamBuffer&& move) noexcept;
 
+        void resizeInputBuffer(std::size_t inSize);
+        void resizeOutputBuffer(std::size_t outSize);
+
     protected:
         virtual int_type        underflow() override;
         virtual std::streamsize xsgetn(char_type* s, std::streamsize count) override;
