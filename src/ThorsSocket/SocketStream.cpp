@@ -294,7 +294,6 @@ std::streamsize SocketStreamBuffer::readFromStream(char_type* dest, std::streams
         }
     }
     setg(&inBuffer[0], &inBuffer[0], &inBuffer[read]);
-    std::cerr << "ReadFromStream(" << count << ", " << read << ")\n";
     return read;
 }
 std::streampos SocketStreamBuffer::seekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which)
