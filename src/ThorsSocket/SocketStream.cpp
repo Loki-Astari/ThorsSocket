@@ -308,40 +308,6 @@ std::streampos SocketStreamBufferBase::seekoff(std::streamoff off, std::ios_base
 }
 // ------------------------
 
-IOSocketStream::IOSocketStream(DataSocket& stream)
-    : std::istream(nullptr)
-    , buffer(stream, noActionNotifier, noActionNotifier)
-{
-    std::istream::rdbuf(&buffer);
-}
-
-IOSocketStream::IOSocketStream(DataSocket& stream,
-                             Notifier noAvailableData, Notifier flushing)
-    : std::istream(nullptr)
-    , buffer(stream, noAvailableData, flushing)
-{
-    std::istream::rdbuf(&buffer);
-}
-
-IOSocketStream::IOSocketStream(DataSocket& stream,
-                             Notifier noAvailableData, Notifier flushing,
-                             std::vector<char>&& bufData, char const* currentStart, char const* currentEnd)
-    : std::istream(nullptr)
-    , buffer(stream,
-             noAvailableData, flushing,
-             std::move(bufData), currentStart, currentEnd)
-{
-    rdbuf(&buffer);
-}
-
-IOSocketStream::IOSocketStream(IOSocketStream&& move) noexcept
-    : std::istream(nullptr)
-    , buffer(std::move(move.buffer))
-{
-    rdbuf(&buffer);
-}
-
-// -----
 
 SocketStreamBuffer::SocketStreamBuffer(DataSocket& stream,
                                        Notifier noAvailableData, Notifier flushing,

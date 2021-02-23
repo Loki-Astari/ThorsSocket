@@ -84,6 +84,7 @@ class SocketStreamBuffer: public SocketStreamBufferBase
 // A blocking read call to these streams calls the <code>Notifier noData</code>.
 // This is used by the <a href="#Server">Server</a> infrastructure to yield control back to the main event loop.
 // <code>using Notifier = std::function<void()>;</code>
+template<typename Buffer = SocketStreamBuffer>
 class IOSocketStream: public std::istream, public std::ostream
 {
     SocketStreamBuffer buffer;
@@ -103,5 +104,7 @@ class IOSocketStream: public std::istream, public std::ostream
 };
 
 }
+
+#include "SocketStream.tpp"
 
 #endif
