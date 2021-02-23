@@ -92,6 +92,7 @@ SocketStreamBufferBase::int_type SocketStreamBufferBase::underflow()
      * to allow updates to the get area in the case of exhaustion.
      */
     std::streamsize retrievedData = readFromStream(&inBuffer[0], inBuffer.size(), false);
+    setg(&inBuffer[0], &inBuffer[0], &inBuffer[retrievedData]);
     return (retrievedData == 0) ? traits::eof() : traits::to_int_type(*gptr());
 }
 
@@ -289,7 +290,6 @@ std::streamsize SocketStreamBufferBase::readFromStream(char_type* dest, std::str
             break;
         }
     }
-    setg(&inBuffer[0], &inBuffer[0], &inBuffer[read]);
     return read;
 }
 std::streampos SocketStreamBufferBase::seekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which)
