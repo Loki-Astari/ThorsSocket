@@ -4,44 +4,35 @@
 
 using namespace ThorsAnvil::ThorsIO;
 
-SocketStreamBuffer::SocketStreamBuffer(DataSocket& stream,
+SocketStreamBufferBase::SocketStreamBufferBase(DataSocket& stream,
                                        Notifier noAvailableData, Notifier flushing,
-                                       std::vector<char>&& bufData, char const* currentStart, char const* currentEnd)
+                                       std::vector<char>& inBuffer, std::vector<char>& outBuffer)
     : stream(stream)
     , noAvailableData(noAvailableData)
     , flushing(flushing)
-    , inBuffer(std::move(bufData))
-    , outBuffer(4000)
+    , inBuffer(inBuffer)
+    , outBuffer(outBuffer)
     , inCount(0)
     , outCount(0)
-{
-    char* newStart = const_cast<char*>(currentStart);
-    char* newEnd   = const_cast<char*>(currentEnd);
-    if (newStart == nullptr || newEnd == nullptr)
-    {
-        newStart = &inBuffer[0];
-        newEnd   = &inBuffer[0];
-    }
+{}
 
-    setg(&inBuffer[0], newStart, newEnd);
-    setp(&outBuffer[0], &outBuffer[outBuffer.size() - 1]);
-}
-
-SocketStreamBuffer::SocketStreamBuffer(SocketStreamBuffer&& move) noexcept
-    : stream(move.stream)
+SocketStreamBufferBase::SocketStreamBufferBase(SocketStreamBufferBase&& move, std::vector<char>& inBuffer, std::vector<char>& outBuffer) noexcept
+    : std::streambuf(std::move(move))
+    , stream(move.stream)
     , noAvailableData(std::move(move.noAvailableData))
     , flushing(std::move(move.flushing))
-    , inBuffer(std::move(move.inBuffer))
-    , outBuffer(std::move(move.outBuffer))
+    , inBuffer(inBuffer)
+    , outBuffer(outBuffer)
     , inCount(move.inCount)
     , outCount(move.outCount)
-{
-    move.setg(nullptr, nullptr, nullptr);
-    move.setp(nullptr, nullptr);
-}
+{}
 
-SocketStreamBuffer::~SocketStreamBuffer()
+void SocketStreamBufferBase::clear()
 {
+    if (pbase() == nullptr)
+    {
+        return;
+    }
     // Force the buffer to be output to the socket
     try
     {
@@ -51,15 +42,20 @@ SocketStreamBuffer::~SocketStreamBuffer()
     // Logging so we know what happened.
     catch (std::exception const& e)
     {
-        ThorsCatchMessage("ThorsAnvil::ThorsIO::SocketStreamBuffer", "~SocketStreamBuffer", e.what());
+        ThorsCatchMessage("ThorsAnvil::ThorsIO::SocketStreamBufferBase", "~SocketStreamBufferBase", e.what());
     }
     catch (...)
     {
-        ThorsCatchMessage("ThorsAnvil::ThorsIO::SocketStreamBuffer", "~SocketStreamBuffer", "UNKNOWN");
+        ThorsCatchMessage("ThorsAnvil::ThorsIO::SocketStreamBufferBase", "~SocketStreamBufferBase", "UNKNOWN");
     }
 }
 
-void SocketStreamBuffer::resizeInputBuffer(std::size_t inSize)
+SocketStreamBufferBase::~SocketStreamBufferBase()
+{
+    clear();
+}
+
+void SocketStreamBufferBase::resizeInputBuffer(std::size_t inSize)
 {
     char*  start    = eback();
     char*  current  = gptr();
@@ -68,7 +64,7 @@ void SocketStreamBuffer::resizeInputBuffer(std::size_t inSize)
     setg(&inBuffer[0], &inBuffer[current - start], &inBuffer[inBuffer.size()]);
 }
 
-void SocketStreamBuffer::resizeOutputBuffer(std::size_t outSize)
+void SocketStreamBufferBase::resizeOutputBuffer(std::size_t outSize)
 {
     char* start     = pbase();
     char* current   = pptr();
@@ -78,7 +74,7 @@ void SocketStreamBuffer::resizeOutputBuffer(std::size_t outSize)
     pbump(current-start);
 }
 
-SocketStreamBuffer::int_type SocketStreamBuffer::underflow()
+SocketStreamBufferBase::int_type SocketStreamBufferBase::underflow()
 {
     /*
      * Ensures that at least one character is available in the input area by updating the pointers
@@ -99,7 +95,7 @@ SocketStreamBuffer::int_type SocketStreamBuffer::underflow()
     return (retrievedData == 0) ? traits::eof() : traits::to_int_type(*gptr());
 }
 
-std::streamsize SocketStreamBuffer::xsgetn(char_type* dest, std::streamsize count)
+std::streamsize SocketStreamBufferBase::xsgetn(char_type* dest, std::streamsize count)
 {
     /*
      * Reads count characters from the input sequence and stores them into a character array pointed to by s.
@@ -149,7 +145,7 @@ std::streamsize SocketStreamBuffer::xsgetn(char_type* dest, std::streamsize coun
     return retrieved;
 }
 
-SocketStreamBuffer::int_type SocketStreamBuffer::overflow(int_type ch)
+SocketStreamBufferBase::int_type SocketStreamBufferBase::overflow(int_type ch)
 {
     /*
      * Ensures that there is space at the put area for at least one character by saving some initial subsequence of
@@ -184,7 +180,7 @@ SocketStreamBuffer::int_type SocketStreamBuffer::overflow(int_type ch)
     return int_type(ch);
 }
 
-std::streamsize SocketStreamBuffer::xsputn(char_type const* source, std::streamsize count)
+std::streamsize SocketStreamBufferBase::xsputn(char_type const* source, std::streamsize count)
 {
     /*
      * Writes count characters to the output sequence from the character array whose first element is pointed to by s.
@@ -230,7 +226,7 @@ std::streamsize SocketStreamBuffer::xsputn(char_type const* source, std::streams
     return exported;
 }
 
-int SocketStreamBuffer::sync()
+int SocketStreamBufferBase::sync()
 {
     std::streamsize written = writeToStream(pbase(), pptr() - pbase());
     int result = (written == (pptr() - pbase()))
@@ -240,7 +236,7 @@ int SocketStreamBuffer::sync()
     return result;
 }
 
-std::streamsize SocketStreamBuffer::writeToStream(char_type const* source, std::streamsize count)
+std::streamsize SocketStreamBufferBase::writeToStream(char_type const* source, std::streamsize count)
 {
     std::streamsize written = 0;
     while (written != count)
@@ -265,7 +261,7 @@ std::streamsize SocketStreamBuffer::writeToStream(char_type const* source, std::
     return written;
 }
 
-std::streamsize SocketStreamBuffer::readFromStream(char_type* dest, std::streamsize count, bool fill)
+std::streamsize SocketStreamBufferBase::readFromStream(char_type* dest, std::streamsize count, bool fill)
 {
     std::size_t used = (egptr() - &inBuffer[0]);
     inCount += used;
@@ -296,7 +292,7 @@ std::streamsize SocketStreamBuffer::readFromStream(char_type* dest, std::streams
     setg(&inBuffer[0], &inBuffer[0], &inBuffer[read]);
     return read;
 }
-std::streampos SocketStreamBuffer::seekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which)
+std::streampos SocketStreamBufferBase::seekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which)
 {
     if (way != std::ios_base::cur)
     {
@@ -343,4 +339,39 @@ IOSocketStream::IOSocketStream(IOSocketStream&& move) noexcept
     , buffer(std::move(move.buffer))
 {
     rdbuf(&buffer);
+}
+
+// -----
+
+SocketStreamBuffer::SocketStreamBuffer(DataSocket& stream,
+                                       Notifier noAvailableData, Notifier flushing,
+                                       std::vector<char>&& bufData, char const* currentStart, char const* currentEnd)
+    : SocketStreamBufferBase(stream, std::move(noAvailableData), std::move(flushing), in, out)
+    , in(std::move(bufData))
+    , out(4000)
+{
+    char* newStart = const_cast<char*>(currentStart);
+    char* newEnd   = const_cast<char*>(currentEnd);
+    if (newStart == nullptr || newEnd == nullptr)
+    {
+        newStart = &in[0];
+        newEnd   = &in[0];
+    }
+
+    setg(&in[0], newStart, newEnd);
+    setp(&out[0], &out[out.size() - 1]);
+}
+
+SocketStreamBuffer::SocketStreamBuffer(SocketStreamBuffer&& move) noexcept
+    : SocketStreamBufferBase(std::move(move), in, out)
+    , in(std::move(move.in))
+    , out(std::move(move.out))
+{
+    move.setg(nullptr, nullptr, nullptr);
+    move.setp(nullptr, nullptr);
+}
+
+SocketStreamBuffer::~SocketStreamBuffer()
+{
+    clear();
 }

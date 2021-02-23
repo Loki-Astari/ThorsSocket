@@ -18,7 +18,7 @@ inline void noActionNotifier(){}
 // This is a wrapper class for a <code>DataSocket</code> that allows the socket to be treated like <code>std::streambuf</code>.
 // This class overrides just enough virtual functions to make the <code>IOSocketStream</code> and <code>OSocketStream</code> useful.
 // This class provides no public API and is designed to be used solely with the following stream objects.
-class SocketStreamBuffer: public std::streambuf
+class SocketStreamBufferBase: public std::streambuf
 {
     private:
         typedef std::streambuf::traits_type traits;
@@ -28,18 +28,21 @@ class SocketStreamBuffer: public std::streambuf
         DataSocket&             stream;
         Notifier                noAvailableData;
         Notifier                flushing;
-        std::vector<char>       inBuffer;
-        std::vector<char>       outBuffer;
+        std::vector<char>&      inBuffer;
+        std::vector<char>&      outBuffer;
         std::size_t             inCount;
         std::size_t             outCount;
 
     public:
-        virtual ~SocketStreamBuffer() override;
-        SocketStreamBuffer(DataSocket& stream,
+        virtual ~SocketStreamBufferBase() override;
+        SocketStreamBufferBase(DataSocket& stream,
                            Notifier noAvailableData, Notifier flushing,
-                           std::vector<char>&& bufData = std::vector<char>(4000),
-                           char const* currentStart = nullptr, char const* currentEnd = nullptr);
-        SocketStreamBuffer(SocketStreamBuffer&& move) noexcept;
+                           std::vector<char>& inBuffer, std::vector<char>& outBuffer);
+        SocketStreamBufferBase(SocketStreamBufferBase&& move, std::vector<char>& inBuffer, std::vector<char>& outBuffer) noexcept;
+
+        SocketStreamBufferBase(SocketStreamBufferBase const&)               = delete;
+        SocketStreamBufferBase& operator=(SocketStreamBufferBase const&)    = delete;
+        SocketStreamBufferBase& operator=(SocketStreamBufferBase&&)         = delete;
 
         void resizeInputBuffer(std::size_t inSize);
         void resizeOutputBuffer(std::size_t outSize);
@@ -52,11 +55,27 @@ class SocketStreamBuffer: public std::streambuf
         virtual std::streamsize xsputn(char_type const* s,std::streamsize count) override;
 
         virtual int             sync() override;
+        void                    clear();
 
         virtual std::streampos seekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which = std::ios_base::in | std::ios_base::out) override;
     private:
         std::streamsize writeToStream(char_type const* source, std::streamsize count);
         std::streamsize readFromStream(char_type* dest, std::streamsize count, bool fill = true);
+};
+
+class SocketStreamBuffer: public SocketStreamBufferBase
+{
+    private:
+        std::vector<char>       in;
+        std::vector<char>       out;
+
+    public:
+        SocketStreamBuffer(DataSocket& stream,
+                           Notifier noAvailableData, Notifier flushing,
+                           std::vector<char>&& bufData = std::vector<char>(4000),
+                           char const* currentStart = nullptr, char const* currentEnd = nullptr);
+        SocketStreamBuffer(SocketStreamBuffer&& move) noexcept;
+        ~SocketStreamBuffer();
 };
 
 // @class
