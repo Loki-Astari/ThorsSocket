@@ -58,7 +58,7 @@ class SocketStreamBufferBase: public std::streambuf
         void                    clear();
 
         virtual std::streampos seekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which = std::ios_base::in | std::ios_base::out) override;
-    private:
+    protected:
         std::streamsize writeToStream(char_type const* source, std::streamsize count);
         std::streamsize readFromStream(char_type* dest, std::streamsize count, bool fill = true);
 };
