@@ -87,7 +87,7 @@ class SocketStreamBuffer: public SocketStreamBufferBase
 template<typename Buffer = SocketStreamBuffer>
 class IOSocketStream: public std::istream, public std::ostream
 {
-    SocketStreamBuffer buffer;
+    Buffer buffer;
 
     public:
         // @method
