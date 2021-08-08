@@ -36,14 +36,6 @@ LT_INIT
 # Note there are some predefined macros in build/autotools/m4/
 
 
-export cwd=`pwd`
-pushd third/ThorsIOUtil
-./configure --prefix=${prefix} --with-hostbuild=${cwd}/build ${subconfigvera}
-popd
-pushd third/ThorsLogging
-./configure --prefix=${prefix} --with-hostbuild=${cwd}/build ${subconfigvera}
-popd
-
 # Build all the Makefiles and configuration files.
 # Used by ThorMaker
 # Note: you can push the config file to sub directories in the AC_CONFIG_HEADERS macro (see example)
