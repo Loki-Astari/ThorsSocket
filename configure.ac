@@ -36,6 +36,7 @@ LT_INIT
 # Note there are some predefined macros in build/autotools/m4/
 
 
+AX_THOR_CHECK_THIRD_PARTY_LIBS
 # Build all the Makefiles and configuration files.
 # Used by ThorMaker
 # Note: you can push the config file to sub directories in the AC_CONFIG_HEADERS macro (see example)

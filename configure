@@ -5962,27 +5962,6 @@ then :
 fi
 
 
-    export cwd=$(pwd)
-
-    pushd third
-    if [ $? == 0 ]; then
-        for third in $(ls); do
-            pushd ${third}
-            if [ -e ./configure ]; then
-                echo "${third}:  ./configure ${subconfigure} --prefix=${prefix} --with-hostbuild=${cwd}/build"
-                ./configure ${subconfigure} --prefix=${prefix} --with-hostbuild=${cwd}/build
-                if [ $? != 0 ]; then
-                    "Failed to configure: ${third}"
-                    exit 1
-                fi
-            fi
-            echo "================ DONE ================="
-            popd
-        done
-        popd
-    fi
-
-
     if test "x${with_hostbuild}" == "x"
 then :
 
@@ -7009,6 +6988,7 @@ then :
 then :
 
                     crypto_ROOT_DIR="$with_cryptoroot"
+                    subconfigure="${subconfigure} --with-cryptoroot=$with_cryptoroot"
 
 fi
 
@@ -18429,6 +18409,27 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 # Add your defintions in here.
 # Note there are some predefined macros in build/autotools/m4/
 
+
+
+    export cwd=$(pwd)
+
+    pushd third
+    if [ $? == 0 ]; then
+        for third in $(ls); do
+            pushd ${third}
+            if [ -e ./configure ]; then
+                echo "${third}:  ./configure ${subconfigure} --prefix=${prefix} --with-hostbuild=${cwd}/build"
+                ./configure ${subconfigure} --prefix=${prefix} --with-hostbuild=${cwd}/build
+                if [ $? != 0 ]; then
+                    "Failed to configure: ${third}"
+                    exit 1
+                fi
+            fi
+            echo "================ DONE ================="
+            popd
+        done
+        popd
+    fi
 
 # Build all the Makefiles and configuration files.
 # Used by ThorMaker
