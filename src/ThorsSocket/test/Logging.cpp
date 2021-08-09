@@ -15,8 +15,6 @@ class LoggingEnvironment: public ::testing::Environment
     {
         using namespace std::string_literals;
 
-        loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
-
         char* logging = getenv("THOR_LOG_LEVEL");
         if (logging == nullptr)
         {
