@@ -7,3 +7,6 @@ ExampleMakeFileVariable=@ExampleMakeFileVariable@
 crypto_ROOT_DIR=@crypto_ROOT_DIR@
 crypto_ROOT_LIB=@crypto_ROOT_LIB@
 
+ThorSerialize_ROOT_DIR=@ThorSerialize_ROOT_DIR@
+ThorSerialize_ROOT_LIB=@ThorSerialize_ROOT_LIB@
+
