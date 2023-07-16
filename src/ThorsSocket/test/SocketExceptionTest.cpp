@@ -14,7 +14,6 @@ using ThorsAnvil::ThorsIO::BaseSocket;
 using ThorsAnvil::ThorsIO::DataSocket;
 using ThorsAnvil::ThorsIO::ConnectSocket;
 using ThorsAnvil::ThorsIO::ServerSocket;
-//using ThorsAnvil::ThorsIO::SSLServerSocket;
 using ThorsAnvil::ThorsIO::SSLMethod;
 using ThorsAnvil::ThorsIO::SSLctx;;
 using ReadInfo = std::pair<bool, std::size_t>;
