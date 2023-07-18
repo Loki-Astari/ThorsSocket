@@ -1,3 +1,4 @@
+#include "test/pipe.h"
 #include "SocketStream.h"
 #include <gtest/gtest.h>
 #include <thread>
@@ -13,6 +14,8 @@ using ReadInfo = std::pair<bool, std::size_t>;
 
 TEST(SocketStreamTest, ReadNormal)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
     DataSocket      dataSocket(socket);
     IOSocketStream  stream(dataSocket);
@@ -24,6 +27,8 @@ TEST(SocketStreamTest, ReadNormal)
 }
 TEST(SocketStreamTest, ReadNormalWithReSize)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
     DataSocket      dataSocket(socket);
     IOSocketStream  stream(dataSocket);
@@ -38,12 +43,16 @@ TEST(SocketStreamTest, ReadNormalWithReSize)
 }
 TEST(SocketStreamTest, ConstructWithNotifier)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
     DataSocket      dataSocket(socket);
     IOSocketStream  stream(dataSocket, [](){}, [](){});
 }
 TEST(SocketStreamTest, ConstructWithNotifierAndBuffer)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
     DataSocket      dataSocket(socket);
     std::vector<char> data {'T', 'e', 'x', 't'};
@@ -51,6 +60,8 @@ TEST(SocketStreamTest, ConstructWithNotifierAndBuffer)
 }
 TEST(SocketStreamTest, ReadNormalButHugeChunk)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-ReadLarge", O_RDONLY);
     DataSocket      dataSocket(socket);
     IOSocketStream  stream(dataSocket);
@@ -61,6 +72,8 @@ TEST(SocketStreamTest, ReadNormalButHugeChunk)
 }
 TEST(SocketStreamTest, MoveASocketStream)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
     DataSocket      dataSocket(socket);
     IOSocketStream  streamOriginal(dataSocket);
@@ -73,12 +86,17 @@ TEST(SocketStreamTest, MoveASocketStream)
 }
 TEST(SocketStreamTest, ReadFromSlowStreamToGetEAGAIN)
 {
+#ifdef  __WINNT__
+    GTEST_SKIP() << "Windows does not support nonblocking pipes";
+#else
+    SocketSetUp     setupSocket;
+
     int sysres;
     int testData   = 5;
     int resultData = 0;
 
     int pipes[2];
-    sysres = ::pipe(pipes);
+    sysres = CREATE_PIPE(pipes);
     ASSERT_EQ(0, sysres);
     int flags = ::fcntl(pipes[0], F_GETFL, 0);
     ASSERT_NE(-1, flags);
@@ -100,9 +118,12 @@ TEST(SocketStreamTest, ReadFromSlowStreamToGetEAGAIN)
     ASSERT_EQ(testData, resultData);
     ::close(pipes[1]);
     slowStream.join();
+#endif
 }
 TEST(SocketStreamTest, ReadPastEOF)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
     DataSocket      dataSocket(socket, true);
     IOSocketStream  stream(dataSocket);
@@ -116,6 +137,8 @@ TEST(SocketStreamTest, ReadPastEOF)
 
 TEST(SocketStreamTest, ReadFail)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
     DataSocket      dataSocket(socket, true);
     IOSocketStream  stream(dataSocket);
@@ -127,6 +150,8 @@ TEST(SocketStreamTest, ReadFail)
 }
 TEST(SocketStreamTest, WriteNormal)
 {
+    SocketSetUp     setupSocket;
+
     int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     {
         DataSocket      dataSocket(socket, true);
@@ -145,6 +170,8 @@ TEST(SocketStreamTest, WriteNormal)
 }
 TEST(SocketStreamTest, WriteNormalWithResize)
 {
+    SocketSetUp     setupSocket;
+
     int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     {
         DataSocket      dataSocket(socket, true);
@@ -166,12 +193,16 @@ TEST(SocketStreamTest, WriteNormalWithResize)
 }
 TEST(SocketStreamTest, ConstructOStreamWithNotifier)
 {
+    SocketSetUp     setupSocket;
+
     int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     DataSocket      dataSocket(socket, true);
     IOSocketStream  stream(dataSocket, [](){}, [](){});
 }
 TEST(SocketStreamTest, WriteNormalWithMove)
 {
+    SocketSetUp     setupSocket;
+
     int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     {
         DataSocket      dataSocket(socket, true);
@@ -191,6 +222,8 @@ TEST(SocketStreamTest, WriteNormalWithMove)
 }
 TEST(SocketStreamTest, WriteLarge)
 {
+    SocketSetUp     setupSocket;
+
     int         socket  = open("test/data/SocketStreamTest-WriteLarge", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     DataSocket      dataSocket(socket, true);
     IOSocketStream  stream(dataSocket);
@@ -201,6 +234,8 @@ TEST(SocketStreamTest, WriteLarge)
 }
 TEST(SocketStreamTest, WriteFail)
 {
+    SocketSetUp     setupSocket;
+
     int             socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     DataSocket      dataSocket(socket, true);
     IOSocketStream  stream(dataSocket);
@@ -212,6 +247,11 @@ TEST(SocketStreamTest, WriteFail)
 }
 TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
 {
+#ifdef  __WINNT__
+    GTEST_SKIP() << "Windows does not support nonblocking pipes";
+#else
+    SocketSetUp     setupSocket;
+
     int sysres;
     int const blocks   = 4;
     int const actCount = 46;
@@ -224,7 +264,7 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
     }
 
     int pipes[2];
-    sysres = ::pipe(pipes);
+    sysres = CREATE_PIPE(pipes);
     ASSERT_EQ(0, sysres);
     int flags = ::fcntl(pipes[1], F_GETFL, 0);
     ASSERT_NE(-1, flags);
@@ -267,4 +307,5 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
         ASSERT_EQ(testData[loop], resultData[loop]);
     }
     ::close(pipes[0]);
+#endif
 }

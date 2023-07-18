@@ -1,3 +1,4 @@
+#if 0
 #include "gtest/gtest.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include <iostream>
@@ -69,4 +70,4 @@ bool initLogging()
 }
 
 bool logingInit = initLogging();
-
+#endif

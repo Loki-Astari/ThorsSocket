@@ -8,7 +8,18 @@
 #include <functional>
 #include <unistd.h>
 #include <fcntl.h>
+#ifdef __WINNT__
+#include <winsock2.h>
+#include <windows.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/uio.h>
+#endif
 
 
 namespace ThorsAnvil::ThorsIO

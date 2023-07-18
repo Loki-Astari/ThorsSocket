@@ -2,9 +2,7 @@
 #include "ThorsIOUtil/Utility.h"
 #include "ThorsLogging/ThorsLogging.h"
 
-#include <netdb.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 
 using namespace ThorsAnvil::ThorsIO;
 
@@ -37,7 +35,9 @@ void Connection::connect(int fd, std::string const& host, int port)
         }
         break;
     }
-    bcopy((char *)serv->h_addr, (char *)&serverAddr.sin_addr.s_addr, serv->h_length);
+    char* src = reinterpret_cast<char*>(serv->h_addr);
+    char* dst = reinterpret_cast<char*>(&serverAddr.sin_addr.s_addr);
+    std::copy(src, src + serv->h_length, dst);
 
     if (::connectWrapper(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
     {
@@ -54,13 +54,13 @@ void Connection::connect(int fd, std::string const& host, int port)
 #endif
 }
 
-int Connection::read(int fd, char* buffer, std::size_t size)
+IOInfo Connection::read(int fd, char* buffer, std::size_t size)
 {
     return ::readWrapper(fd, buffer, size);
     // ssl->read(buffer + dataRead, size - dataRead);
 }
 
-int Connection::write(int fd, char const* buffer, std::size_t size)
+IOInfo Connection::write(int fd, char const* buffer, std::size_t size)
 {
     return ::writeWrapper(fd, buffer, size);
     // ssl->write(buffer + dataWritten, size - dataWritten);

@@ -58,13 +58,15 @@ class SSLObj: public Connection
 
         SSLObj(SSLObj const&)                   = delete;
         SSLObj& operator=(SSLObj const&)        = delete;
+        int nativeErrorCode(int ret);
 
         virtual void accept() override;
         virtual void connect(int fd, std::string const& host, int port) override;
-        virtual int read(int fd, char* buffer, std::size_t len) override;
-        virtual int write(int fd, char const* buffer, std::size_t len) override;
-        int errorCode(int ret);
+        virtual IOInfo read(int fd, char* buffer, std::size_t len) override;
+        virtual IOInfo write(int fd, char const* buffer, std::size_t len) override;
         void doConnect();
+    private:
+        int errorCode(int ret);
 };
 
 inline ConnectionBuilder createSSLBuilder(SSLctx& sslContext)

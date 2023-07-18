@@ -7,8 +7,17 @@
 #include <string>
 #include <unistd.h>
 #include <fcntl.h>
+#ifdef __WINNT__
+#include <winsock2.h>
+#include <windows.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/uio.h>
+#endif
 
 using SocketAddr    = struct sockaddr;
 using SocketStorage = struct sockaddr_storage;
@@ -21,10 +30,73 @@ inline int connectWrapper(int fd, SocketAddr* serverAddr, std::size_t sizeAddres
 inline int bindWrapper(int fd, SocketAddr* serverAddr, std::size_t sizeAddress)     {return ::bind(fd, serverAddr, sizeAddress);}
 inline int listnWrapper(int fd, int backlog)                                        {return ::listen(fd, backlog);}
 inline int acceptWrapper(int sockfd, sockaddr* addr, socklen_t* len)                {return ::accept(sockfd, addr, len);}
-inline ssize_t readWrapper(int fd, void* buf, size_t count)                         {return ::read(fd, buf, count);}
-inline ssize_t writeWrapper(int fd, void const* buf, size_t count)                  {return ::write(fd, buf, count);}
 inline int shutdownWrapper(int fd, int how)                                         {return ::shutdown(fd, how);}
-inline int fcntlWrapper(int fd, int cmd, int value)                                 {return ::fcntl(fd, cmd, value);}
+
+namespace ThorsAnvil::ThorsIO
+{
+using IOInfo = std::pair<ssize_t, int>;
+}
+
+#ifdef __WINNT__
+inline ThorsAnvil::ThorsIO::IOInfo readWrapper(int fd, void* buf, size_t count)
+{
+    ssize_t r = ::recv(fd, reinterpret_cast<char*>(buf), count, 0);
+    if (r == SOCKET_ERROR)
+    {
+        /*
+        wchar_t *s = NULL;
+        FormatMessageW(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, WSAGetLastError(),
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            (LPWSTR)&s,
+            0,
+            NULL
+        );
+        fprintf(stderr, "%S\n", s);
+        LocalFree(s);
+        */
+
+        if (WSAGetLastError() == WSAENOTSOCK)
+        {
+            r = ::_read(fd, reinterpret_cast<char*>(buf), count);
+            return {r, errno};
+        }
+        return {-1, WSAGetLastError()};
+    }
+    return {r, 0};
+}
+inline ThorsAnvil::ThorsIO::IOInfo writeWrapper(int fd, void const* buf, size_t count)
+{
+    ssize_t w = ::send(fd, reinterpret_cast<char const*>(buf), count, 0);
+    if (w == SOCKET_ERROR)
+    {
+        if (WSAGetLastError() == WSAENOTSOCK)
+        {
+            w = ::_write(fd, reinterpret_cast<char const*>(buf), count);
+            return {w, w == -1 ? errno : 0};
+        }
+        return {-1, WSAGetLastError()};
+    }
+    return {w, 0};
+}
+inline int nonBlockingWrapper(int fd)
+{
+    u_long mode = 1;
+    int e = ::ioctlsocket(fd, FIONBIO, &mode);
+    if ((e == 0) || (WSAGetLastError() == WSAENOTSOCK))
+    {
+        // If not an error
+        // Or the error was because it was not a socket (that we ignore).
+        return 0;
+    }
+    return -1;
+}
+#else
+inline ThorsAnvil::ThorsIO::IOInfo readWrapper(int fd, void* buf, size_t count)         {ssize_t r = ::read(fd, buf, count); return {r, errno};}
+inline ThorsAnvil::ThorsIO::IOInfo writeWrapper(int fd, void const* buf, size_t count)  {ssize_t w = ::write(fd, buf, count);return {w, errno};}
+inline int nonBlockingWrapper(int fd)                                                   {return ::fcntl(fd, F_SETFL, O_NONBLOCK);}
+#endif
 
 namespace ThorsAnvil::ThorsIO
 {
@@ -35,8 +107,8 @@ class Connection
         virtual ~Connection() {}
         virtual void accept();
         virtual void connect(int fd, std::string const& host, int port);
-        virtual int read(int fd, char* buffer, std::size_t size);
-        virtual int write(int fd, char const* buffer, std::size_t size);
+        virtual IOInfo read(int fd, char* buffer, std::size_t size);
+        virtual IOInfo write(int fd, char const* buffer, std::size_t size);
 };
 
 /*

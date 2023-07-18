@@ -229,17 +229,43 @@ void SSLObj::doConnect()
     }
 }
 
-int SSLObj::read(int /*fd*/, char* buffer, std::size_t len)
+IOInfo SSLObj::read(int /*fd*/, char* buffer, std::size_t len)
 {
-    return SSL_read(ssl, buffer, len);
+    int r = SSL_read(ssl, buffer, len);
+    return {r, errorCode(r)};
 }
 
-int SSLObj::write(int /*fd*/, char const* buffer, std::size_t len)
+IOInfo SSLObj::write(int /*fd*/, char const* buffer, std::size_t len)
 {
-    return SSL_write(ssl, buffer, len);
+    int w = SSL_write(ssl, buffer, len);
+    return {w, errorCode(w)};
+}
+
+int SSLObj::nativeErrorCode(int ret)
+{
+    return SSL_get_error(ssl, ret);
 }
 
 int SSLObj::errorCode(int ret)
 {
-    return SSL_get_error(ssl, ret);
+    int sslCode = nativeErrorCode(ret);
+    switch (sslCode)
+    {
+                case SSL_ERROR_WANT_CONNECT:
+                case SSL_ERROR_WANT_ACCEPT:
+                case SSL_ERROR_SYSCALL:
+                case SSL_ERROR_SSL:
+                    return EBADF;
+                case SSL_ERROR_WANT_ASYNC:
+                case SSL_ERROR_WANT_ASYNC_JOB:
+                    return EINTR;
+                case SSL_ERROR_WANT_READ:
+                case SSL_ERROR_WANT_WRITE:
+                case SSL_ERROR_WANT_X509_LOOKUP:
+                case SSL_ERROR_WANT_CLIENT_HELLO_CB:
+                    return ETIMEDOUT;
+                case SSL_ERROR_ZERO_RETURN:
+                    return ENOTCONN;
+    }
+    return 0;
 }

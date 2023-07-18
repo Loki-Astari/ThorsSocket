@@ -1,14 +1,13 @@
+#include "test/pipe.h"
 #include "Socket.h"
 #include "SSLUtil.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include "coverage/ThorMock.h"
 #include <fstream>
-#include <sys/socket.h>
 #include <gtest/gtest.h>
 #include <future>
 #include <unistd.h>
 #include <fcntl.h>
-#include <netdb.h>
 
 using ThorsAnvil::ThorsIO::BaseSocket;
 using ThorsAnvil::ThorsIO::DataSocket;
@@ -36,16 +35,22 @@ TEST(SocketTest, defaultConstruct)
 }
 TEST(SocketTest, baseSocketInitNonBlocking)
 {
+    SocketSetUp     setupSocket;
+
     int sock = ::socket(PF_INET, SOCK_STREAM, 0);
     DerivedFromBase     derived(sock, false);
 }
 TEST(SocketTest, baseSocketInitBlocking)
 {
+    SocketSetUp     setupSocket;
+
     int sock = ::socket(PF_INET, SOCK_STREAM, 0);
     DerivedFromBase     derived(sock, true);
 }
 TEST(SocketTest, baseSocketMoveConstruct)
 {
+    SocketSetUp     setupSocket;
+
     int sock = ::socket(PF_INET, SOCK_STREAM, 0);
     DerivedFromBase     derived1(sock);
     DerivedFromBase     derived2(std::move(derived1));
@@ -55,6 +60,8 @@ TEST(SocketTest, baseSocketMoveConstruct)
 }
 TEST(SocketTest, baseSocketMoveAssign)
 {
+    SocketSetUp     setupSocket;
+
     int sock1 = ::socket(PF_INET, SOCK_STREAM, 0);
     int sock2 = ::socket(PF_INET, SOCK_STREAM, 0);
     DerivedFromBase     derived1(sock1);
@@ -66,6 +73,8 @@ TEST(SocketTest, baseSocketMoveAssign)
 }
 TEST(SocketTest, baseSocketSwap)
 {
+    SocketSetUp     setupSocket;
+
     int sock1 = ::socket(PF_INET, SOCK_STREAM, 0);
     int sock2 = ::socket(PF_INET, SOCK_STREAM, 0);
     DerivedFromBase     derived1(sock1);
@@ -79,10 +88,14 @@ TEST(SocketTest, baseSocketSwap)
 }
 TEST(SocketTest, ConnectSocket)
 {
+    SocketSetUp     setupSocket;
+
     ConnectSocket   socket("amazon.com", 80);
 }
 TEST(SocketTest, ServerSocketAccept)
 {
+    SocketSetUp     setupSocket;
+
     ServerSocket    socket(12345678, true);
     auto future = std::async( std::launch::async, [&socket](){ConnectSocket connect("127.0.0.1", 12345678);});
     DataSocket      connection = socket.accept();
@@ -91,9 +104,11 @@ TEST(SocketTest, ServerSocketAccept)
 }
 TEST(SocketTest, readOneLine)
 {
+    SocketSetUp     setupSocket;
+
     int fd[2];
     std::string const testData    = "A line of text\n";
-    EXPECT_EQ(0, ::pipe(fd));
+    EXPECT_EQ(0, CREATE_PIPE(fd));
     EXPECT_EQ(testData.size(), ::write(fd[1], testData.c_str(), testData.size()));
     EXPECT_EQ(0, ::close(fd[1]));
 
@@ -106,9 +121,11 @@ TEST(SocketTest, readOneLine)
 }
 TEST(SocketTest, readMoreDataThanIsAvailable)
 {
+    SocketSetUp     setupSocket;
+
     int fd[2];
     std::string const testData    = "A line of text\n";
-    EXPECT_EQ(0, ::pipe(fd));
+    EXPECT_EQ(0, CREATE_PIPE(fd));
     EXPECT_EQ(testData.size(), ::write(fd[1], testData.c_str(), testData.size()));
     EXPECT_EQ(0, ::close(fd[1]));
 
@@ -122,9 +139,14 @@ TEST(SocketTest, readMoreDataThanIsAvailable)
 }
 TEST(SocketTest, readMoreDataThanIsAvailableFromNonBlockingStream)
 {
+#ifdef __WINNT__
+    GTEST_SKIP() << "Windows does not support non blocking pipes";
+#endif
+    SocketSetUp     setupSocket;
+
     int fd[2];
     std::string const testData    = "A line of text\n";
-    EXPECT_EQ(0, ::pipe(fd));
+    EXPECT_EQ(0, CREATE_PIPE(fd));
     EXPECT_EQ(testData.size(), ::write(fd[1], testData.c_str(), testData.size()));
 
     DataSocket      pipeReader(fd[0]);
@@ -142,9 +164,11 @@ TEST(SocketTest, readMoreDataThanIsAvailableFromNonBlockingStream)
 }
 TEST(SocketTest, writeOneLine)
 {
+    SocketSetUp     setupSocket;
+
     int fd[2];
     std::string const testData    = "A line of text\n";
-    EXPECT_EQ(0, ::pipe(fd));
+    EXPECT_EQ(0, CREATE_PIPE(fd));
 
     DataSocket      pipeWriter(fd[1]);
     pipeWriter.putMessageData(testData.c_str(), testData.size());

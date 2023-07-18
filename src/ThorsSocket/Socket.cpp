@@ -2,11 +2,8 @@
 #include "ThorsIOUtil/Utility.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include <stdexcept>
-#include <netdb.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include <sys/types.h>
 #include <iostream>
 
@@ -35,7 +32,7 @@ BaseSocket::BaseSocket(int socketId, bool blocking)
 
 void BaseSocket::makeSocketNonBlocking()
 {
-    if (::fcntlWrapper(socketId, F_SETFL, O_NONBLOCK) == -1)
+    if (::nonBlockingWrapper(socketId) == -1)
     {
         ThorsLogAndThrowCritical("ThorsAnvil::ThorsIO::BaseSocket::",
                                  "makeSocketNonBlocking",
@@ -157,11 +154,19 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
     while (dataRead < size)
     {
         // The inner loop handles interactions with the socket.
-        std::size_t get = connection->read(getSocketId(), buffer + dataRead, size - dataRead);
-        if (get == static_cast<std::size_t>(-1))
+        IOInfo get = connection->read(getSocketId(), buffer + dataRead, size - dataRead);
+        if (get.first == -1)
         {
-            switch (errno)
+            switch (get.second)
             {
+#ifdef __WINNT__
+                case WSANOTINITIALISED:
+                case WSAEFAULT:
+                case WSAENOTCONN:
+                case WSAENOTSOCK:
+                case WSAEOPNOTSUPP:
+                case WSAEINVAL:
+#endif
                 case EBADF:
                 case EFAULT:
                 case EINVAL:
@@ -173,6 +178,9 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                                              "getMessageData",
                                              "::read() critical error: ", Utility::systemErrorMessage());
                 }
+#ifdef __WINNT__
+                case WSAENETDOWN:
+#endif
                 case EIO:
                 case ENOBUFS:
                 {
@@ -181,6 +189,9 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                                      "getMessageData",
                                      "::read(): resource failure: ", Utility::systemErrorMessage());
                 }
+#ifdef __WINNT__
+                case WSAEINTR:
+#endif
                 case EINTR:
                 {
                     // TODO: Check for user interrupt flags.
@@ -188,6 +199,11 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                     //       so continue normal operations.
                     continue;
                 }
+#ifdef __WINNT__
+                case WSAEINPROGRESS:
+                case WSAEWOULDBLOCK:
+                case WSAEMSGSIZE:
+#endif
                 case ETIMEDOUT:
                 case EAGAIN:
                 //case EWOULDBLOCK:
@@ -197,6 +213,13 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                     readYield();
                     return {true, dataRead - alreadyGot};
                 }
+#ifdef __WINNT__
+                case WSAENETRESET:
+                case WSAESHUTDOWN:
+                case WSAECONNABORTED:
+                case WSAETIMEDOUT:
+                case WSAECONNRESET:
+#endif
                 case ECONNRESET:
                 case ENOTCONN:
                 {
@@ -213,11 +236,11 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                 }
             }
         }
-        if (get == 0)
+        if (get.first == 0)
         {
             return {false, dataRead - alreadyGot};
         }
-        dataRead += get;
+        dataRead += get.first;
     }
 
     return {true, dataRead - alreadyGot};
@@ -236,11 +259,19 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
 
     while (dataWritten < size)
     {
-        std::size_t put = connection->write(getSocketId(), buffer + dataWritten, size - dataWritten);
-        if (put == static_cast<std::size_t>(-1))
+        IOInfo put = connection->write(getSocketId(), buffer + dataWritten, size - dataWritten);
+        if (put.first == -1)
         {
-            switch (errno)
+            switch (put.second)
             {
+#ifdef __WINNT__
+                case WSANOTINITIALISED:
+                case WSAEFAULT:
+                case WSAENOTCONN:
+                case WSAENOTSOCK:
+                case WSAEOPNOTSUPP:
+                case WSAEINVAL:
+#endif
                 case EINVAL:
                 case EBADF:
                 case ECONNRESET:
@@ -252,7 +283,11 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
                                              "putMessageData",
                                              "::write() critical error: ", Utility::systemErrorMessage());
                 }
+#ifdef __WINNT__
+                case WSAENETDOWN:
+#else
                 case EDQUOT:
+#endif
                 case EFBIG:
                 case EIO:
                 case ENETDOWN:
@@ -264,6 +299,9 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
                                      "putMessageData",
                                      "::write() resource failure: ", Utility::systemErrorMessage());
                 }
+#ifdef __WINNT__
+                case WSAEINTR:
+#endif
                 case EINTR:
                 {
                     // TODO: Check for user interrupt flags.
@@ -271,6 +309,11 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
                     //       so continue normal operations.
                     continue;
                 }
+#ifdef __WINNT__
+                case WSAEINPROGRESS:
+                case WSAEWOULDBLOCK:
+                case WSAEMSGSIZE:
+#endif
                 case ETIMEDOUT:
                 case EAGAIN:
                 //case EWOULDBLOCK:
@@ -280,6 +323,20 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
                     writeYield();
                     return {true, dataWritten - alreadyPut};
                 }
+#ifdef __WINNT__
+                case WSAENETRESET:
+                case WSAESHUTDOWN:
+                case WSAECONNABORTED:
+                case WSAETIMEDOUT:
+                case WSAECONNRESET:
+#endif
+                case ENOTCONN:
+                {
+                    // Connection broken.
+                    // Return the data we have available and exit
+                    // as if the connection was closed correctly.
+                    return {false, dataWritten - alreadyPut};
+                }
                 default:
                 {
                     ThorsLogAndThrow("ThorsAnvil::Socket::DataSocket::",
@@ -288,14 +345,19 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
                 }
             }
         }
-        dataWritten += put;
+        dataWritten += put.first;
     }
     return {true, dataWritten - alreadyPut};
 }
 
+#ifdef  __WINNT__
+#define THOR_SHUTDOWN_WRITE     SD_SEND
+#else
+#define THOR_SHUTDOWN_WRITE     SHUT_WR
+#endif
 void DataSocket::putMessageClose()
 {
-    if (::shutdown(getSocketId(), SHUT_WR) != 0)
+    if (::shutdown(getSocketId(), THOR_SHUTDOWN_WRITE) != 0)
     {
         ThorsLogAndThrowCritical("ThorsAnvil::Socket::DataSocket::",
                                  "putMessageClose",
