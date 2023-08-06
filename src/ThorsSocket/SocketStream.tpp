@@ -5,7 +5,7 @@
 #error "Don't include this file directly. Include SocketStream.h"
 #endif
 
-namespace ThorsAnvil::ThorsIO
+namespace ThorsAnvil::ThorsSocket
 {
 
 template<typename Buffer>

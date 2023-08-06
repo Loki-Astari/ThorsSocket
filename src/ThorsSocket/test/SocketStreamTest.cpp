@@ -7,17 +7,23 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-using ThorsAnvil::ThorsIO::DataSocket;
-using ThorsAnvil::ThorsIO::IOSocketStream;
-using ThorsAnvil::ThorsIO::SocketStreamBuffer;
+using ThorsAnvil::ThorsSocket::DataSocket;
+using ThorsAnvil::ThorsSocket::ConnectionNormal;
+using ThorsAnvil::ThorsSocket::IOSocketStream;
+using ThorsAnvil::ThorsSocket::SocketStreamBuffer;
 using ReadInfo = std::pair<bool, std::size_t>;
+
+static ThorsAnvil::ThorsSocket::ConnectionBuilder getNormalBuilder()
+{
+    return [](int fd){return std::make_unique<ConnectionNormal>(fd);};
+}
 
 TEST(SocketStreamTest, ReadNormal)
 {
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
-    DataSocket      dataSocket(socket);
+    DataSocket      dataSocket(getNormalBuilder(), socket);
     IOSocketStream  stream(dataSocket);
 
     char data[16];
@@ -30,7 +36,7 @@ TEST(SocketStreamTest, ReadNormalWithReSize)
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
-    DataSocket      dataSocket(socket);
+    DataSocket      dataSocket(getNormalBuilder(), socket);
     IOSocketStream  stream(dataSocket);
 
     char data[16];
@@ -46,7 +52,7 @@ TEST(SocketStreamTest, ConstructWithNotifier)
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
-    DataSocket      dataSocket(socket);
+    DataSocket      dataSocket(getNormalBuilder(), socket);
     IOSocketStream  stream(dataSocket, [](){}, [](){});
 }
 TEST(SocketStreamTest, ConstructWithNotifierAndBuffer)
@@ -54,7 +60,7 @@ TEST(SocketStreamTest, ConstructWithNotifierAndBuffer)
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
-    DataSocket      dataSocket(socket);
+    DataSocket      dataSocket(getNormalBuilder(), socket);
     std::vector<char> data {'T', 'e', 'x', 't'};
     IOSocketStream  stream(dataSocket, [](){}, [](){}, std::move(data), &data[0], &data[2]);
 }
@@ -63,7 +69,7 @@ TEST(SocketStreamTest, ReadNormalButHugeChunk)
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-ReadLarge", O_RDONLY);
-    DataSocket      dataSocket(socket);
+    DataSocket      dataSocket(getNormalBuilder(), socket);
     IOSocketStream  stream(dataSocket);
 
     std::vector<char>   data(8000);
@@ -75,7 +81,7 @@ TEST(SocketStreamTest, MoveASocketStream)
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
-    DataSocket      dataSocket(socket);
+    DataSocket      dataSocket(getNormalBuilder(), socket);
     IOSocketStream  streamOriginal(dataSocket);
     IOSocketStream  stream(std::move(streamOriginal));
 
@@ -110,7 +116,7 @@ TEST(SocketStreamTest, ReadFromSlowStreamToGetEAGAIN)
         }
     });
 
-    DataSocket      dataSocket(pipes[0], true);
+    DataSocket      dataSocket(getNormalBuilder(), pipes[0], true);
     IOSocketStream  stream(dataSocket);
     stream.read(reinterpret_cast<char*>(&resultData), sizeof(resultData));
     EXPECT_EQ(sizeof(resultData), stream.gcount());
@@ -125,7 +131,7 @@ TEST(SocketStreamTest, ReadPastEOF)
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
-    DataSocket      dataSocket(socket, true);
+    DataSocket      dataSocket(getNormalBuilder(), socket, true);
     IOSocketStream  stream(dataSocket);
 
     char data[16];
@@ -140,7 +146,7 @@ TEST(SocketStreamTest, ReadFail)
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-ReadNormal", O_RDONLY);
-    DataSocket      dataSocket(socket, true);
+    DataSocket      dataSocket(getNormalBuilder(), socket, true);
     IOSocketStream  stream(dataSocket);
     close(socket);
 
@@ -154,7 +160,7 @@ TEST(SocketStreamTest, WriteNormal)
 
     int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     {
-        DataSocket      dataSocket(socket, true);
+        DataSocket      dataSocket(getNormalBuilder(), socket, true);
         IOSocketStream  stream(dataSocket);
 
         char data[16] = "12345678";
@@ -174,7 +180,7 @@ TEST(SocketStreamTest, WriteNormalWithResize)
 
     int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     {
-        DataSocket      dataSocket(socket, true);
+        DataSocket      dataSocket(getNormalBuilder(), socket, true);
         IOSocketStream  stream(dataSocket);
 
         char data[] = "12345678WXYZABCD";
@@ -196,7 +202,7 @@ TEST(SocketStreamTest, ConstructOStreamWithNotifier)
     SocketSetUp     setupSocket;
 
     int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
-    DataSocket      dataSocket(socket, true);
+    DataSocket      dataSocket(getNormalBuilder(), socket, true);
     IOSocketStream  stream(dataSocket, [](){}, [](){});
 }
 TEST(SocketStreamTest, WriteNormalWithMove)
@@ -205,7 +211,7 @@ TEST(SocketStreamTest, WriteNormalWithMove)
 
     int         socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
     {
-        DataSocket      dataSocket(socket, true);
+        DataSocket      dataSocket(getNormalBuilder(), socket, true);
         IOSocketStream  streamOriginal(dataSocket);
         IOSocketStream  stream(std::move(streamOriginal));
 
@@ -225,7 +231,7 @@ TEST(SocketStreamTest, WriteLarge)
     SocketSetUp     setupSocket;
 
     int         socket  = open("test/data/SocketStreamTest-WriteLarge", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
-    DataSocket      dataSocket(socket, true);
+    DataSocket      dataSocket(getNormalBuilder(), socket, true);
     IOSocketStream  stream(dataSocket);
 
     std::vector<char> data(8000);
@@ -237,7 +243,7 @@ TEST(SocketStreamTest, WriteFail)
     SocketSetUp     setupSocket;
 
     int             socket  = open("test/data/SocketStreamTest-WriteNormal", O_WRONLY | O_CREAT | O_TRUNC, 0777 );
-    DataSocket      dataSocket(socket, true);
+    DataSocket      dataSocket(getNormalBuilder(), socket, true);
     IOSocketStream  stream(dataSocket);
     close(socket);
 
@@ -292,7 +298,7 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
         }
     });
 
-    DataSocket      dataSocket(pipes[1], true);
+    DataSocket      dataSocket(getNormalBuilder(), pipes[1], true);
     IOSocketStream  stream(dataSocket);
     for(int blockLoop = 0; blockLoop < blocks; ++blockLoop)
     {

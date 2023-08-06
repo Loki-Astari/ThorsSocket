@@ -1,13 +1,8 @@
 #include "Socket.h"
 #include "ThorsIOUtil/Utility.h"
 #include "ThorsLogging/ThorsLogging.h"
-#include <stdexcept>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <iostream>
 
-using namespace ThorsAnvil::ThorsIO;
+using namespace ThorsAnvil::ThorsSocket;
 
 namespace Utility = ThorsAnvil::Utility;
 
@@ -20,7 +15,7 @@ BaseSocket::BaseSocket(int socketId, bool blocking)
 {
     if (socketId == invalidSocketId)
     {
-        ThorsLogAndThrowCritical("ThorsAnvil::ThorsIO::BaseSocket::",
+        ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
                                  "BaseSocket",
                                  "bad socket: ", Utility::systemErrorMessage());
     }
@@ -34,7 +29,7 @@ void BaseSocket::makeSocketNonBlocking()
 {
     if (::nonBlockingWrapper(socketId) == -1)
     {
-        ThorsLogAndThrowCritical("ThorsAnvil::ThorsIO::BaseSocket::",
+        ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
                                  "makeSocketNonBlocking",
                                  "::fcntl() ", Utility::systemErrorMessage());
     }
@@ -57,11 +52,11 @@ BaseSocket::~BaseSocket()
     // Logging so we know what happened.
     catch (std::exception const& e)
     {
-        ThorsCatchMessage("ThorsAnvil::ThorsIO::BaseSocket", "~BaseSocket", e.what());
+        ThorsCatchMessage("ThorsAnvil::ThorsSocket::BaseSocket", "~BaseSocket", e.what());
     }
     catch (...)
     {
-        ThorsCatchMessage("ThorsAnvil::ThorsIO::BaseSocket", "~BaseSocket", "UNKNOWN");
+        ThorsCatchMessage("ThorsAnvil::ThorsSocket::BaseSocket", "~BaseSocket", "UNKNOWN");
     }
 }
 
@@ -69,7 +64,7 @@ void BaseSocket::close()
 {
     if (socketId == invalidSocketId)
     {
-        ThorsLogAndThrowLogical("ThorsAnvil::ThorsIO::BaseSocket::",
+        ThorsLogAndThrowLogical("ThorsAnvil::ThorsSocket::BaseSocket::",
                                 "close",
                                 "Called on a bad socket object (this object was moved)");
     }
@@ -80,11 +75,11 @@ void BaseSocket::close()
             switch (errno)
             {
                 case EBADF: socketId = invalidSocketId;
-                            ThorsLogAndThrowCritical("ThorsAnvil::ThorsIO::BaseSocket::",
+                            ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
                                                      "close"
                                                      "::close() ", socketId, " ", Utility::systemErrorMessage());
                 case EIO:   socketId = invalidSocketId;
-                            ThorsLogAndThrow("ThorsAnvil::ThorsIO::BaseSocket::",
+                            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::BaseSocket::",
                                              "close",
                                              "::close() ", socketId, " ", Utility::systemErrorMessage());
                 case EINTR:
@@ -95,7 +90,7 @@ void BaseSocket::close()
                     continue;
                 }
                 default:    socketId = invalidSocketId;
-                            ThorsLogAndThrowCritical("ThorsAnvil::ThorsIO::BaseSocket::",
+                            ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
                                                      "close",
                                                      "::close() ", socketId, " ", Utility::systemErrorMessage());
             }
@@ -123,7 +118,7 @@ BaseSocket& BaseSocket::operator=(BaseSocket&& move) noexcept
     return *this;
 }
 
-DataSocket::DataSocket(int socketId, bool blocking, bool server, ConnectionBuilder const& builder)
+DataSocket::DataSocket(ConnectionBuilder const& builder, int socketId, bool blocking, bool server)
     : BaseSocket(socketId, blocking)
     , readYield([](){})
     , writeYield([](){})
@@ -145,7 +140,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
 {
     if (getSocketId() == invalidSocketId)
     {
-        ThorsLogAndThrowLogical("ThorsAnvil::ThorsIO::DataSocket::",
+        ThorsLogAndThrowLogical("ThorsAnvil::ThorsSocket::DataSocket::",
                                 "getMessageData",
                                 "called on a bad socket object (this object was moved)");
     }
@@ -154,7 +149,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
     while (dataRead < size)
     {
         // The inner loop handles interactions with the socket.
-        IOInfo get = connection->read(getSocketId(), buffer + dataRead, size - dataRead);
+        IOInfo get = connection->read(buffer + dataRead, size - dataRead);
         if (get.first == -1)
         {
             switch (get.second)
@@ -174,7 +169,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                 case ENOMEM:
                 {
                     // Fatal error. Programming bug
-                    ThorsLogAndThrowCritical("ThorsAnvil::ThorsIO::DataSocket::",
+                    ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::DataSocket::",
                                              "getMessageData",
                                              "::read() critical error: ", Utility::systemErrorMessage());
                 }
@@ -185,7 +180,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                 case ENOBUFS:
                 {
                    // Resource acquisition failure or device error
-                    ThorsLogAndThrow("ThorsAnvil::ThorsIO::DataSocket::",
+                    ThorsLogAndThrow("ThorsAnvil::ThorsSocket::DataSocket::",
                                      "getMessageData",
                                      "::read(): resource failure: ", Utility::systemErrorMessage());
                 }
@@ -230,7 +225,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
                 }
                 default:
                 {
-                    ThorsLogAndThrow("ThorsAnvil::ThorsIO::DataSocket::",
+                    ThorsLogAndThrow("ThorsAnvil::ThorsSocket::DataSocket::",
                                      "getMessageData",
                                      "::read() returned -1: ", Utility::systemErrorMessage());
                 }
@@ -259,7 +254,7 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
 
     while (dataWritten < size)
     {
-        IOInfo put = connection->write(getSocketId(), buffer + dataWritten, size - dataWritten);
+        IOInfo put = connection->write(buffer + dataWritten, size - dataWritten);
         if (put.first == -1)
         {
             switch (put.second)
@@ -365,10 +360,10 @@ void DataSocket::putMessageClose()
     }
 }
 
-ConnectSocket::ConnectSocket(std::string const& host, int port, ConnectionBuilder const& builder)
-    : DataSocket(::socketWrapper(PF_INET, SOCK_STREAM, 0), true, false, builder)
+ConnectSocket::ConnectSocket(ConnectionBuilder const& builder, std::string const& host, int port)
+    : DataSocket(builder, ::socketWrapper(PF_INET, SOCK_STREAM, 0), true, false)
 {
-    connection->connect(getSocketId(), host, port);
+    connection->connect(host, port);
 }
 
 ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
@@ -396,7 +391,7 @@ ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
     }
 }
 
-DataSocket ServerSocket::accept(bool blocking, ConnectionBuilder const& builder)
+DataSocket ServerSocket::accept(ConnectionBuilder const& builder, bool blocking)
 {
     if (getSocketId() == invalidSocketId)
     {
@@ -412,5 +407,5 @@ DataSocket ServerSocket::accept(bool blocking, ConnectionBuilder const& builder)
                          "accept",
                          "::accept() ", Utility::systemErrorMessage());
     }
-    return DataSocket(newSocket, blocking, true, builder);
+    return DataSocket(builder, newSocket, blocking, true);
 }

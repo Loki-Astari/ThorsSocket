@@ -1,28 +1,18 @@
-#ifndef THORSANVIL_NISSE_CORE_SOCKET_SOCKET_H
-#define THORSANVIL_NISSE_CORE_SOCKET_SOCKET_H
+#ifndef THORSANVIL_THORSSOCKET_SOCKET_H
+#define THORSANVIL_THORSSOCKET_SOCKET_H
 
 #include "Connection.h"
+#include "ConnectionNormal.h"
+#include "ConnectionSSL.h"
+
 #include <memory>
-#include <string>
-#include <utility>
 #include <functional>
-#include <unistd.h>
-#include <fcntl.h>
-#ifdef __WINNT__
-#include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
-#else
-#include <sys/socket.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/uio.h>
-#endif
+#include <cstddef>
+#include <utility>
+#include <string>
 
 
-namespace ThorsAnvil::ThorsIO
+namespace ThorsAnvil::ThorsSocket
 {
 
 // @class
@@ -70,7 +60,7 @@ class DataSocket: public BaseSocket
 
     public:
         // @method
-        DataSocket(int socketId, bool blocking = false, bool server = false, ConnectionBuilder const& builder = createNormalBuilder());
+        DataSocket(ConnectionBuilder const& builder, int socketId, bool blocking = false, bool server = false);
 
         // @method
         void setYield(std::function<void()>&& yr, std::function<void()>&& yw);
@@ -108,7 +98,7 @@ class ConnectSocket: public DataSocket
 {
     public:
         // @method
-        ConnectSocket(std::string const& host, int port, ConnectionBuilder const& builder = createNormalBuilder());
+        ConnectSocket(ConnectionBuilder const& builder, std::string const& host, int port);
 };
 
 // @class
@@ -126,8 +116,51 @@ class ServerSocket: public BaseSocket
         // If this is a blocking socket wait for a connection.
         // @return              A <code>DataSocket</code> is returned so data can be exchange across the socket.
         // @param blocking      Passed to the constructor of the <code>DataSocket</code> that is returned.
-        DataSocket accept(bool blocking = false, ConnectionBuilder const& builder = createNormalBuilder());
+        DataSocket accept(ConnectionBuilder const& builder, bool blocking = false);
 };
+
+/*
+ * Trivial wrappers for creating Normal (plain text) or SSL connections.
+ */
+class ServerSocketNormal: public ServerSocket
+{
+    public:
+        using ServerSocket::ServerSocket;
+        DataSocket accept(bool blocking = false)
+        {
+            return ServerSocket::accept([](int fd){return std::make_unique<ConnectionNormal>(fd);}, blocking);
+        }
+};
+class ConnectSocketNormal: public ConnectSocket
+{
+    public:
+        ConnectSocketNormal(std::string const& host, int port)
+            : ConnectSocket([](int fd){return std::make_unique<ConnectionNormal>(fd);}, host, port)
+        {}
+};
+
+class ServerSocketSSL: public ServerSocket
+{
+    SSLctx&     context;
+    public:
+        ServerSocketSSL(SSLctx& context, int port, bool blocking = false, int maxWaitingConnections = maxConnectionBacklog)
+            : ServerSocket(port, blocking, maxWaitingConnections)
+            , context(context)
+        {}
+        DataSocket accept(bool blocking = false)
+        {
+            return ServerSocket::accept([&context = this->context](int fd){return std::make_unique<ConnectionSSL>(context, fd);}, blocking);
+        }
+};
+class ConnectSocketSSL: public ConnectSocket
+{
+    public:
+        ConnectSocketSSL(SSLctx& context, std::string const& host, int port)
+            : ConnectSocket([&context](int fd){return std::make_unique<ConnectionSSL>(context, fd);}, host, port)
+        {}
+};
+
+
 }
 
 #endif

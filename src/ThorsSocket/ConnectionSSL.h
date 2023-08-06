@@ -1,13 +1,13 @@
-#ifndef THORS_ANVIL_DB_COMMON_SSL_UTIL_H
-#define THORS_ANVIL_DB_COMMON_SSL_UTIL_H
+#ifndef THORSANVIL_THORSSOCKET_CONNECTION_SSL_H
+#define THORSANVIL_THORSSOCKET_CONNECTION_SSL_H
 
-#include "Connection.h"
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#include "ConnectionNormal.h"
+#include <cstddef>
 #include <string>
 
+#include <openssl/ssl.h>
 
-namespace ThorsAnvil::ThorsIO
+namespace ThorsAnvil::ThorsSocket
 {
 
 class SSLUtil
@@ -24,7 +24,7 @@ class SSLUtil
 
 enum class SSLMethodType {Client, Server};
 class SSLctx;
-class SSLObj;
+class ConnectionSSL;
 class SSLMethod
 {
     friend class SSLctx;
@@ -38,7 +38,7 @@ class SSLMethod
 
 class SSLctx
 {
-    friend class SSLObj;
+    friend class ConnectionSSL;
     SSL_CTX*            ctx;
     public:
         SSLctx(SSLMethod& method);
@@ -49,31 +49,28 @@ class SSLctx
         SSLctx& operator=(SSLctx const&)        = delete;
 };
 
-class SSLObj: public Connection
+class ConnectionSSL: public ConnectionNormal
 {
     SSL*                ssl;
     public:
-        SSLObj(SSLctx const& ctx, int fileDescriptor);
-        ~SSLObj();
+        ConnectionSSL(SSLctx const& ctx, int fd);
+        ~ConnectionSSL();
 
-        SSLObj(SSLObj const&)                   = delete;
-        SSLObj& operator=(SSLObj const&)        = delete;
-        int nativeErrorCode(int ret);
-
-        virtual void accept() override;
-        virtual void connect(int fd, std::string const& host, int port) override;
-        virtual IOInfo read(int fd, char* buffer, std::size_t len) override;
-        virtual IOInfo write(int fd, char const* buffer, std::size_t len) override;
+        virtual void accept()                                           override;
+        virtual void connect(std::string const& host, int port)         override;
+    // BUG:
+    // This function is for StreamSimple.
+    // It needs to be factored out.
         void doConnect();
+        virtual IOInfo read(char* buffer, std::size_t len)              override;
+        virtual IOInfo write(char const* buffer, std::size_t len)       override;
     private:
-        int errorCode(int ret);
+        int  errorCode(int ret);
+    // BUG: Next function needs to be public for StreamSimple.
+    //      When we refactor that class make this private again.
+    public:
+        int  nativeErrorCode(int ret);
 };
-
-inline ConnectionBuilder createSSLBuilder(SSLctx& sslContext)
-{
-    return [&sslContext](int fd){return ConnectionItem{new SSLObj{sslContext, fd}};};
-}
-
 
 }
 

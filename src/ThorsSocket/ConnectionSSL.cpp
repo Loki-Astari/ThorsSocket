@@ -1,9 +1,11 @@
-#include "SSLUtil.h"
+#include "ConnectionSSL.h"
 #include "ThorsIOUtil/Utility.h"
 #include "ThorsLogging/ThorsLogging.h"
-#include <sstream>
 
-using namespace ThorsAnvil::ThorsIO;
+#include <openssl/err.h>
+// #include <sstream>
+
+using namespace ThorsAnvil::ThorsSocket;
 
 using ThorsAnvil::Utility::buildErrorMessage;
 using ThorsAnvil::Utility::systemErrorMessage;
@@ -129,7 +131,7 @@ SSLctx::SSLctx(SSLMethod& method)
 {
     if (!ctx)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLctx",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
                          "SSLctx",
                          "SSL_CTX_new() failed: ", SSLUtil::errorMessage());
     }
@@ -142,7 +144,7 @@ SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const
     if (SSL_CTX_set_ecdh_auto(ctx, 1) != 1)
     {
         SSL_CTX_free(ctx);
-        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLctx",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
                          "SSLctx",
                          "SSL_CTX_set_ecdh_auto() failed: ", SSLUtil::errorMessage());
     }
@@ -151,7 +153,7 @@ SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const
     if (SSL_CTX_use_certificate_file(ctx, certFile.c_str(), SSL_FILETYPE_PEM) != 1)
     {
         SSL_CTX_free(ctx);
-        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLctx",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
                          "SSLctx",
                          "SSL_CTX_use_certificate_file() failed: ", SSLUtil::errorMessage());
     }
@@ -159,7 +161,7 @@ SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const
     if (SSL_CTX_use_PrivateKey_file(ctx, keyFile.c_str(), SSL_FILETYPE_PEM) != 1 )
     {
         SSL_CTX_free(ctx);
-        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLctx",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
                          "SSLctx",
                          "SSL_CTX_use_PrivateKey_file() failed: ", SSLUtil::errorMessage());
     }
@@ -176,77 +178,78 @@ SSLctx::~SSLctx()
     SSL_CTX_free(ctx);
 }
 
-SSLObj::SSLObj(SSLctx const& ctx, int fileDescriptor)
-    : ssl(SSL_new(ctx.ctx))
+ConnectionSSL::ConnectionSSL(SSLctx const& ctx, int fileDescriptor)
+    : ConnectionNormal(fileDescriptor)
+    , ssl(SSL_new(ctx.ctx))
 {
     if (!ssl)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLObj",
-                         "SSLObj",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionSSL",
+                         "ConnectionSSL",
                          "SSL_new() failed: ", SSLUtil::errorMessage());
     }
     if (SSL_set_fd(ssl, fileDescriptor) != 1)
     {
         SSL_free(ssl);
-        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLObj",
-                         "SSLObj",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionSSL",
+                         "ConnectionSSL",
                          "SSL_set_fd() failed: ", SSLUtil::errorMessage());
     }
 
 }
 
-SSLObj::~SSLObj()
+ConnectionSSL::~ConnectionSSL()
 {
     // Close the file descriptor
     SSL_shutdown(ssl);
     SSL_free(ssl);
 }
 
-void SSLObj::accept()
+void ConnectionSSL::accept()
 {
     if (SSL_accept(ssl) != 1)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLObj",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionSSL",
                          "accept",
                          "SSL_accept() failed: ", SSLUtil::errorMessage());
     }
 }
-void SSLObj::connect(int fd, std::string const& host, int port)
+void ConnectionSSL::connect(std::string const& host, int port)
 {
-    Connection::connect(fd, host, port);
+    ConnectionNormal::connect(host, port);
     doConnect();
 }
 
-void SSLObj::doConnect()
+void ConnectionSSL::doConnect()
 {
     int ret = SSL_connect(ssl);
     if (ret != 1)
     {
         // If this fails we should close the file descriptor.
-        ThorsLogAndThrow("ThorsAnvil::ThorsIO::SSLObj",
-                         "doConnect",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionSSL",
+                         "connect",
                          "SSL_connect() failed: ", SSLUtil::sslError(ssl, ret), " - ", SSLUtil::errorMessage());
     }
 }
 
-IOInfo SSLObj::read(int /*fd*/, char* buffer, std::size_t len)
+IOInfo ConnectionSSL::read(char* buffer, std::size_t len)
 {
     int r = SSL_read(ssl, buffer, len);
     return {r, errorCode(r)};
 }
 
-IOInfo SSLObj::write(int /*fd*/, char const* buffer, std::size_t len)
+IOInfo ConnectionSSL::write(char const* buffer, std::size_t len)
 {
     int w = SSL_write(ssl, buffer, len);
     return {w, errorCode(w)};
 }
 
-int SSLObj::nativeErrorCode(int ret)
+int ConnectionSSL::nativeErrorCode(int ret)
 {
     return SSL_get_error(ssl, ret);
 }
 
-int SSLObj::errorCode(int ret)
+int ConnectionSSL::errorCode(int ret)
 {
     int sslCode = nativeErrorCode(ret);
     switch (sslCode)

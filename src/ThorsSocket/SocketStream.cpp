@@ -1,8 +1,7 @@
 #include "SocketStream.h"
 #include "ThorsLogging/ThorsLogging.h"
-#include <iostream>
 
-using namespace ThorsAnvil::ThorsIO;
+using namespace ThorsAnvil::ThorsSocket;
 
 SocketStreamBufferBase::SocketStreamBufferBase(DataSocket& stream,
                                        Notifier noAvailableData, Notifier flushing,
@@ -42,11 +41,11 @@ void SocketStreamBufferBase::clear()
     // Logging so we know what happened.
     catch (std::exception const& e)
     {
-        ThorsCatchMessage("ThorsAnvil::ThorsIO::SocketStreamBufferBase", "~SocketStreamBufferBase", e.what());
+        ThorsCatchMessage("ThorsAnvil::ThorsSocket::SocketStreamBufferBase", "~SocketStreamBufferBase", e.what());
     }
     catch (...)
     {
-        ThorsCatchMessage("ThorsAnvil::ThorsIO::SocketStreamBufferBase", "~SocketStreamBufferBase", "UNKNOWN");
+        ThorsCatchMessage("ThorsAnvil::ThorsSocket::SocketStreamBufferBase", "~SocketStreamBufferBase", "UNKNOWN");
     }
 }
 

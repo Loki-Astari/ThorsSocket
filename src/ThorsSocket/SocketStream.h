@@ -6,8 +6,9 @@
 #include <ostream>
 #include <vector>
 #include <functional>
+#include <cstddef>
 
-namespace ThorsAnvil::ThorsIO
+namespace ThorsAnvil::ThorsSocket
 {
 
 using Notifier = std::function<void()>;
