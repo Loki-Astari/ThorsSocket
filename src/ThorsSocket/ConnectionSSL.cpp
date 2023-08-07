@@ -10,6 +10,7 @@ using namespace ThorsAnvil::ThorsSocket;
 using ThorsAnvil::Utility::buildErrorMessage;
 using ThorsAnvil::Utility::systemErrorMessage;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLUtil::SSLUtil()
 {
     SSL_load_error_strings();
@@ -17,12 +18,14 @@ SSLUtil::SSLUtil()
     //OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, nullptr);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLUtil& SSLUtil::getInstance()
 {
     static SSLUtil  instance;
     return instance;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::string SSLUtil::errorMessage()
 {
     getInstance();
@@ -34,6 +37,7 @@ std::string SSLUtil::errorMessage()
     return message.str();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::string SSLUtil::sslError(SSL* ssl, int ret)
 {
     int error = SSL_get_error(ssl, ret);
@@ -112,6 +116,7 @@ std::string SSLUtil::sslError(SSL* ssl, int ret)
     return "";
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLMethod::SSLMethod(SSLMethodType type)
     : method(nullptr)
 {
@@ -126,6 +131,7 @@ SSLMethod::SSLMethod(SSLMethodType type)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLctx::SSLctx(SSLMethod& method)
     : ctx(SSL_CTX_new(method.method))
 {
@@ -137,6 +143,7 @@ SSLctx::SSLctx(SSLMethod& method)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const& keyFile)
     : SSLctx(method)
 {
@@ -173,11 +180,13 @@ SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const
 // SSL_CTX_load_and_set_client_CA_file
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLctx::~SSLctx()
 {
     SSL_CTX_free(ctx);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 ConnectionSSL::ConnectionSSL(SSLctx const& ctx, int fileDescriptor)
     : ConnectionNormal(fileDescriptor)
     , ssl(SSL_new(ctx.ctx))
@@ -198,6 +207,7 @@ ConnectionSSL::ConnectionSSL(SSLctx const& ctx, int fileDescriptor)
 
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 ConnectionSSL::~ConnectionSSL()
 {
     // Close the file descriptor
@@ -205,6 +215,7 @@ ConnectionSSL::~ConnectionSSL()
     SSL_free(ssl);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ConnectionSSL::accept()
 {
     if (SSL_accept(ssl) != 1)
@@ -214,12 +225,15 @@ void ConnectionSSL::accept()
                          "SSL_accept() failed: ", SSLUtil::errorMessage());
     }
 }
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ConnectionSSL::connect(std::string const& host, int port)
 {
     ConnectionNormal::connect(host, port);
     doConnect();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ConnectionSSL::doConnect()
 {
     int ret = SSL_connect(ssl);
@@ -232,23 +246,27 @@ void ConnectionSSL::doConnect()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOInfo ConnectionSSL::read(char* buffer, std::size_t len)
 {
     int r = SSL_read(ssl, buffer, len);
     return {r, errorCode(r)};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOInfo ConnectionSSL::write(char const* buffer, std::size_t len)
 {
     int w = SSL_write(ssl, buffer, len);
     return {w, errorCode(w)};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ConnectionSSL::nativeErrorCode(int ret)
 {
     return SSL_get_error(ssl, ret);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ConnectionSSL::errorCode(int ret)
 {
     int sslCode = nativeErrorCode(ret);

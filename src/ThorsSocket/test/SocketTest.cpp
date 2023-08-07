@@ -104,7 +104,7 @@ TEST(SocketTest, ServerSocketAccept)
     SocketSetUp     setupSocket;
 
     ServerSocketNormal    socket(12345678, true);
-    auto future = std::async( std::launch::async, [&socket](){ConnectSocketNormal connect("127.0.0.1", 12345678);});
+    auto future = std::async( std::launch::async, [](){ConnectSocketNormal connect("127.0.0.1", 12345678);});
     DataSocket      connection = socket.accept();
 
     ASSERT_NE(-1, connection.getSocketId());

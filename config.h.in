@@ -75,6 +75,12 @@
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
 
+/* Enable to use header only libraries */
+#undef THORS_SOCKET_HEADER_ONLY
+
+/* For header only convert to inline */
+#undef THORS_SOCKET_HEADER_ONLY_INCLUDE
+
 /* Version number of package */
 #undef VERSION
 

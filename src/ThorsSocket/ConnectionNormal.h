@@ -1,6 +1,7 @@
 #ifndef THORS_ANVIL_THORSSOCKET_CONNECTION_NORMAL_H
 #define THORS_ANVIL_THORSSOCKET_CONNECTION_NORMAL_H
 
+#include "ThorsSocketConfig.h"
 #include "SocketWrapper.h"
 #include "Connection.h"
 #include <string>
@@ -22,5 +23,9 @@ class ConnectionNormal: public Connection
 };
 
 }
+
+#if THORS_SOCKET_HEADER_ONLY
+#include "ConnectionNormal.source"
+#endif
 
 #endif

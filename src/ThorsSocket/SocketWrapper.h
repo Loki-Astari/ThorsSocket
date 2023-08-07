@@ -1,6 +1,7 @@
 #ifndef THORS_ANVIL_THORSSOCKET_SOCKET_WRAPPER_H
 #define THORS_ANVIL_THORSSOCKET_SOCKET_WRAPPER_H
 
+#include "ThorsSocketConfig.h"
 #include <utility>
 #include <cstddef>
 

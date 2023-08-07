@@ -6,10 +6,12 @@ using namespace ThorsAnvil::ThorsSocket;
 
 namespace Utility = ThorsAnvil::Utility;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 BaseSocket::BaseSocket()
     : socketId(invalidSocketId)
 {}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 BaseSocket::BaseSocket(int socketId, bool blocking)
     : socketId(socketId)
 {
@@ -25,9 +27,10 @@ BaseSocket::BaseSocket(int socketId, bool blocking)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void BaseSocket::makeSocketNonBlocking()
 {
-    if (::nonBlockingWrapper(socketId) == -1)
+    if (nonBlockingWrapper(socketId) == -1)
     {
         ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
                                  "makeSocketNonBlocking",
@@ -35,6 +38,7 @@ void BaseSocket::makeSocketNonBlocking()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 BaseSocket::~BaseSocket()
 {
     if (socketId == invalidSocketId)
@@ -60,6 +64,7 @@ BaseSocket::~BaseSocket()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void BaseSocket::close()
 {
     if (socketId == invalidSocketId)
@@ -70,7 +75,7 @@ void BaseSocket::close()
     }
     while (true)
     {
-        if (::closeWrapper(socketId) == -1)
+        if (closeWrapper(socketId) == -1)
         {
             switch (errno)
             {
@@ -100,24 +105,28 @@ void BaseSocket::close()
     socketId = invalidSocketId;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void BaseSocket::swap(BaseSocket& other) noexcept
 {
     using std::swap;
     swap(socketId,   other.socketId);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 BaseSocket::BaseSocket(BaseSocket&& move) noexcept
     : socketId(invalidSocketId)
 {
     move.swap(*this);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 BaseSocket& BaseSocket::operator=(BaseSocket&& move) noexcept
 {
     move.swap(*this);
     return *this;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 DataSocket::DataSocket(ConnectionBuilder const& builder, int socketId, bool blocking, bool server)
     : BaseSocket(socketId, blocking)
     , readYield([](){})
@@ -130,12 +139,14 @@ DataSocket::DataSocket(ConnectionBuilder const& builder, int socketId, bool bloc
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void DataSocket::setYield(std::function<void()>&& yr, std::function<void()>&& yw)
 {
     readYield = std::move(yr);
     writeYield= std::move(yw);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_t size, std::size_t alreadyGot)
 {
     if (getSocketId() == invalidSocketId)
@@ -241,6 +252,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
     return {true, dataRead - alreadyGot};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std::size_t size, std::size_t alreadyPut)
 {
     if (getSocketId() == invalidSocketId)
@@ -345,6 +357,7 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
     return {true, dataWritten - alreadyPut};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 #ifdef  __WINNT__
 #define THOR_SHUTDOWN_WRITE     SD_SEND
 #else
@@ -360,14 +373,16 @@ void DataSocket::putMessageClose()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 ConnectSocket::ConnectSocket(ConnectionBuilder const& builder, std::string const& host, int port)
-    : DataSocket(builder, ::socketWrapper(PF_INET, SOCK_STREAM, 0), true, false)
+    : DataSocket(builder, socketWrapper(PF_INET, SOCK_STREAM, 0), true, false)
 {
     connection->connect(host, port);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
-    : BaseSocket(::socketWrapper(PF_INET, SOCK_STREAM, 0), blocking)
+    : BaseSocket(socketWrapper(PF_INET, SOCK_STREAM, 0), blocking)
 {
     SocketAddrIn    serverAddr = {};
     serverAddr.sin_family       = AF_INET;
@@ -391,6 +406,7 @@ ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 DataSocket ServerSocket::accept(ConnectionBuilder const& builder, bool blocking)
 {
     if (getSocketId() == invalidSocketId)
@@ -400,7 +416,7 @@ DataSocket ServerSocket::accept(ConnectionBuilder const& builder, bool blocking)
                                 ": called on a bad socket object (this object was moved)");
     }
 
-    int newSocket = ::acceptWrapper(getSocketId(), nullptr, nullptr);
+    int newSocket = acceptWrapper(getSocketId(), nullptr, nullptr);
     if (newSocket == invalidSocketId)
     {
         ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket:",

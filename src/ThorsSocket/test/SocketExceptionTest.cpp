@@ -54,6 +54,8 @@ TEST(SocketExceptionTest, baseSocket_InitFail)
         ThorsAnvil::Logging::CriticalException
     );
 }
+
+#if THORS_SOCKET_HEADER_ONLY != 1
 TEST(SocketExceptionTest, baseSocketFailNonBlocking)
 {
     MOCK_SYS(nonBlockingWrapper, [](int)    {return -1;});
@@ -64,6 +66,7 @@ TEST(SocketExceptionTest, baseSocketFailNonBlocking)
         ThorsAnvil::Logging::CriticalException
     );
 }
+#endif
 
 TEST(SocketExceptionTest, baseSocketCloseInvalidSocket)
 {
@@ -76,6 +79,7 @@ TEST(SocketExceptionTest, baseSocketCloseInvalidSocket)
     );
 }
 
+#if THORS_SOCKET_HEADER_ONLY != 1
 TEST(SocketExceptionTest, CloseFail_EBADF)
 {
     MOCK_SYS(closeWrapper, [](int){errno = EBADF;return -1;});
@@ -99,18 +103,27 @@ TEST(SocketExceptionTest, CloseFail_EIO)
 }
 TEST(SocketExceptionTest, CloseFail_EINTR)
 {
+    std::cerr << "CloseFail_EINTR: 1\n";
     int count = 0;
+    std::cerr << "CloseFail_EINTR: 2\n";
     MOCK_SYS(closeWrapper, [&count](int){
+        std::cerr << "Close Wrapper: " << count << "\n";
         ++count;
-        if (count == 1) {errno = EINTR;return -1;}
+        if (count == 1) {std::cerr << "BAD\n";errno = EINTR;return -1;}
+        std::cerr << "OK\n";
         return 0;
     });
+    std::cerr << "CloseFail_EINTR: 3\n";
 
     DerivedFromBase  socket(5);
+    std::cerr << "CloseFail_EINTR: 4\n";
     socket.close();
+    std::cerr << "CloseFail_EINTR: 5\n";
 
     ASSERT_EQ(count, 2);
+    std::cerr << "CloseFail_EINTR: 6\n";
     ASSERT_EQ(socket.getSocketId(), -1);
+    std::cerr << "CloseFail_EINTR: 7\n";
 }
 TEST(SocketExceptionTest, CloseFail_Unknown)
 {
@@ -248,6 +261,8 @@ TEST(SocketExceptionTest, ServerSocketAcceptFailsAcceptCall)
         std::runtime_error
     );
 }
+#endif
+
 TEST(SocketExceptionTest, DataSocketaReadInvalidId)
 {
     DataSocket          data1(getNormalBuilder(), 5, true);
@@ -260,6 +275,8 @@ TEST(SocketExceptionTest, DataSocketaReadInvalidId)
         ThorsAnvil::Logging::LogicalException
     );
 }
+
+#if THORS_SOCKET_HEADER_ONLY != 1
 TEST(SocketExceptionTest, DataSocketaReadFailsEBADFOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( EBADF);});
@@ -406,6 +423,8 @@ TEST(SocketExceptionTest, DataSocketaReadFailsENOTCONNOnRead)
     ASSERT_FALSE(result.first);
     ASSERT_EQ(result.second, 0);
 }
+#endif
+
 TEST(SocketExceptionTest, DataSocketaWriteInvalidId)
 {
     DataSocket          data1(getNormalBuilder(), 5, true);
@@ -418,6 +437,8 @@ TEST(SocketExceptionTest, DataSocketaWriteInvalidId)
         ThorsAnvil::Logging::LogicalException
     );
 }
+
+#if THORS_SOCKET_HEADER_ONLY != 1
 TEST(SocketExceptionTest, DataSocketaWriteFailsEINVALOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( EINVAL);});
@@ -608,6 +629,8 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEAGAINOnWrite)
     ASSERT_TRUE(result.first);
     ASSERT_EQ(result.second, 0);
 }
+#endif
+
 TEST(SocketExceptionTest, SSLServerConstruct)
 {
     SocketSetUp     setupSocket;

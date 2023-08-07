@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_NISSE_CORE_SOCKET_SOCKET_STREAM_H
 #define THORSANVIL_NISSE_CORE_SOCKET_SOCKET_STREAM_H
 
+#include "ThorsSocketConfig.h"
 #include "Socket.h"
 #include <istream>
 #include <ostream>
@@ -107,5 +108,9 @@ class IOSocketStream: public std::istream, public std::ostream
 }
 
 #include "SocketStream.tpp"
+#if THORS_SOCKET_HEADER_ONLY
+#include "SocketStream.source"
+#endif
+
 
 #endif

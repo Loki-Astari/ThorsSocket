@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_DB_CONNECTION_H
 #define THORSANVIL_DB_CONNECTION_H
 
+#include "ThorsSocketConfig.h"
 #include <memory>
 #include <functional>
 #include <string>

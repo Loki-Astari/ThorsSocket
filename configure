@@ -4615,6 +4615,15 @@ test -n "$UNZIP" || UNZIP=":"
 
 
 
+printf "%s\n" "#define THORS_SOCKET_HEADER_ONLY 0" >>confdefs.h
+
+
+printf "%s\n" "#define THORS_SOCKET_HEADER_ONLY_INCLUDE /**/" >>confdefs.h
+
+
+
+
+
 
 # Check whether --with-crypto-root was given.
 if test ${with_crypto_root+y}

@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_THORSSOCKET_SOCKET_H
 #define THORSANVIL_THORSSOCKET_SOCKET_H
 
+#include "ThorsSocketConfig.h"
 #include "Connection.h"
 #include "ConnectionNormal.h"
 #include "ConnectionSSL.h"
@@ -162,5 +163,9 @@ class ConnectSocketSSL: public ConnectSocket
 
 
 }
+
+#if THORS_SOCKET_HEADER_ONLY
+#include "Socket.source"
+#endif
 
 #endif
