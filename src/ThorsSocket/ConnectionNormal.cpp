@@ -191,13 +191,166 @@ void ConnectionNormal::connect(std::string const& host, int port)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-IOInfo ConnectionNormal::read(char* buffer, std::size_t size)
+IOResult ConnectionNormal::read(char* buffer, std::size_t size)
 {
-    return readWrapper(fd, buffer, size);
+    IOInfo get = readWrapper(fd, buffer, size);
+    Result r   = Result::OK;
+    if (get.first == -1)
+    {
+        switch (get.second)
+        {
+#ifdef __WINNT__
+            case WSANOTINITIALISED:
+            case WSAEFAULT:
+            case WSAENOTCONN:
+            case WSAENOTSOCK:
+            case WSAEOPNOTSUPP:
+            case WSAEINVAL:
+#endif
+            case EBADF:
+            case EFAULT:
+            case EINVAL:
+            case ENXIO:
+            case ENOMEM:
+            {
+                r = Result::CriticalBug;
+                break;
+            }
+#ifdef __WINNT__
+            case WSAENETDOWN:
+#endif
+            case EIO:
+            case ENOBUFS:
+            {
+                r = Result::ResourceFail;
+                break;
+            }
+#ifdef __WINNT__
+            case WSAEINTR:
+#endif
+            case EINTR:
+            {
+                r = Result::Interupt;
+                break;
+            }
+#ifdef __WINNT__
+            case WSAEINPROGRESS:
+            case WSAEWOULDBLOCK:
+            case WSAEMSGSIZE:
+#endif
+            case ETIMEDOUT:
+            case EAGAIN:
+            //case EWOULDBLOCK:
+            {
+                r = Result::Timeout;
+                break;
+            }
+#ifdef __WINNT__
+            case WSAENETRESET:
+            case WSAESHUTDOWN:
+            case WSAECONNABORTED:
+            case WSAETIMEDOUT:
+            case WSAECONNRESET:
+#endif
+            case ECONNRESET:
+            case ENOTCONN:
+            {
+                r = Result::ConnectionClosed;
+                break;
+            }
+            default:
+            {
+                r = Result::Unknown;
+                break;
+            }
+        }
+    }
+    return {get.first, r};
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-IOInfo ConnectionNormal::write(char const* buffer, std::size_t size)
+IOResult ConnectionNormal::write(char const* buffer, std::size_t size)
 {
-    return writeWrapper(fd, buffer, size);
+    IOInfo put  = writeWrapper(fd, buffer, size);
+    Result r    = Result::OK;
+    if (put.first == -1)
+    {
+        switch (put.second)
+        {
+#ifdef __WINNT__
+            case WSANOTINITIALISED:
+            case WSAEFAULT:
+            case WSAENOTCONN:
+            case WSAENOTSOCK:
+            case WSAEOPNOTSUPP:
+            case WSAEINVAL:
+#endif
+            case EINVAL:
+            case EBADF:
+            case ECONNRESET:
+            case ENXIO:
+            case EPIPE:
+            {
+                r = Result::CriticalBug;
+                break;
+            }
+#ifdef __WINNT__
+            case WSAENETDOWN:
+#else
+            case EDQUOT:
+#endif
+            case EFBIG:
+            case EIO:
+            case ENETDOWN:
+            case ENETUNREACH:
+            case ENOSPC:
+            {
+                r = Result::ResourceFail;
+                break;
+            }
+#ifdef __WINNT__
+            case WSAEINTR:
+#endif
+            case EINTR:
+            {
+                r = Result::Interupt;
+                break;
+            }
+#ifdef __WINNT__
+            case WSAEINPROGRESS:
+            case WSAEWOULDBLOCK:
+            case WSAEMSGSIZE:
+#endif
+            case ETIMEDOUT:
+            case EAGAIN:
+            //case EWOULDBLOCK:
+            {
+                r = Result::Timeout;
+                break;
+            }
+#ifdef __WINNT__
+            case WSAENETRESET:
+            case WSAESHUTDOWN:
+            case WSAECONNABORTED:
+            case WSAETIMEDOUT:
+            case WSAECONNRESET:
+#endif
+            case ENOTCONN:
+            {
+                r = Result::ConnectionClosed;
+                break;
+            }
+            default:
+            {
+                r = Result::Unknown;
+                break;
+            }
+        }
+    }
+    return {put.first, r};
+}
+
+std::string ConnectionNormal::errorMessage(ssize_t /*result*/)
+{
+    return Utility::systemErrorMessage();
 }

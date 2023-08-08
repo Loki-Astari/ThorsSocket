@@ -99,87 +99,52 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
     while (dataRead < size)
     {
         // The inner loop handles interactions with the socket.
-        IOInfo get = connection->read(buffer + dataRead, size - dataRead);
-        if (get.first == -1)
+        IOResult get = connection->read(buffer + dataRead, size - dataRead);
+        switch (get.second)
         {
-            switch (get.second)
-            {
-#ifdef __WINNT__
-                case WSANOTINITIALISED:
-                case WSAEFAULT:
-                case WSAENOTCONN:
-                case WSAENOTSOCK:
-                case WSAEOPNOTSUPP:
-                case WSAEINVAL:
-#endif
-                case EBADF:
-                case EFAULT:
-                case EINVAL:
-                case ENXIO:
-                case ENOMEM:
+            case Result::OK:
+                break;
+            case Result::CriticalBug:
                 {
                     // Fatal error. Programming bug
                     ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::DataSocket::",
                                              "getMessageData",
-                                             "::read() critical error: ", Utility::systemErrorMessage());
+                                             "::read() critical error: ", connection->errorMessage(get.first));
                 }
-#ifdef __WINNT__
-                case WSAENETDOWN:
-#endif
-                case EIO:
-                case ENOBUFS:
+            case Result::ResourceFail:
                 {
                    // Resource acquisition failure or device error
                     ThorsLogAndThrow("ThorsAnvil::ThorsSocket::DataSocket::",
                                      "getMessageData",
-                                     "::read(): resource failure: ", Utility::systemErrorMessage());
+                                     "::read(): resource failure: ", connection->errorMessage(get.first));
                 }
-#ifdef __WINNT__
-                case WSAEINTR:
-#endif
-                case EINTR:
+            case Result::Interupt:
                 {
                     // TODO: Check for user interrupt flags.
                     //       Beyond the scope of this project
                     //       so continue normal operations.
                     continue;
                 }
-#ifdef __WINNT__
-                case WSAEINPROGRESS:
-                case WSAEWOULDBLOCK:
-                case WSAEMSGSIZE:
-#endif
-                case ETIMEDOUT:
-                case EAGAIN:
-                //case EWOULDBLOCK:
+            case Result::Timeout:
                 {
                     // Temporary error.
                     // Simply retry the read.
                     readYield();
                     return {true, dataRead - alreadyGot};
                 }
-#ifdef __WINNT__
-                case WSAENETRESET:
-                case WSAESHUTDOWN:
-                case WSAECONNABORTED:
-                case WSAETIMEDOUT:
-                case WSAECONNRESET:
-#endif
-                case ECONNRESET:
-                case ENOTCONN:
+            case Result::ConnectionClosed:
                 {
                     // Connection broken.
                     // Return the data we have available and exit
                     // as if the connection was closed correctly.
                     return {false, dataRead - alreadyGot};
                 }
-                default:
+            default:
                 {
                     ThorsLogAndThrow("ThorsAnvil::ThorsSocket::DataSocket::",
                                      "getMessageData",
-                                     "::read() returned -1: ", Utility::systemErrorMessage());
+                                     "::read() returned -1: ", connection->errorMessage(get.first));
                 }
-            }
         }
         if (get.first == 0)
         {
@@ -205,91 +170,52 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
 
     while (dataWritten < size)
     {
-        IOInfo put = connection->write(buffer + dataWritten, size - dataWritten);
-        if (put.first == -1)
+        IOResult put = connection->write(buffer + dataWritten, size - dataWritten);
+        switch (put.second)
         {
-            switch (put.second)
-            {
-#ifdef __WINNT__
-                case WSANOTINITIALISED:
-                case WSAEFAULT:
-                case WSAENOTCONN:
-                case WSAENOTSOCK:
-                case WSAEOPNOTSUPP:
-                case WSAEINVAL:
-#endif
-                case EINVAL:
-                case EBADF:
-                case ECONNRESET:
-                case ENXIO:
-                case EPIPE:
+            case Result::OK:
+                break;
+            case Result::CriticalBug:
                 {
                     // Fatal error. Programming bug
                     ThorsLogAndThrowCritical("ThorsAnvil::Socket::DataSocket::",
                                              "putMessageData",
-                                             "::write() critical error: ", Utility::systemErrorMessage());
+                                             "::write() critical error: ", connection->errorMessage(put.first));
                 }
-#ifdef __WINNT__
-                case WSAENETDOWN:
-#else
-                case EDQUOT:
-#endif
-                case EFBIG:
-                case EIO:
-                case ENETDOWN:
-                case ENETUNREACH:
-                case ENOSPC:
+            case Result::ResourceFail:
                 {
                     // Resource acquisition failure or device error
                     ThorsLogAndThrow("ThorsAnvil::Socket::DataSocket::",
                                      "putMessageData",
-                                     "::write() resource failure: ", Utility::systemErrorMessage());
+                                     "::write() resource failure: ", connection->errorMessage(put.first));
                 }
-#ifdef __WINNT__
-                case WSAEINTR:
-#endif
-                case EINTR:
+            case Result::Interupt:
                 {
                     // TODO: Check for user interrupt flags.
                     //       Beyond the scope of this project
                     //       so continue normal operations.
                     continue;
                 }
-#ifdef __WINNT__
-                case WSAEINPROGRESS:
-                case WSAEWOULDBLOCK:
-                case WSAEMSGSIZE:
-#endif
-                case ETIMEDOUT:
-                case EAGAIN:
-                //case EWOULDBLOCK:
+            case Result::Timeout:
                 {
                     // Temporary error.
                     // Simply retry the read.
                     writeYield();
                     return {true, dataWritten - alreadyPut};
                 }
-#ifdef __WINNT__
-                case WSAENETRESET:
-                case WSAESHUTDOWN:
-                case WSAECONNABORTED:
-                case WSAETIMEDOUT:
-                case WSAECONNRESET:
-#endif
-                case ENOTCONN:
+            case Result::ConnectionClosed:
                 {
                     // Connection broken.
                     // Return the data we have available and exit
                     // as if the connection was closed correctly.
                     return {false, dataWritten - alreadyPut};
                 }
-                default:
+            default:
                 {
                     ThorsLogAndThrow("ThorsAnvil::Socket::DataSocket::",
                                      "putMessageData",
-                                     "::write() returned -1: ", Utility::systemErrorMessage());
+                                     "::write() returned -1: ", connection->errorMessage(put.first));
                 }
-            }
         }
         dataWritten += put.first;
     }

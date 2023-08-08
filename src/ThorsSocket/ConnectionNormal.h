@@ -28,8 +28,11 @@ class ConnectionNormal: public Connection
         virtual int  accept()                                       override;
         virtual void acceptEstablishConnection()                    override {}
         virtual void connect(std::string const& host, int port)     override;
-        virtual IOInfo read(char* buffer, std::size_t size)         override;
-        virtual IOInfo write(char const* buffer, std::size_t size)  override;
+
+        virtual IOResult read(char* buffer, std::size_t size)       override;
+        virtual IOResult write(char const* buffer, std::size_t size)override;
+
+        virtual std::string errorMessage(ssize_t result)            override;
 };
 
 }
