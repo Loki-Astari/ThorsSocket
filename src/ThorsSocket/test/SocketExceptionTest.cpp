@@ -24,20 +24,17 @@ using ThorsAnvil::ThorsSocket::SSLctx;;
 using ReadInfo = std::pair<bool, std::size_t>;
 using ThorsAnvil::ThorsSocket::IOInfo;
 
-static ThorsAnvil::ThorsSocket::ConnectionBuilder getNormalBuilder()
+static std::unique_ptr<ConnectionNormal> buildNormal(int socketId)
 {
-    return [](int fd){return std::make_unique<ConnectionNormal>(fd);};
+    return std::make_unique<ConnectionNormal>(socketId);
 }
 
 
 class DerivedFromBase: public BaseSocket
 {
     public:
-        DerivedFromBase()
-            : BaseSocket()
-        {}
         DerivedFromBase(int socketId, bool blocking = true)
-            : BaseSocket(socketId, blocking)
+            : BaseSocket(std::make_unique<ConnectionNormal>(socketId), blocking)
         {}
 };
 
@@ -103,27 +100,18 @@ TEST(SocketExceptionTest, CloseFail_EIO)
 }
 TEST(SocketExceptionTest, CloseFail_EINTR)
 {
-    std::cerr << "CloseFail_EINTR: 1\n";
     int count = 0;
-    std::cerr << "CloseFail_EINTR: 2\n";
     MOCK_SYS(closeWrapper, [&count](int){
-        std::cerr << "Close Wrapper: " << count << "\n";
         ++count;
-        if (count == 1) {std::cerr << "BAD\n";errno = EINTR;return -1;}
-        std::cerr << "OK\n";
+        if (count == 1) {errno = EINTR;return -1;}
         return 0;
     });
-    std::cerr << "CloseFail_EINTR: 3\n";
 
     DerivedFromBase  socket(5);
-    std::cerr << "CloseFail_EINTR: 4\n";
     socket.close();
-    std::cerr << "CloseFail_EINTR: 5\n";
 
     ASSERT_EQ(count, 2);
-    std::cerr << "CloseFail_EINTR: 6\n";
-    ASSERT_EQ(socket.getSocketId(), -1);
-    std::cerr << "CloseFail_EINTR: 7\n";
+    ASSERT_FALSE(socket.isValid());
 }
 TEST(SocketExceptionTest, CloseFail_Unknown)
 {
@@ -265,7 +253,7 @@ TEST(SocketExceptionTest, ServerSocketAcceptFailsAcceptCall)
 
 TEST(SocketExceptionTest, DataSocketaReadInvalidId)
 {
-    DataSocket          data1(getNormalBuilder(), 5, true);
+    DataSocket          data1(buildNormal(5), true);
     DataSocket          data2(std::move(data1));
 
     auto doTest = [](DataSocket& data1){data1.getMessageData(nullptr, 0, 0);};
@@ -280,7 +268,7 @@ TEST(SocketExceptionTest, DataSocketaReadInvalidId)
 TEST(SocketExceptionTest, DataSocketaReadFailsEBADFOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( EBADF);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -292,7 +280,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEBADFOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsEFAULTOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( EFAULT);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -304,7 +292,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEFAULTOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsEINVALOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( EINVAL);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -316,7 +304,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEINVALOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsENXIOOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( ENXIO);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -328,7 +316,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsENXIOOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsENOMEMOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( ENOMEM);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -340,7 +328,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsENOMEMOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsEIOOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( EIO);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -352,7 +340,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEIOOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsENOBUFSOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( ENOBUFS);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -364,7 +352,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsENOBUFSOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsUnknownOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( 9998);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -377,7 +365,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEINTROnRead)
 {
     int count = 0;
     MOCK_SYS(readWrapper,   [&count](int, void*, std::size_t) -> IOInfo {++count; return badResult( count == 1 ? EINTR : EIO); });
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.getMessageData(nullptr, 5, 0);};
 
@@ -390,7 +378,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEINTROnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsETIMEDOUTOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( ETIMEDOUT);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto result = data.getMessageData(nullptr, 5, 0);
     ASSERT_TRUE(result.first);
@@ -399,7 +387,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsETIMEDOUTOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsEAGAINOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( EAGAIN);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto result = data.getMessageData(nullptr, 5, 0);
     ASSERT_TRUE(result.first);
@@ -408,7 +396,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsEAGAINOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsECONNRESETOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo {return badResult( ECONNRESET);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto result = data.getMessageData(nullptr, 5, 0);
     ASSERT_FALSE(result.first);
@@ -417,7 +405,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsECONNRESETOnRead)
 TEST(SocketExceptionTest, DataSocketaReadFailsENOTCONNOnRead)
 {
     MOCK_SYS(readWrapper,   [](int, void*, std::size_t) -> IOInfo{return badResult( ENOTCONN);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto result = data.getMessageData(nullptr, 5, 0);
     ASSERT_FALSE(result.first);
@@ -427,7 +415,7 @@ TEST(SocketExceptionTest, DataSocketaReadFailsENOTCONNOnRead)
 
 TEST(SocketExceptionTest, DataSocketaWriteInvalidId)
 {
-    DataSocket          data1(getNormalBuilder(), 5, true);
+    DataSocket          data1(buildNormal(5), true);
     DataSocket          data2(std::move(data1));
 
     auto doTest = [](DataSocket& data1){data1.putMessageData(nullptr, 0, 0);};
@@ -442,7 +430,7 @@ TEST(SocketExceptionTest, DataSocketaWriteInvalidId)
 TEST(SocketExceptionTest, DataSocketaWriteFailsEINVALOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( EINVAL);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -454,7 +442,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEINVALOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsEBADFOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( EBADF);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -466,7 +454,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEBADFOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsECONNRESETOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( ECONNRESET);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -478,7 +466,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsECONNRESETOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsENXIOOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( ENXIO);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -490,7 +478,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsENXIOOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsEPIPEOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( EPIPE);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -505,7 +493,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEDQUOTOnRead)
     GTEST_SKIP() << "Windows does not support EDQUOT";
 #else
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( EDQUOT);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -518,7 +506,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEDQUOTOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsEFBIGnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( EFBIG);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -530,7 +518,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEFBIGnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsEIOOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( EIO);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -542,7 +530,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEIOOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsENETDOWNOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( ENETDOWN);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -554,7 +542,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsENETDOWNOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsENETUNREACHOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( ENETUNREACH);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -566,7 +554,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsENETUNREACHOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsENOSPCOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( ENOSPC);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -578,7 +566,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsENOSPCOnRead)
 TEST(SocketExceptionTest, DataSocketaWriteFailsUnknownOnRead)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( 9998);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -590,7 +578,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsUnknownOnRead)
 TEST(SocketExceptionTest, DataSocketaPutMessageCloseFails)
 {
     MOCK_SYS(shutdownWrapper,      [](int, int){errno = ENOSPC;return -1;});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     ASSERT_THROW(
         data.putMessageClose(),
@@ -601,7 +589,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEINTROnWrite)
 {
     int count = 0;
     MOCK_SYS(writeWrapper,  [&count](int, void const*, std::size_t){++count; return badResult( count == 1 ? EINTR : EIO);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto doTest = [](DataSocket& data){data.putMessageData(nullptr, 5, 0);};
 
@@ -614,7 +602,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsEINTROnWrite)
 TEST(SocketExceptionTest, DataSocketaWriteFailsETIMEDOUTOnWrite)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( ETIMEDOUT);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto result = data.putMessageData(nullptr, 5, 0);
     ASSERT_TRUE(result.first);
@@ -623,7 +611,7 @@ TEST(SocketExceptionTest, DataSocketaWriteFailsETIMEDOUTOnWrite)
 TEST(SocketExceptionTest, DataSocketaWriteFailsEAGAINOnWrite)
 {
     MOCK_SYS(writeWrapper,  [](int, void const*, std::size_t) -> IOInfo {return badResult( EAGAIN);});
-    DataSocket          data(getNormalBuilder(), 5, true);
+    DataSocket          data(buildNormal(5), true);
 
     auto result = data.putMessageData(nullptr, 5, 0);
     ASSERT_TRUE(result.first);

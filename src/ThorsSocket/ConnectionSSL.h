@@ -57,7 +57,7 @@ class ConnectionSSL: public ConnectionNormal
         ConnectionSSL(SSLctx const& ctx, int fd);
         ~ConnectionSSL();
 
-        virtual void accept()                                           override;
+        virtual void acceptEstablishConnection()                        override;
         virtual void connect(std::string const& host, int port)         override;
     // BUG:
     // This function is for StreamSimple.

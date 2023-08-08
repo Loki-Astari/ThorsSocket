@@ -16,11 +16,142 @@ ConnectionNormal::ConnectionNormal(int fd)
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 ConnectionNormal::~ConnectionNormal()
-{}
+{
+    if (fd == invalidSocketId)
+    {
+        // This object has been closed or moved.
+        // So we don't need to call close.
+        return;
+    }
+
+    try
+    {
+        close();
+    }
+    // Catch and drop any exceptions.
+    // Logging so we know what happened.
+    catch (std::exception const& e)
+    {
+        ThorsCatchMessage("ThorsAnvil::ThorsSocket::BaseSocket", "~BaseSocket", e.what());
+    }
+    catch (...)
+    {
+        ThorsCatchMessage("ThorsAnvil::ThorsSocket::BaseSocket", "~BaseSocket", "UNKNOWN");
+    }
+}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void ConnectionNormal::accept()
-{}
+bool ConnectionNormal::isValid() const
+{
+    return fd != invalidSocketId;
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+int ConnectionNormal::socketId() const
+{
+    return fd;
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void ConnectionNormal::makeSocketNonBlocking()
+{
+    if (nonBlockingWrapper(fd) == -1)
+    {
+        ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
+                                 "makeSocketNonBlocking",
+                                 "::fcntl() ", Utility::systemErrorMessage());
+    }
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void ConnectionNormal::close()
+{
+    while (true)
+    {
+        if (closeWrapper(fd) == -1)
+        {
+            switch (errno)
+            {
+                case EBADF: fd = invalidSocketId;
+                            ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
+                                                     "close"
+                                                     "::close() ", fd, " ", Utility::systemErrorMessage());
+                case EIO:   fd = invalidSocketId;
+                            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::BaseSocket::",
+                                             "close",
+                                             "::close() ", fd, " ", Utility::systemErrorMessage());
+                case EINTR:
+                {
+                    // TODO: Check for user interrupt flags.
+                    //       Beyond the scope of this project
+                    //       so continue normal operations.
+                    continue;
+                }
+                default:    fd = invalidSocketId;
+                            ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
+                                                     "close",
+                                                     "::close() ", fd, " ", Utility::systemErrorMessage());
+            }
+        }
+        break;
+    }
+    fd = invalidSocketId;
+}
+
+#ifdef  __WINNT__
+#define THOR_SHUTDOWN_WRITE     SD_SEND
+#else
+#define THOR_SHUTDOWN_WRITE     SHUT_WR
+#endif
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void ConnectionNormal::shutdown()
+{
+    if (::shutdown(fd, THOR_SHUTDOWN_WRITE) != 0)
+    {
+        ThorsLogAndThrowCritical("ThorsAnvil::Socket::DataSocket::",
+                                 "putMessageClose",
+                                 "::shutdown(): critical error: ", Utility::systemErrorMessage());
+    }
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void ConnectionNormal::bind(int port, int maxWaitingConnections)
+{
+    SocketAddrIn    serverAddr = {};
+    serverAddr.sin_family       = AF_INET;
+    serverAddr.sin_port         = htons(port);
+    serverAddr.sin_addr.s_addr  = INADDR_ANY;
+
+    if (bindWrapper(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
+    {
+        close();
+        ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket::",
+                         "ServerSocket",
+                         "::bind() ", Utility::systemErrorMessage());
+    }
+
+    if (listnWrapper(fd, maxWaitingConnections) != 0)
+    {
+        close();
+        ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket::",
+                         "ServerSocket",
+                         "::listen() ", Utility::systemErrorMessage());
+    }
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+int ConnectionNormal::accept()
+{
+    int newSocket = acceptWrapper(fd, nullptr, nullptr);
+    if (newSocket == invalidSocketId)
+    {
+        ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket:",
+                         "accept",
+                         "::accept() ", Utility::systemErrorMessage());
+    }
+    return newSocket;
+}
+
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ConnectionNormal::connect(std::string const& host, int port)

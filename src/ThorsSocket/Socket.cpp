@@ -7,15 +7,10 @@ using namespace ThorsAnvil::ThorsSocket;
 namespace Utility = ThorsAnvil::Utility;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-BaseSocket::BaseSocket()
-    : socketId(invalidSocketId)
-{}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-BaseSocket::BaseSocket(int socketId, bool blocking)
-    : socketId(socketId)
+BaseSocket::BaseSocket(std::unique_ptr<Connection>&& newConnection, bool blocking)
+    : connection(std::move(newConnection))
 {
-    if (socketId == invalidSocketId)
+    if (!isValid())
     {
         ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
                                  "BaseSocket",
@@ -23,98 +18,48 @@ BaseSocket::BaseSocket(int socketId, bool blocking)
     }
     if (!blocking)
     {
-        makeSocketNonBlocking();
-    }
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-void BaseSocket::makeSocketNonBlocking()
-{
-    if (nonBlockingWrapper(socketId) == -1)
-    {
-        ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
-                                 "makeSocketNonBlocking",
-                                 "::fcntl() ", Utility::systemErrorMessage());
+        connection->makeSocketNonBlocking();
     }
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 BaseSocket::~BaseSocket()
-{
-    if (socketId == invalidSocketId)
-    {
-        // This object has been closed or moved.
-        // So we don't need to call close.
-        return;
-    }
+{}
 
-    try
-    {
-        close();
-    }
-    // Catch and drop any exceptions.
-    // Logging so we know what happened.
-    catch (std::exception const& e)
-    {
-        ThorsCatchMessage("ThorsAnvil::ThorsSocket::BaseSocket", "~BaseSocket", e.what());
-    }
-    catch (...)
-    {
-        ThorsCatchMessage("ThorsAnvil::ThorsSocket::BaseSocket", "~BaseSocket", "UNKNOWN");
-    }
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+bool BaseSocket::isValid() const
+{
+    return connection.get() != nullptr && connection->isValid();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+int BaseSocket::socketId() const
+{
+    return connection.get() == nullptr ? -1 : connection->socketId();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void BaseSocket::close()
 {
-    if (socketId == invalidSocketId)
+    if (!isValid())
     {
         ThorsLogAndThrowLogical("ThorsAnvil::ThorsSocket::BaseSocket::",
                                 "close",
                                 "Called on a bad socket object (this object was moved)");
     }
-    while (true)
-    {
-        if (closeWrapper(socketId) == -1)
-        {
-            switch (errno)
-            {
-                case EBADF: socketId = invalidSocketId;
-                            ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
-                                                     "close"
-                                                     "::close() ", socketId, " ", Utility::systemErrorMessage());
-                case EIO:   socketId = invalidSocketId;
-                            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::BaseSocket::",
-                                             "close",
-                                             "::close() ", socketId, " ", Utility::systemErrorMessage());
-                case EINTR:
-                {
-                    // TODO: Check for user interrupt flags.
-                    //       Beyond the scope of this project
-                    //       so continue normal operations.
-                    continue;
-                }
-                default:    socketId = invalidSocketId;
-                            ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::BaseSocket::",
-                                                     "close",
-                                                     "::close() ", socketId, " ", Utility::systemErrorMessage());
-            }
-        }
-        break;
-    }
-    socketId = invalidSocketId;
+    connection->close();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void BaseSocket::swap(BaseSocket& other) noexcept
 {
     using std::swap;
-    swap(socketId,   other.socketId);
+    swap(connection,   other.connection);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 BaseSocket::BaseSocket(BaseSocket&& move) noexcept
-    : socketId(invalidSocketId)
+    : connection(nullptr)
 {
     move.swap(*this);
 }
@@ -127,17 +72,11 @@ BaseSocket& BaseSocket::operator=(BaseSocket&& move) noexcept
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-DataSocket::DataSocket(ConnectionBuilder const& builder, int socketId, bool blocking, bool server)
-    : BaseSocket(socketId, blocking)
+DataSocket::DataSocket(std::unique_ptr<Connection>&& connection, bool blocking)
+    : BaseSocket(std::move(connection), blocking)
     , readYield([](){})
     , writeYield([](){})
-    , connection(builder(socketId))
-{
-    if (server)
-    {
-        connection->accept();
-    }
-}
+{}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void DataSocket::setYield(std::function<void()>&& yr, std::function<void()>&& yw)
@@ -149,7 +88,7 @@ void DataSocket::setYield(std::function<void()>&& yr, std::function<void()>&& yw
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_t size, std::size_t alreadyGot)
 {
-    if (getSocketId() == invalidSocketId)
+    if (!isValid())
     {
         ThorsLogAndThrowLogical("ThorsAnvil::ThorsSocket::DataSocket::",
                                 "getMessageData",
@@ -255,7 +194,7 @@ std::pair<bool, std::size_t> DataSocket::getMessageData(char* buffer, std::size_
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std::size_t size, std::size_t alreadyPut)
 {
-    if (getSocketId() == invalidSocketId)
+    if (!isValid())
     {
         ThorsLogAndThrowLogical("ThorsAnvil::Socket::DataSocket::",
                                 "putMessageData",
@@ -358,70 +297,37 @@ std::pair<bool, std::size_t> DataSocket::putMessageData(char const* buffer, std:
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-#ifdef  __WINNT__
-#define THOR_SHUTDOWN_WRITE     SD_SEND
-#else
-#define THOR_SHUTDOWN_WRITE     SHUT_WR
-#endif
 void DataSocket::putMessageClose()
 {
-    if (::shutdown(getSocketId(), THOR_SHUTDOWN_WRITE) != 0)
-    {
-        ThorsLogAndThrowCritical("ThorsAnvil::Socket::DataSocket::",
-                                 "putMessageClose",
-                                 "::shutdown(): critical error: ", Utility::systemErrorMessage());
-    }
+    connection->shutdown();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 ConnectSocket::ConnectSocket(ConnectionBuilder const& builder, std::string const& host, int port)
-    : DataSocket(builder, socketWrapper(PF_INET, SOCK_STREAM, 0), true, false)
+    : DataSocket(builder(socketWrapper(PF_INET, SOCK_STREAM, 0)), true)
 {
     connection->connect(host, port);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
-    : BaseSocket(socketWrapper(PF_INET, SOCK_STREAM, 0), blocking)
+    : BaseSocket(std::make_unique<ConnectionNormal>(socketWrapper(PF_INET, SOCK_STREAM, 0)), blocking)
 {
-    SocketAddrIn    serverAddr = {};
-    serverAddr.sin_family       = AF_INET;
-    serverAddr.sin_port         = htons(port);
-    serverAddr.sin_addr.s_addr  = INADDR_ANY;
-
-    if (bindWrapper(getSocketId(), reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
-    {
-        close();
-        ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket::",
-                         "ServerSocket",
-                         "::bind() ", Utility::systemErrorMessage());
-    }
-
-    if (listnWrapper(getSocketId(), maxWaitingConnections) != 0)
-    {
-        close();
-        ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket::",
-                         "ServerSocket",
-                         "::listen() ", Utility::systemErrorMessage());
-    }
+    connection->bind(port, maxWaitingConnections);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 DataSocket ServerSocket::accept(ConnectionBuilder const& builder, bool blocking)
 {
-    if (getSocketId() == invalidSocketId)
+    if (!isValid())
     {
         ThorsLogAndThrowLogical("ThorsAnvil::Socket::ServerSocket::",
                                 "accept",
                                 ": called on a bad socket object (this object was moved)");
     }
 
-    int newSocket = acceptWrapper(getSocketId(), nullptr, nullptr);
-    if (newSocket == invalidSocketId)
-    {
-        ThorsLogAndThrow("ThorsAnvil::Socket::ServerSocket:",
-                         "accept",
-                         "::accept() ", Utility::systemErrorMessage());
-    }
-    return DataSocket(builder, newSocket, blocking, true);
+    int newSocket = connection->accept();
+    std::unique_ptr<Connection> newConnection   = builder(newSocket);
+    newConnection->acceptEstablishConnection();
+    return DataSocket(std::move(newConnection), blocking);
 }

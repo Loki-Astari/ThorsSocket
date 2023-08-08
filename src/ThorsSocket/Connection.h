@@ -23,7 +23,15 @@ class Connection
         virtual ~Connection()   {}
         Connection(Connection const&)                               = delete;
         Connection& operator=(Connection const&)                    = delete;
-        virtual void accept()                                       = 0;
+
+        virtual bool isValid()                              const   = 0;
+        virtual int  socketId()                             const   = 0;
+        virtual void makeSocketNonBlocking()                        = 0;
+        virtual void close()                                        = 0;
+        virtual void shutdown()                                     = 0;
+        virtual void bind(int port, int maxWaitingConnections)      = 0;
+        virtual int  accept()                                       = 0;
+        virtual void acceptEstablishConnection()                    = 0;
         virtual void connect(std::string const& host, int port)     = 0;
         virtual IOInfo read(char* buffer, std::size_t size)         = 0;
         virtual IOInfo write(char const* buffer, std::size_t size)  = 0;

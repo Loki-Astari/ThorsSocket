@@ -216,7 +216,7 @@ ConnectionSSL::~ConnectionSSL()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void ConnectionSSL::accept()
+void ConnectionSSL::acceptEstablishConnection()
 {
     if (SSL_accept(ssl) != 1)
     {

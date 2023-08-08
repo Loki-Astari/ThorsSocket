@@ -20,26 +20,18 @@ using ThorsAnvil::ThorsSocket::SSLMethod;
 using ThorsAnvil::ThorsSocket::SSLctx;;
 using ReadInfo = std::pair<bool, std::size_t>;
 
-static ThorsAnvil::ThorsSocket::ConnectionBuilder getNormalBuilder()
+static std::unique_ptr<ConnectionNormal> buildNormal(int socketId)
 {
-    return [](int fd){return std::make_unique<ConnectionNormal>(fd);};
+    return std::make_unique<ConnectionNormal>(socketId);
 }
 
 class DerivedFromBase: public BaseSocket
 {
     public:
-        DerivedFromBase()
-            : BaseSocket()
-        {}
         DerivedFromBase(int socketId, bool blocking = true)
-            : BaseSocket(socketId, blocking)
+            : BaseSocket(std::make_unique<ConnectionNormal>(socketId), blocking)
         {}
 };
-
-TEST(SocketTest, defaultConstruct)
-{
-    DerivedFromBase     derived;
-}
 TEST(SocketTest, baseSocketInitNonBlocking)
 {
     SocketSetUp     setupSocket;
@@ -62,8 +54,8 @@ TEST(SocketTest, baseSocketMoveConstruct)
     DerivedFromBase     derived1(sock);
     DerivedFromBase     derived2(std::move(derived1));
 
-    EXPECT_EQ(-1,    derived1.getSocketId());
-    EXPECT_EQ(sock,  derived2.getSocketId());
+    EXPECT_FALSE(derived1.isValid());
+    EXPECT_EQ(sock,  derived2.socketId());
 }
 TEST(SocketTest, baseSocketMoveAssign)
 {
@@ -76,7 +68,7 @@ TEST(SocketTest, baseSocketMoveAssign)
 
     derived2 = std::move(derived1);
 
-    EXPECT_EQ(sock1, derived2.getSocketId());
+    EXPECT_EQ(sock1, derived2.socketId());
 }
 TEST(SocketTest, baseSocketSwap)
 {
@@ -90,8 +82,8 @@ TEST(SocketTest, baseSocketSwap)
     using std::swap;
     swap(derived1, derived2);
 
-    EXPECT_EQ(sock1,  derived2.getSocketId());
-    EXPECT_EQ(sock2,  derived1.getSocketId());
+    EXPECT_EQ(sock1,  derived2.socketId());
+    EXPECT_EQ(sock2,  derived1.socketId());
 }
 TEST(SocketTest, ConnectSocket)
 {
@@ -107,7 +99,7 @@ TEST(SocketTest, ServerSocketAccept)
     auto future = std::async( std::launch::async, [](){ConnectSocketNormal connect("127.0.0.1", 12345678);});
     DataSocket      connection = socket.accept();
 
-    ASSERT_NE(-1, connection.getSocketId());
+    ASSERT_NE(-1, connection.socketId());
 }
 TEST(SocketTest, readOneLine)
 {
@@ -119,7 +111,7 @@ TEST(SocketTest, readOneLine)
     EXPECT_EQ(testData.size(), ::write(fd[1], testData.c_str(), testData.size()));
     EXPECT_EQ(0, ::close(fd[1]));
 
-    DataSocket      pipeReader(getNormalBuilder(), fd[0]);
+    DataSocket      pipeReader(buildNormal(fd[0]));
     std::string     buffer(testData.size(), '\0');
     ReadInfo read = pipeReader.getMessageData(&buffer[0], testData.size());
     ASSERT_EQ(true, read.first);
@@ -136,7 +128,7 @@ TEST(SocketTest, readMoreDataThanIsAvailable)
     EXPECT_EQ(testData.size(), ::write(fd[1], testData.c_str(), testData.size()));
     EXPECT_EQ(0, ::close(fd[1]));
 
-    DataSocket      pipeReader(getNormalBuilder(), fd[0]);
+    DataSocket      pipeReader(buildNormal(fd[0]));
     std::string     buffer(testData.size() + 10, '\0');
     ReadInfo read = pipeReader.getMessageData(&buffer[0], testData.size() + 10);
     EXPECT_EQ(false, read.first);
@@ -156,7 +148,7 @@ TEST(SocketTest, readMoreDataThanIsAvailableFromNonBlockingStream)
     EXPECT_EQ(0, CREATE_PIPE(fd));
     EXPECT_EQ(testData.size(), ::write(fd[1], testData.c_str(), testData.size()));
 
-    DataSocket      pipeReader(getNormalBuilder(), fd[0]);
+    DataSocket      pipeReader(buildNormal(fd[0]));
     std::string     buffer(testData.size() + 10, '\0');
     ReadInfo read = pipeReader.getMessageData(&buffer[0], testData.size() + 10);
     EXPECT_EQ(true, read.first);
@@ -177,7 +169,7 @@ TEST(SocketTest, writeOneLine)
     std::string const testData    = "A line of text\n";
     EXPECT_EQ(0, CREATE_PIPE(fd));
 
-    DataSocket      pipeWriter(getNormalBuilder(), fd[1]);
+    DataSocket      pipeWriter(buildNormal(fd[1]));
     pipeWriter.putMessageData(testData.c_str(), testData.size());
 
 
