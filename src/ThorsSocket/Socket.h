@@ -95,6 +95,7 @@ class ConnectSocket: public DataSocket
 {
     public:
         // @method
+        ConnectSocket(std::unique_ptr<Connection>&& connection);
         ConnectSocket(ConnectionBuilder const& builder, std::string const& host, int port);
 };
 

@@ -350,6 +350,7 @@ IOResult ConnectionNormal::write(char const* buffer, std::size_t size)
     return {put.first, r};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::string ConnectionNormal::errorMessage(ssize_t /*result*/)
 {
     return Utility::systemErrorMessage();

@@ -235,6 +235,10 @@ ConnectSocket::ConnectSocket(ConnectionBuilder const& builder, std::string const
     connection->connect(host, port);
 }
 
+ConnectSocket::ConnectSocket(std::unique_ptr<Connection>&& connection)
+    : DataSocket(std::move(connection), true)
+{}
+
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 ServerSocket::ServerSocket(int port, bool blocking, int maxWaitingConnections)
     : BaseSocket(std::make_unique<ConnectionNormal>(socketWrapper(PF_INET, SOCK_STREAM, 0)), blocking)

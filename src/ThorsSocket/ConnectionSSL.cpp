@@ -336,6 +336,7 @@ IOResult ConnectionSSL::write(char const* buffer, std::size_t len)
     return {put, r};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::string ConnectionSSL::errorMessage(ssize_t result)
 {
     return SSLUtil::sslError(ssl, result);
