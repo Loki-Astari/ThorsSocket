@@ -7,6 +7,9 @@
 
     
 
+/* EWOULDBLOCK is defined and different from EAGAIN */
+#undef HAS_UNIQUE_EWOULDBLOCK
+
 /* We have found package CRYPTO */
 #undef HAVE_CRYPTO
 

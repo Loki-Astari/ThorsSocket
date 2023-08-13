@@ -4992,6 +4992,34 @@ fi
 
 
 
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <unistd.h>
+#if defined(EWOULDBLOCK) && (EWOULDBLOCK != EAGAIN)
+# error We have unique EWOULDBLOCK
+#endif
+
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+
+
+printf "%s\n" "#define HAS_UNIQUE_EWOULDBLOCK 0" >>confdefs.h
+
+
+else $as_nop
+
+
+printf "%s\n" "#define HAS_UNIQUE_EWOULDBLOCK 1" >>confdefs.h
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+
+
+
 
 case `pwd` in
   *\ * | *\	*)
