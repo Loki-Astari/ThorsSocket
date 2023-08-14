@@ -1,9 +1,0 @@
-#include "ConnectionFileDescriptor.h"
-
-
-MOCK_SYSTEM_FUNC(open_mockable);
-MOCK_SYSTEM_FUNC(close_mockable);
-MOCK_SYSTEM_FUNC(shutdown_mockable);
-MOCK_SYSTEM_FUNC(read_mockable);
-MOCK_SYSTEM_FUNC(write_mockable);
-

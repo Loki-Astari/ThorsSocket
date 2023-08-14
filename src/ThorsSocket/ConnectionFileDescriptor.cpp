@@ -3,11 +3,14 @@
 #include <map>
 #include <sstream>
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/socket.h>
 
 using namespace ThorsAnvil::ThorsSocket;
 
 ConnectionFileDescriptor::ConnectionFileDescriptor(std::string const& fileName, Type type, Blocking blocking)
-    : fd(open_mockable(fileName.c_str(),
+    : fd(MOCK_FUNC(open)(fileName.c_str(),
                        (type == Type::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? O_NONBLOCK : 0),
                        O_RDWR))
 {}
@@ -35,7 +38,7 @@ int ConnectionFileDescriptor::socketId() const
 
 void ConnectionFileDescriptor::close()
 {
-    close_mockable(fd);
+    MOCK_FUNC(close)(fd);
     fd = -1;
 }
 
@@ -48,7 +51,7 @@ IOResult ConnectionFileDescriptor::read(char* buffer, std::size_t size, std::siz
 {
     while (dataRead != size)
     {
-        ssize_t chunkRead = read_mockable(fd, buffer + dataRead, size - dataRead);
+        ssize_t chunkRead = MOCK_FUNC(read)(fd, buffer + dataRead, size - dataRead);
         if (chunkRead == -1)
         {
             // 1: https://man7.org/linux/man-pages/man2/read.2.html
@@ -92,7 +95,7 @@ IOResult ConnectionFileDescriptor::write(char const* buffer, std::size_t size, s
 {
     while (dataWritten != size)
     {
-        ssize_t chunkWritten = write_mockable(fd, buffer + dataWritten, size - dataWritten);
+        ssize_t chunkWritten = MOCK_FUNC(write)(fd, buffer + dataWritten, size - dataWritten);
         if (chunkWritten == -1)
         {
             // 1: https://man7.org/linux/man-pages/man2/write.2.html

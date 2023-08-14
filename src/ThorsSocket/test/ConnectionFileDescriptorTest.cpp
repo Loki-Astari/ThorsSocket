@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include "ConnectionFileDescriptor.h"
-#include "coverage/ThorMock.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -35,7 +34,8 @@ TEST(ConnectionFileDescriptorTest, Construct)
 
 TEST(ConnectionFileDescriptorTest, ConstructOpenFail)
 {
-    MOCK_SYS(open_mockable, [](const char*, int, unsigned short)    {return -1;});
+    using OpenType = int(const char*, int, unsigned short);
+    MOCK_TSYS(OpenType, open, [](const char*, int, unsigned short)    {return -1;});
     TempFileWithCleanup         fileName;
     ConnectionFileDescriptor    file(fileName,Type::Append, Blocking::No);
 
@@ -45,7 +45,7 @@ TEST(ConnectionFileDescriptorTest, ConstructOpenFail)
 TEST(ConnectionFileDescriptorTest, DestructorCallsClose)
 {
     int callCount = 0;
-    MOCK_SYS(close_mockable, [&callCount](int)    {++callCount;return 0;});
+    MOCK_SYS(close, [&callCount](int)    {++callCount;return 0;});
 
     {
         TempFileWithCleanup         fileName;
@@ -79,8 +79,8 @@ TEST(ConnectionFileDescriptorTest, Close)
 
 TEST(ConnectionFileDescriptorTest, ReadEBADF)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EBADF;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EBADF;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -90,8 +90,8 @@ TEST(ConnectionFileDescriptorTest, ReadEBADF)
 }
 TEST(ConnectionFileDescriptorTest, ReadEFAULT)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EFAULT;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EFAULT;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -101,8 +101,8 @@ TEST(ConnectionFileDescriptorTest, ReadEFAULT)
 }
 TEST(ConnectionFileDescriptorTest, ReadEINVAL)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EINVAL;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EINVAL;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -112,8 +112,8 @@ TEST(ConnectionFileDescriptorTest, ReadEINVAL)
 }
 TEST(ConnectionFileDescriptorTest, ReadEISDIR)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EISDIR;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EISDIR;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -123,8 +123,8 @@ TEST(ConnectionFileDescriptorTest, ReadEISDIR)
 }
 TEST(ConnectionFileDescriptorTest, ReadENOTCONN)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = ENOTCONN;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = ENOTCONN;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -134,8 +134,8 @@ TEST(ConnectionFileDescriptorTest, ReadENOTCONN)
 }
 TEST(ConnectionFileDescriptorTest, ReadEBADMSG)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EBADMSG;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EBADMSG;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -145,8 +145,8 @@ TEST(ConnectionFileDescriptorTest, ReadEBADMSG)
 }
 TEST(ConnectionFileDescriptorTest, ReadEOVERFLOW)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EOVERFLOW;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EOVERFLOW;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -156,8 +156,8 @@ TEST(ConnectionFileDescriptorTest, ReadEOVERFLOW)
 }
 TEST(ConnectionFileDescriptorTest, ReadENXIO)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = ENXIO;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = ENXIO;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -167,8 +167,8 @@ TEST(ConnectionFileDescriptorTest, ReadENXIO)
 }
 TEST(ConnectionFileDescriptorTest, ReadESPIPE)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = ESPIPE;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = ESPIPE;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -178,8 +178,8 @@ TEST(ConnectionFileDescriptorTest, ReadESPIPE)
 }
 TEST(ConnectionFileDescriptorTest, ReadEINTR)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EINTR;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EINTR;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -189,8 +189,8 @@ TEST(ConnectionFileDescriptorTest, ReadEINTR)
 }
 TEST(ConnectionFileDescriptorTest, ReadECONNRESET)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = ECONNRESET;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = ECONNRESET;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -200,8 +200,8 @@ TEST(ConnectionFileDescriptorTest, ReadECONNRESET)
 }
 TEST(ConnectionFileDescriptorTest, ReadEAGAIN)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EAGAIN;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EAGAIN;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -211,8 +211,8 @@ TEST(ConnectionFileDescriptorTest, ReadEAGAIN)
 }
 TEST(ConnectionFileDescriptorTest, ReadEWOULDBLOCK)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EWOULDBLOCK;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EWOULDBLOCK;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -227,8 +227,8 @@ TEST(ConnectionFileDescriptorTest, ReadUnknownError)
      * If we work out how to handle EIO then replace this
      * value with another unhandeled code
      */
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t)     {errno = EIO;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EIO;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -238,8 +238,8 @@ TEST(ConnectionFileDescriptorTest, ReadUnknownError)
 }
 TEST(ConnectionFileDescriptorTest, ReadOK)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(read_mockable, [](int, void*, ssize_t size)     {return size;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(read, [](int, void*, ssize_t size) {return size;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -250,8 +250,8 @@ TEST(ConnectionFileDescriptorTest, ReadOK)
 
 TEST(ConnectionFileDescriptorTest, writeEBADF)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EBADF;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EBADF;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -261,8 +261,8 @@ TEST(ConnectionFileDescriptorTest, writeEBADF)
 }
 TEST(ConnectionFileDescriptorTest, writeEFAULT)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EFAULT;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EFAULT;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -272,8 +272,8 @@ TEST(ConnectionFileDescriptorTest, writeEFAULT)
 }
 TEST(ConnectionFileDescriptorTest, writeEINVAL)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EINVAL;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EINVAL;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -283,8 +283,8 @@ TEST(ConnectionFileDescriptorTest, writeEINVAL)
 }
 TEST(ConnectionFileDescriptorTest, writeENOTCONN)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = ENOTCONN;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ENOTCONN;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -294,8 +294,8 @@ TEST(ConnectionFileDescriptorTest, writeENOTCONN)
 }
 TEST(ConnectionFileDescriptorTest, writeENXIO)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = ENXIO;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ENXIO;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -305,8 +305,8 @@ TEST(ConnectionFileDescriptorTest, writeENXIO)
 }
 TEST(ConnectionFileDescriptorTest, writeESPIPE)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = ESPIPE;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ESPIPE;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -316,8 +316,8 @@ TEST(ConnectionFileDescriptorTest, writeESPIPE)
 }
 TEST(ConnectionFileDescriptorTest, writeEDESTADDRREQ)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EDESTADDRREQ;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EDESTADDRREQ;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -327,8 +327,8 @@ TEST(ConnectionFileDescriptorTest, writeEDESTADDRREQ)
 }
 TEST(ConnectionFileDescriptorTest, writeERANGE)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = ERANGE;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ERANGE;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -338,8 +338,8 @@ TEST(ConnectionFileDescriptorTest, writeERANGE)
 }
 TEST(ConnectionFileDescriptorTest, writeEPIPE)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EPIPE;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EPIPE;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -349,8 +349,8 @@ TEST(ConnectionFileDescriptorTest, writeEPIPE)
 }
 TEST(ConnectionFileDescriptorTest, writeEACCES)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EACCES;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EACCES;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -360,8 +360,8 @@ TEST(ConnectionFileDescriptorTest, writeEACCES)
 }
 TEST(ConnectionFileDescriptorTest, writeEINTR)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EINTR;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EINTR;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -371,8 +371,8 @@ TEST(ConnectionFileDescriptorTest, writeEINTR)
 }
 TEST(ConnectionFileDescriptorTest, writeECONNRESET)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = ECONNRESET;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ECONNRESET;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -382,8 +382,8 @@ TEST(ConnectionFileDescriptorTest, writeECONNRESET)
 }
 TEST(ConnectionFileDescriptorTest, writeEAGAIN)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EAGAIN;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EAGAIN;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -393,8 +393,8 @@ TEST(ConnectionFileDescriptorTest, writeEAGAIN)
 }
 TEST(ConnectionFileDescriptorTest, writeEWOULDBLOCK)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EWOULDBLOCK;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EWOULDBLOCK;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -409,8 +409,8 @@ TEST(ConnectionFileDescriptorTest, WriteUnknownError)
      * If we work out how to handle EIO then replace this
      * value with another unhandeled code
      */
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t)     {errno = EIO;return -1;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EIO;return -1;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];
@@ -420,8 +420,8 @@ TEST(ConnectionFileDescriptorTest, WriteUnknownError)
 }
 TEST(ConnectionFileDescriptorTest, WriteOK)
 {
-    MOCK_SYS(close_mockable,[](int){return 0;});
-    MOCK_SYS(write_mockable, [](int, const void*, ssize_t size)     {return size;});
+    MOCK_SYS(close,[](int){return 0;});
+    MOCK_SYS(write, [](int, const void*, ssize_t size)  {return size;});
     ConnectionFileDescriptor    file(12);
 
     char buffer[12];

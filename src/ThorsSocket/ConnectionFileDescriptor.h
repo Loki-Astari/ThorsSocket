@@ -3,7 +3,6 @@
 
 #include "ThorsSocketConfig.h"
 #include "Connection.h"
-#include "MockableOSFunction.h"
 
 namespace ThorsAnvil::ThorsSocket
 {
