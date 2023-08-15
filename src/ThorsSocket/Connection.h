@@ -3,7 +3,6 @@
 
 #include "ThorsSocketConfig.h"
 #include <memory>
-#include <functional>
 #include <string>
 #include <cstddef>
 
@@ -44,6 +43,8 @@ enum class Result
 using IOInfo            = std::pair<ssize_t, int>;
 using IOResult          = std::pair<ssize_t, Result>;
 
+enum class Type {Append, Truncate};
+enum class Blocking {No, Yes};
 
 class Connection
 {

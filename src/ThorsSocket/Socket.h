@@ -2,11 +2,9 @@
 #define THORSANVIL_THORSSOCKET_SOCKET_H
 
 #include "ThorsSocketConfig.h"
-#include "ThorsLogging/ThorsLogging.h"
 
 #include <memory>
 #include <functional>
-
 
 namespace ThorsAnvil::ThorsSocket
 {

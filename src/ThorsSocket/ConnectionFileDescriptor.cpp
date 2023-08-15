@@ -3,55 +3,23 @@
 #include <map>
 #include <sstream>
 
-#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/uio.h>
 #include <unistd.h>
-#include <sys/socket.h>
 
-using namespace ThorsAnvil::ThorsSocket;
+using namespace ThorsAnvil::ThorsSocket::ConnectionType;
+using ThorsAnvil::ThorsSocket::IOResult;
 
-ConnectionFileDescriptor::ConnectionFileDescriptor(std::string const& fileName, Type type, Blocking blocking)
-    : fd(MOCK_FUNC(open)(fileName.c_str(),
-                       (type == Type::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? O_NONBLOCK : 0),
-                       O_RDWR))
-{}
-
-ConnectionFileDescriptor::ConnectionFileDescriptor(int fd)
-    : fd(fd)
-{}
-
-ConnectionFileDescriptor::~ConnectionFileDescriptor()
+void FileDescriptor::tryFlushBuffer()
 {
-    if (isConnected()) {
-        close();
-    }
+    // Default Action do nothing.
 }
 
-bool ConnectionFileDescriptor::isConnected() const
-{
-    return fd != -1;
-}
-
-int ConnectionFileDescriptor::socketId() const
-{
-    return fd;
-}
-
-void ConnectionFileDescriptor::close()
-{
-    MOCK_FUNC(close)(fd);
-    fd = -1;
-}
-
-void ConnectionFileDescriptor::tryFlushBuffer()
-{
-    // Does nothing for files.
-}
-
-IOResult ConnectionFileDescriptor::read(char* buffer, std::size_t size, std::size_t dataRead)
+IOResult FileDescriptor::read(char* buffer, std::size_t size, std::size_t dataRead)
 {
     while (dataRead != size)
     {
-        ssize_t chunkRead = MOCK_FUNC(read)(fd, buffer + dataRead, size - dataRead);
+        ssize_t chunkRead = MOCK_FUNC(read)(getReadFD(), buffer + dataRead, size - dataRead);
         if (chunkRead == -1)
         {
             // 1: https://man7.org/linux/man-pages/man2/read.2.html
@@ -91,11 +59,11 @@ IOResult ConnectionFileDescriptor::read(char* buffer, std::size_t size, std::siz
     return {dataRead, Result::OK};
 }
 
-IOResult ConnectionFileDescriptor::write(char const* buffer, std::size_t size, std::size_t dataWritten)
+IOResult FileDescriptor::write(char const* buffer, std::size_t size, std::size_t dataWritten)
 {
     while (dataWritten != size)
     {
-        ssize_t chunkWritten = MOCK_FUNC(write)(fd, buffer + dataWritten, size - dataWritten);
+        ssize_t chunkWritten = MOCK_FUNC(write)(getWriteFD(), buffer + dataWritten, size - dataWritten);
         if (chunkWritten == -1)
         {
             // 1: https://man7.org/linux/man-pages/man2/write.2.html
@@ -140,7 +108,12 @@ IOResult ConnectionFileDescriptor::write(char const* buffer, std::size_t size, s
     return {dataWritten, Result::OK};
 }
 
-std::string ConnectionFileDescriptor::errorMessage()
+std::string FileDescriptor::errorMessage()
+{
+    return buildErrorMessage();
+}
+
+std::string FileDescriptor::buildErrorMessage()
 {
     static const std::map<int, char const*> errorString =
     {
@@ -155,6 +128,6 @@ std::string ConnectionFileDescriptor::errorMessage()
     std::stringstream result;
     auto find = errorString.find(errno);
     char const* errorName = find == errorString.end() ? "Unknown" : find->second;
-    result << "ConnectionFileDescriptor: errno=" << errno << "(" << errorName << "): msg: " << strerror(errno) << ":";
+    result << "ConnectionType::FileDescriptor: errno=" << errno << "(" << errorName << "): msg: " << strerror(errno) << ":";
     return result.str();
 }

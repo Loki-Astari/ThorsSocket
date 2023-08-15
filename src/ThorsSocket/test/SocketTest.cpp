@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "Socket.h"
 #include "Connection.h"
+#include "ThorsLogging/ThorsLogging.h"
 
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
