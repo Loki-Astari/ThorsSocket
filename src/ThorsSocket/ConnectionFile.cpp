@@ -7,7 +7,7 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 File::File(std::string const& fileName, Type type, Blocking blocking)
-    : fd(MOCK_TFUNC(OpenType, open)(fileName.c_str(),
+    : fd(MOCK_TFUNC(open)(fileName.c_str(),
                        (type == Type::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? O_NONBLOCK : 0),
                        O_RDWR))
 {

@@ -37,9 +37,15 @@ TEST(ConnectionFileTest, ConstructOpenFail)
     using OpenType = int(const char*, int, unsigned short);
     MOCK_TSYS(OpenType, open, [](const char*, int, unsigned short)    {return -1;});
     TempFileWithCleanup         fileName;
-    File                        file(fileName,Type::Append, Blocking::No);
 
-    ASSERT_FALSE(file.isConnected());
+    auto action = [&fileName](){
+        File                        file(fileName,Type::Append, Blocking::No);
+    };
+
+    ASSERT_THROW(
+        action(),
+        std::runtime_error
+    );
 }
 
 TEST(ConnectionFileTest, DestructorCallsClose)

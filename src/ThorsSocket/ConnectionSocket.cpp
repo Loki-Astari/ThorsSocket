@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <netdb.h>
 
+#include <iostream>
+
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 Socket::Socket(std::string const& hostname, int port, Blocking blocking)
@@ -22,18 +24,19 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
     serverAddr.sin_family       = AF_INET;
     serverAddr.sin_port         = htons(port);
 
-    HostEnt* serv;
+    HostEnt* serv = nullptr;
     while (true)
     {
         serv = MOCK_FUNC(gethostbyname)(hostname.c_str());
+        if (serv == nullptr && h_errno == TRY_AGAIN) {
+            continue;
+        }
+
         if (serv != nullptr) {
             break;
         }
 
-        if (h_errno == TRY_AGAIN) {
-            continue;
-        }
-        ::close(fd);
+        MOCK_FUNC(close)(fd);
         fd = -1;
         ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::Socket", "Socket: ::gethostbyname() failed. ", buildErrorMessage());
     }
@@ -44,16 +47,18 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
 
     if (MOCK_FUNC(connect)(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
     {
-        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::Socket", "Socket: ::connect() failed. ", buildErrorMessage());
         MOCK_FUNC(close)(fd);
         fd = -1;
+        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::Socket", "Socket: ::connect() failed. ", buildErrorMessage());
     }
 
-    if (blocking == Blocking::No) {
-        if (MOCK_TFUNC(FctlType, fcntl)(fd, F_SETFL, O_NONBLOCK) == -1) {
-            ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::Socket", "Socket: ::fcntl() failed. ", buildErrorMessage());
+    if (blocking == Blocking::No)
+    {
+        if (MOCK_TFUNC(fcntl)(fd, F_SETFL, O_NONBLOCK) == -1)
+        {
             MOCK_FUNC(close)(fd);
             fd = -1;
+            ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::Socket", "Socket: ::fcntl() failed. ", buildErrorMessage());
         }
     }
 }
