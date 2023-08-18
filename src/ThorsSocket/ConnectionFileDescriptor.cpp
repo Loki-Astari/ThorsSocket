@@ -22,9 +22,8 @@ IOResult FileDescriptor::read(char* buffer, std::size_t size, std::size_t dataRe
         ssize_t chunkRead = MOCK_FUNC(read)(getReadFD(), buffer + dataRead, size - dataRead);
         if (chunkRead == -1)
         {
-            // 1: https://man7.org/linux/man-pages/man2/read.2.html
-            // 2: https://www.ibm.com/docs/en/zvse/6.2?topic=SSB27H_6.2.0/fa2ti_call_read.htm
-            // 3: https://linux.die.net/man/3/read
+            // https://man7.org/linux/man-pages/man2/read.2.html
+            // https://linux.die.net/man/3/read
             switch (errno)
             {
                 case EBADF:
@@ -66,9 +65,8 @@ IOResult FileDescriptor::write(char const* buffer, std::size_t size, std::size_t
         ssize_t chunkWritten = MOCK_FUNC(write)(getWriteFD(), buffer + dataWritten, size - dataWritten);
         if (chunkWritten == -1)
         {
-            // 1: https://man7.org/linux/man-pages/man2/write.2.html
-            // 2: https://www.ibm.com/docs/en/zvse/6.2?topic=SSB27H_6.2.0/fa2ti_call_write.htm
-            // 3: https://linux.die.net/man/3/write
+            // https://man7.org/linux/man-pages/man2/write.2.html
+            // https://linux.die.net/man/3/write
             switch (errno)
             {
                 case EBADF:
@@ -117,13 +115,24 @@ std::string FileDescriptor::buildErrorMessage()
 {
     static const std::map<int, char const*> errorString =
     {
-        {EOVERFLOW, "EOVERFLOW"},       {EBADF, "EBADF"},   {EFAULT, "EFAULT"}, {EINVAL, "EINVAL"},
-        {EBADMSG, "EBADMSG"},           {ENXIO, "ENXIO"},   {ESPIPE, "ESPIPE"}, {EINTR, "EINTR"},
-        {ECONNRESET, "ECONNRESET"},     {EAGAIN, "EAGAIN"}, {EISDIR, "EISDIR"}, /* {EWOULDBLOC, "EWOULDBLOC"}, */
-        {ENOTCONN, "ENOTCONN"},         {ENOBUFS, "ENOBUFS"},{EIO, "EIO"},      {ENOMEM, "ENOMEM"},
-        {ETIMEDOUT, "ETIMEDOUT"},       {ENOSPC, "ENOSPC"}, {EPERM, "EPERM"},   {EPIPE, "EPIPE"},
-        {EDESTADDRREQ, "EDESTADDRREQ"}, {EDQUOT, "EDQUOT"}, {EFBIG, "EFBIG"},   {ERANGE, "ERANGE"},
-        {ENETUNREACH, "ENETUNREACH"},   {ENETDOWN, "ENETDOWN"}
+#if defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1)
+        {EWOULDBLOCK, "EWOULDBLOCK"},
+#endif
+        {EOVERFLOW, "EOVERFLOW"},       {EBADF, "EBADF"},       {EFAULT, "EFAULT"},     {EINVAL, "EINVAL"},
+        {EBADMSG, "EBADMSG"},           {ENXIO, "ENXIO"},       {ESPIPE, "ESPIPE"},     {EINTR, "EINTR"},
+        {ECONNRESET, "ECONNRESET"},     {EAGAIN, "EAGAIN"},     {EISDIR, "EISDIR"},     {EEXIST, "EEXIST"},
+        {ENOTCONN, "ENOTCONN"},         {ENOBUFS, "ENOBUFS"},   {EIO, "EIO"},           {ENOMEM, "ENOMEM"},
+        {ETIMEDOUT, "ETIMEDOUT"},       {ENOSPC, "ENOSPC"},     {EPERM, "EPERM"},       {EPIPE, "EPIPE"},
+        {EDESTADDRREQ, "EDESTADDRREQ"}, {EDQUOT, "EDQUOT"},     {EFBIG, "EFBIG"},       {ERANGE, "ERANGE"},
+        {ENETUNREACH, "ENETUNREACH"},   {ENETDOWN, "ENETDOWN"}, {EACCES, "EACCES"},     {EBUSY, "EBUSY"},
+        {ENAMETOOLONG, "ENAMETOOLONG"}, {ELOOP, "ELOOP"},       {EMFILE, "EMFILE"},     {ENFILE, "ENFILE"},
+        {EOPNOTSUPP, "EOPNOTSUPP"},     {ENODEV, "ENODEV"},     {ENOENT, "ENOENT"},     {ENOTDIR, "ENOTDIR"},
+        {EAFNOSUPPORT, "EAFNOSUPPORT"}, {EROFS, "EROFS"},       {ETXTBSY, "ETXTBSY"},   {ENOSR, "ENOSR"},
+        {EADDRNOTAVAIL, "EADDRNOTAVAIL"},{EALREADY, "EALREADY"},{EISCONN, "EISCONN"},   {ENOTSOCK, "ENOTSOCK"},
+        {EPROTONOSUPPORT, "EPROTONOSUPPORT"},                   {EADDRINUSE, "EADDRINUSE"},
+        {ECONNREFUSED, "ECONNREFUSED"},                         {EPROTOTYPE, "EPROTOTYPE"}, 
+        {EHOSTUNREACH, "EHOSTUNREACH"},                         {EINPROGRESS, "EINPROGRESS"},
+
     };
     std::stringstream result;
     auto find = errorString.find(errno);

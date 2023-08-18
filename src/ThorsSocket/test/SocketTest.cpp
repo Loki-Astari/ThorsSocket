@@ -120,11 +120,10 @@ TEST(SocketTest, SocketConstruct)
 }
 TEST(SocketTest, SocketConstructFaild)
 {
-    ASSERT_THROW(
+    ASSERT_NO_THROW(
     Socket socket   = SocketBuilder{}
                         .addConnection<TestConnection>(false)
-                        .build(),
-        std::runtime_error
+                        .build()
     );
 }
 TEST(SocketTest, SocketConstructMove)

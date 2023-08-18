@@ -13,11 +13,7 @@ Socket::Socket(std::unique_ptr<Connection>&& connectionP, std::function<void()>&
     : connection(std::move(connectionP))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
-{
-    if (!isConnected()) {
-        throw std::runtime_error("XX");
-    }
-}
+{}
 
 Socket::Socket(Socket&& move) noexcept
     : connection(std::exchange(move.connection, nullptr))
