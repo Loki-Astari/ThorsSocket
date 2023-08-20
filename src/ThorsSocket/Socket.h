@@ -35,8 +35,8 @@ class Socket
         bool isConnected()                  const;
         int  socketId()                     const;      // Only useful for unit tests
 
-        IOData getMessageData(char* buffer, std::size_t size);
-        IOData putMessageData(char const* buffer, std::size_t size);
+        IOData getMessageData(void* buffer, std::size_t size);
+        IOData putMessageData(void const* buffer, std::size_t size);
 
         void tryFlushBuffer();
 
@@ -47,8 +47,8 @@ void swap(Socket& lhs, Socket& rhs);
 class SocketBuilder
 {
     std::unique_ptr<Connection>     connection;
-    std::function<void()>           readYield;
-    std::function<void()>           writeYield;
+    std::function<void()>           readYield   = [](){};
+    std::function<void()>           writeYield  = [](){};
 
     public:
         template<typename Connection, typename... Args>

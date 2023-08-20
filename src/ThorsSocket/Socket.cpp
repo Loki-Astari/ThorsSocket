@@ -51,7 +51,7 @@ int Socket::socketId() const
     return connection->socketId();
 }
 
-IOData Socket::getMessageData(char* buffer, std::size_t size)
+IOData Socket::getMessageData(void* buffer, std::size_t size)
 {
     if (!isConnected()) {
         ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Socket is in an invalid state");
@@ -60,11 +60,11 @@ IOData Socket::getMessageData(char* buffer, std::size_t size)
     std::size_t dataRead = 0;
     do
     {
-        IOResult result = connection->read(buffer, size, dataRead);
+        IOResult result = connection->read(static_cast<char*>(buffer), size, dataRead);
+        dataRead = result.first;
         switch (result.second)
         {
             case Result::OK:
-                dataRead += result.first;
                 break;
             case Result::CriticalBug:
                 ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::Socket", "getMessageData", "CriticalBug: connection read failed", connection->errorMessage());
@@ -86,7 +86,7 @@ IOData Socket::getMessageData(char* buffer, std::size_t size)
     return {true, dataRead};
 }
 
-IOData Socket::putMessageData(char const* buffer, std::size_t size)
+IOData Socket::putMessageData(void const* buffer, std::size_t size)
 {
     if (!isConnected()) {
         ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "putMessageData", "Socket is in an invalid state");
@@ -95,11 +95,11 @@ IOData Socket::putMessageData(char const* buffer, std::size_t size)
     std::size_t dataWritten = 0;
     do
     {
-        IOResult result = connection->write(buffer, size, dataWritten);
+        IOResult result = connection->write(static_cast<char const*>(buffer), size, dataWritten);
+        dataWritten = result.first;
         switch (result.second)
         {
             case Result::OK:
-                dataWritten += result.first;
                 break;
             case Result::CriticalBug:
                 ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::Socket", "putMessageData", "CriticalBug: connection read failed", connection->errorMessage());

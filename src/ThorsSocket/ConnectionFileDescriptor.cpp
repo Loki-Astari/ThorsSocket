@@ -20,6 +20,9 @@ IOResult FileDescriptor::read(char* buffer, std::size_t size, std::size_t dataRe
     while (dataRead != size)
     {
         ssize_t chunkRead = MOCK_FUNC(read)(getReadFD(), buffer + dataRead, size - dataRead);
+        if (chunkRead == 0) {
+            return {dataRead, Result::ConnectionClosed};
+        }
         if (chunkRead == -1)
         {
             // https://man7.org/linux/man-pages/man2/read.2.html
@@ -130,7 +133,7 @@ std::string FileDescriptor::buildErrorMessage()
         {EAFNOSUPPORT, "EAFNOSUPPORT"}, {EROFS, "EROFS"},       {ETXTBSY, "ETXTBSY"},   {ENOSR, "ENOSR"},
         {EADDRNOTAVAIL, "EADDRNOTAVAIL"},{EALREADY, "EALREADY"},{EISCONN, "EISCONN"},   {ENOTSOCK, "ENOTSOCK"},
         {EPROTONOSUPPORT, "EPROTONOSUPPORT"},                   {EADDRINUSE, "EADDRINUSE"},
-        {ECONNREFUSED, "ECONNREFUSED"},                         {EPROTOTYPE, "EPROTOTYPE"}, 
+        {ECONNREFUSED, "ECONNREFUSED"},                         {EPROTOTYPE, "EPROTOTYPE"},
         {EHOSTUNREACH, "EHOSTUNREACH"},                         {EINPROGRESS, "EINPROGRESS"},
 
     };
