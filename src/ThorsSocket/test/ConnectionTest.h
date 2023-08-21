@@ -19,7 +19,7 @@ class TempFileWithCleanup
         operator std::string const&() {return fileName;}
 };
 
-using ThorsAnvil::ThorsSocket::Type;
+using ThorsAnvil::ThorsSocket::Open;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;

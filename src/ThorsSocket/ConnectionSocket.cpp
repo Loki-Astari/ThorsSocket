@@ -80,8 +80,9 @@ bool Socket::isConnected() const
     return fd != -1;
 }
 
-int Socket::socketId() const
+int Socket::socketId(Mode) const
 {
+    // read and write use same file descriptor
     return fd;
 }
 

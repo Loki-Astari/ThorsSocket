@@ -11,12 +11,12 @@ class File: public FileDescriptor
 {
     int fd;
     public:
-        File(std::string const& fileName, Type type, Blocking blocking);
+        File(std::string const& fileName, Open type, Blocking blocking);
         File(int fd);
         virtual ~File();
 
         virtual bool isConnected()                          const   override;
-        virtual int  socketId()                             const   override;
+        virtual int  socketId(Mode mode)                    const   override;
         virtual void close()                                        override;
 
         virtual int getReadFD()                             const   override;

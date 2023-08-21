@@ -21,7 +21,8 @@ class TempFileWithCleanup
 };
 
 using ThorsAnvil::ThorsSocket::ConnectionType::File;
-using ThorsAnvil::ThorsSocket::Type;
+using ThorsAnvil::ThorsSocket::Open;
+using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
@@ -29,7 +30,7 @@ using ThorsAnvil::ThorsSocket::Result;
 TEST(ConnectionFileTest, Construct)
 {
     TempFileWithCleanup         fileName;
-    File                        file(fileName,Type::Append, Blocking::No);
+    File                        file(fileName,Open::Append, Blocking::No);
 }
 
 TEST(ConnectionFileTest, ConstructOpenFail)
@@ -39,7 +40,7 @@ TEST(ConnectionFileTest, ConstructOpenFail)
     TempFileWithCleanup         fileName;
 
     auto action = [&fileName](){
-        File                        file(fileName,Type::Append, Blocking::No);
+        File                        file(fileName,Open::Append, Blocking::No);
     };
 
     ASSERT_THROW(
@@ -64,20 +65,23 @@ TEST(ConnectionFileTest, DestructorCallsClose)
 
 TEST(ConnectionFileTest, notValidOnMinusOne)
 {
+    MOCK_SYS(close, [](int)    {return 0;});
     File                        file(-1);
     ASSERT_FALSE(file.isConnected());
 }
 
 TEST(ConnectionFileTest, getSocketIdWorks)
 {
+    MOCK_SYS(close, [](int)    {return 0;});
     File                        file(12);
-    ASSERT_EQ(file.socketId(), 12);
+    ASSERT_EQ(file.socketId(Mode::Read), 12);
+    ASSERT_EQ(file.socketId(Mode::Write), 12);
 }
 
 TEST(ConnectionFileTest, Close)
 {
     TempFileWithCleanup         fileName;
-    File                        file(fileName,Type::Append, Blocking::No);
+    File                        file(fileName,Open::Append, Blocking::No);
     file.close();
 
     ASSERT_FALSE(file.isConnected());
@@ -85,12 +89,14 @@ TEST(ConnectionFileTest, Close)
 
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 {
+    MOCK_SYS(close, [](int)    {return 0;});
     File                        file(33);
-    ASSERT_EQ(file.socketId(), file.getReadFD());
+    ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
 }
 
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
 {
+    MOCK_SYS(close, [](int)    {return 0;});
     File                        file(34);
-    ASSERT_EQ(file.socketId(), file.getWriteFD());
+    ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());
 }

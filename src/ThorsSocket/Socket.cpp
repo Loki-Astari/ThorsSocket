@@ -43,12 +43,12 @@ bool Socket::isConnected() const
     return connection.get() != nullptr && connection->isConnected();
 }
 
-int Socket::socketId() const
+int Socket::socketId(Mode rw) const
 {
     if (!isConnected()) {
         ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "socketId", "Socket is in an invalid state");
     }
-    return connection->socketId();
+    return connection->socketId(rw);
 }
 
 IOData Socket::getMessageData(void* buffer, std::size_t size)

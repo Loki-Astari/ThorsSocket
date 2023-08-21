@@ -6,9 +6,9 @@
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
-File::File(std::string const& fileName, Type type, Blocking blocking)
+File::File(std::string const& fileName, Open open, Blocking blocking)
     : fd(MOCK_TFUNC(open)(fileName.c_str(),
-                       (type == Type::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? O_NONBLOCK : 0),
+                       (open == Open::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? O_NONBLOCK : 0),
                        O_RDWR))
 {
     if (fd == -1) {
@@ -32,8 +32,9 @@ bool File::isConnected() const
     return fd != -1;
 }
 
-int File::socketId() const
+int File::socketId(Mode) const
 {
+    // Both read and write use same ID
     return fd;
 }
 

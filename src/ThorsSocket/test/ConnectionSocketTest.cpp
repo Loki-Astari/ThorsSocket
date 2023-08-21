@@ -2,6 +2,7 @@
 #include "ConnectionSocket.h"
 #include "test/ConnectionTest.h"
 
+using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
 using ThorsAnvil::ThorsSocket::ConnectionType::SocketAddr;
@@ -184,7 +185,8 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
 TEST(ConnectionSocketTest, getSocketIdWorks)
 {
     Socket                      socket(12);
-    ASSERT_EQ(socket.socketId(), 12);
+    ASSERT_EQ(socket.socketId(Mode::Read), 12);
+    ASSERT_EQ(socket.socketId(Mode::Write), 12);
 }
 
 TEST(ConnectionSocketTest, Close)
@@ -198,11 +200,11 @@ TEST(ConnectionSocketTest, Close)
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 {
     Socket                      socket(33);
-    ASSERT_EQ(socket.socketId(), socket.getReadFD());
+    ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
 }
 
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 {
     Socket                      socket(34);
-    ASSERT_EQ(socket.socketId(), socket.getWriteFD());
+    ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
 }

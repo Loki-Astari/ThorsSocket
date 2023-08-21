@@ -13,6 +13,7 @@ using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
 using ThorsAnvil::ThorsSocket::Blocking;
+using ThorsAnvil::ThorsSocket::Mode;
 namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 class Server
@@ -153,7 +154,8 @@ TEST(SocketIntegrationTest, ConnectToSocket)
                         .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
                         .build();
 
-    ASSERT_NE(socket.socketId(), -1);
+    ASSERT_NE(socket.socketId(Mode::Read), -1);
+    ASSERT_NE(socket.socketId(Mode::Write), -1);
 }
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)

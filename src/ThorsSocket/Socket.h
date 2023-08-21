@@ -2,6 +2,7 @@
 #define THORSANVIL_THORSSOCKET_SOCKET_H
 
 #include "ThorsSocketConfig.h"
+#include "SocketUtil.h"
 
 #include <memory>
 #include <functional>
@@ -11,7 +12,6 @@ namespace ThorsAnvil::ThorsSocket
 
 class Connection;
 class SocketBuilder;
-using IOData    = std::pair<bool, std::size_t>;
 
 class Socket
 {
@@ -33,7 +33,7 @@ class Socket
         Socket& operator=(Socket const&)    = delete;
 
         bool isConnected()                  const;
-        int  socketId()                     const;      // Only useful for unit tests
+        int  socketId(Mode rw)              const;      // Only useful for unit tests
 
         IOData getMessageData(void* buffer, std::size_t size);
         IOData putMessageData(void const* buffer, std::size_t size);

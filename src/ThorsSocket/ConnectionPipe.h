@@ -1,30 +1,23 @@
-#ifndef THORSANVIL_THORSSOCKET_CONNECTION_SOCKET_H
-#define THORSANVIL_THORSSOCKET_CONNECTION_SOCKET_H
+#ifndef THORSANVIL_THORSSOCKET_CONNECTION_PIPE_H
+#define THORSANVIL_THORSSOCKET_CONNECTION_PIPE_H
 
 #include "ThorsSocketConfig.h"
 #include "ConnectionFileDescriptor.h"
 
-#include <netdb.h>
-
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
-using SocketAddrIn  = struct ::sockaddr_in;
-using SocketAddr    = struct ::sockaddr;
-using HostEnt       = struct ::hostent;
-
-class Socket: public ConnectionType::FileDescriptor
+class Pipe: public FileDescriptor
 {
-    int fd;
+    int fd[2];
     public:
-        Socket(std::string const& host, int port, Blocking blocking);
-        Socket(int fd);
-        virtual ~Socket();
+        Pipe(Blocking blocking);
+        Pipe(int fd[]);
+        virtual ~Pipe();
 
         virtual bool isConnected()                          const   override;
         virtual int  socketId(Mode rw)                      const   override;
         virtual void close()                                        override;
-        virtual void tryFlushBuffer()                               override;
 
         virtual int getReadFD()                             const   override;
         virtual int getWriteFD()                            const   override;

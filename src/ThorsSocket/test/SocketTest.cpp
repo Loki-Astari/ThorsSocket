@@ -9,6 +9,7 @@ using ThorsAnvil::ThorsSocket::SocketBuilder;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
+using ThorsAnvil::ThorsSocket::Mode;
 
 class TestConnection: public Connection
 {
@@ -33,7 +34,7 @@ class TestConnection: public Connection
             , writeCount(writeCount)
         {}
         virtual bool isConnected()                          const   {return valid;}
-        virtual int  socketId()                             const   {return id;}
+        virtual int  socketId(Mode)                         const   {return id;}
         virtual void close()                                        {}
         virtual void tryFlushBuffer()                               {}
 
@@ -108,7 +109,8 @@ TEST(SocketTest, SocketConstruct)
                         .addConnection<TestConnection>(true, 11, Result::WouldBlock, Result::WouldBlock)
                         .build();
     ASSERT_TRUE(socket.isConnected());
-    ASSERT_EQ(socket.socketId(), 11);
+    ASSERT_EQ(socket.socketId(Mode::Read), 11);
+    ASSERT_EQ(socket.socketId(Mode::Write), 11);
 
     char block[12];
 
@@ -146,7 +148,8 @@ TEST(SocketTest, SocketConstructMove)
     ASSERT_FALSE(socket.isConnected());
 
     ASSERT_TRUE(move.isConnected());
-    ASSERT_EQ(move.socketId(), 13);
+    ASSERT_EQ(move.socketId(Mode::Read), 13);
+    ASSERT_EQ(move.socketId(Mode::Write), 13);
 
     char block[12];
 
@@ -178,7 +181,8 @@ TEST(SocketTest, SocketAssignMove)
 
     ASSERT_FALSE(socket.isConnected());
     ASSERT_TRUE(move.isConnected());
-    ASSERT_EQ(move.socketId(), 21);
+    ASSERT_EQ(move.socketId(Mode::Read), 21);
+    ASSERT_EQ(move.socketId(Mode::Write), 21);
 
     char block[12];
 
@@ -200,10 +204,10 @@ TEST(SocketTest, SocketSwap)
     move.swap(socket);
 
     ASSERT_TRUE(socket.isConnected());
-    ASSERT_EQ(socket.socketId(), 22);
+    ASSERT_EQ(socket.socketId(Mode::Read), 22);
 
     ASSERT_TRUE(move.isConnected());
-    ASSERT_EQ(move.socketId(), 21);
+    ASSERT_EQ(move.socketId(Mode::Read), 21);
 }
 TEST(SocketTest, SocketSwapUsingFunction)
 {
@@ -217,23 +221,23 @@ TEST(SocketTest, SocketSwapUsingFunction)
     swap(socket, move);
 
     ASSERT_TRUE(socket.isConnected());
-    ASSERT_EQ(socket.socketId(), 22);
+    ASSERT_EQ(socket.socketId(Mode::Read), 22);
 
     ASSERT_TRUE(move.isConnected());
-    ASSERT_EQ(move.socketId(), 21);
+    ASSERT_EQ(move.socketId(Mode::Read), 21);
 }
 TEST(SocketTest, SocketCheckIdThrowsWhenNotConnected)
 {
     Socket socket   = SocketBuilder{}
                         .addConnection<TestConnection>(true, 13)
                         .build();
-    ASSERT_EQ(socket.socketId(), 13);
+    ASSERT_EQ(socket.socketId(Mode::Read), 13);
 
     Socket move = std::move(socket);
 
-    ASSERT_EQ(move.socketId(), 13);
+    ASSERT_EQ(move.socketId(Mode::Read), 13);
     ASSERT_THROW(
-        socket.socketId(),
+        socket.socketId(Mode::Read),
         std::runtime_error
     );
 }
