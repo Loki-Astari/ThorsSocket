@@ -15,7 +15,7 @@ class FileDescriptor: public Connection
         virtual IOResult read(char* buffer, std::size_t size, std::size_t read)             override;
         virtual IOResult write(char const* buffer, std::size_t size, std::size_t written)   override;
 
-        virtual std::string errorMessage()                          override;
+        virtual std::string errorMessage(ssize_t)                   override;
 
         static std::string buildErrorMessage();
     protected:

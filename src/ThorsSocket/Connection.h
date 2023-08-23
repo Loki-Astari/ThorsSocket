@@ -26,7 +26,7 @@ class Connection
         virtual IOResult read(char* buffer, std::size_t size, std::size_t read)             = 0;
         virtual IOResult write(char const* buffer, std::size_t size, std::size_t written)   = 0;
 
-        virtual std::string errorMessage()                          = 0;
+        virtual std::string errorMessage(ssize_t)                   = 0;
 };
 
 }

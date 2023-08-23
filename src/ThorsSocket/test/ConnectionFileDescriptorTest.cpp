@@ -365,7 +365,7 @@ TEST(ConnectionFileDescriptorTest, CheckErrorMsg)
     FileDescriptorProxy         file(12);
 
     errno = EBADF;
-    std::string message = file.errorMessage();
+    std::string message = file.errorMessage(-1);
 
     ASSERT_NE(std::string::npos, message.find("EBADF"));
     ASSERT_NE(std::string::npos, message.find("ConnectionType::FileDescriptor"));

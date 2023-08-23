@@ -67,7 +67,7 @@ IOData Socket::getMessageData(void* buffer, std::size_t size)
             case Result::OK:
                 break;
             case Result::CriticalBug:
-                ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::Socket", "getMessageData", "CriticalBug: connection read failed", connection->errorMessage());
+                ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::Socket", "getMessageData", "CriticalBug: connection read failed", connection->errorMessage(result.first));
                 break;
             case Result::Interupt:
                 continue;
@@ -79,7 +79,7 @@ IOData Socket::getMessageData(void* buffer, std::size_t size)
             case Result::Unknown:
                 // fall through
             default:
-                ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Unknown: connection read failed", connection->errorMessage());
+                ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Unknown: connection read failed", connection->errorMessage(result.first));
         }
     }
     while (dataRead != size);
@@ -102,7 +102,7 @@ IOData Socket::putMessageData(void const* buffer, std::size_t size)
             case Result::OK:
                 break;
             case Result::CriticalBug:
-                ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::Socket", "putMessageData", "CriticalBug: connection read failed", connection->errorMessage());
+                ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::Socket", "putMessageData", "CriticalBug: connection read failed", connection->errorMessage(result.first));
                 break;
             case Result::Interupt:
                 continue;
@@ -114,7 +114,7 @@ IOData Socket::putMessageData(void const* buffer, std::size_t size)
             case Result::Unknown:
                 // fall through
             default:
-                ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Unknown: connection read failed", connection->errorMessage());
+                ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Unknown: connection read failed", connection->errorMessage(result.first));
         }
     }
     while (dataWritten != size);

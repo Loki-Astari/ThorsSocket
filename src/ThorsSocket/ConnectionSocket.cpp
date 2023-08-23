@@ -70,9 +70,7 @@ Socket::Socket(int fd)
 
 Socket::~Socket()
 {
-    if (isConnected()) {
-        close();
-    }
+    close();
 }
 
 bool Socket::isConnected() const
@@ -88,7 +86,9 @@ int Socket::socketId(Mode) const
 
 void Socket::close()
 {
-    MOCK_FUNC(close)(fd);
+    if (fd != -1) {
+        MOCK_FUNC(close)(fd);
+    }
     fd = -1;
 }
 

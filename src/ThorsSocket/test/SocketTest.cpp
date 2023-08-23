@@ -61,7 +61,7 @@ class TestConnection: public Connection
             return {size, Result::OK};
         }
 
-        virtual std::string errorMessage()                          {return "Testing: 123";}
+        virtual std::string errorMessage(ssize_t)                   {return "Testing: 123";}
 };
 
 TEST(SocketTest, CreateSocketBuilder)

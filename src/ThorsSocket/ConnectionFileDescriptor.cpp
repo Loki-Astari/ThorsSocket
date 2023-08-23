@@ -109,7 +109,7 @@ IOResult FileDescriptor::write(char const* buffer, std::size_t size, std::size_t
     return {dataWritten, Result::OK};
 }
 
-std::string FileDescriptor::errorMessage()
+std::string FileDescriptor::errorMessage(ssize_t)
 {
     return buildErrorMessage();
 }
