@@ -2,46 +2,110 @@
 #include "Socket.h"
 #include "Connection.h"
 #include "ThorsLogging/ThorsLogging.h"
-#include "ConnectionSocket.h"
+#include "ConnectionSSocket.h"
 #include "test/SimpleServer.h"
 
-#include <thread>
+#include <utility>
+#include <string_view>
+
+
 
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
-using ThorsAnvil::ThorsSocket::SocketBuilder;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
-using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;
+
+using ThorsAnvil::ThorsSocket::ConnectionType::SSLctxClient;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSLctxServer;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSocket;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
+
 namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
-TEST(SocketIntegrationTest, ConnectToSocket)
+TEST(SSocketIntegrationTest, ConnectToServer)
 {
-    ServerStart     server;
-    server.run<ConnectionType::Socket>(8080, [](Socket&){});
-
+    SSLctxClient      ctxClient;
     Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
+                        .addConnection<ConnectionType::SSocket>(ctxClient, "github.com", 443, Blocking::Yes)
                         .build();
+    std::string request = "GET / HTTP/1.1\r\n"
+                          "Host: github.com\r\n"
+                          "User-Agent: ThorSocket/1.0\r\n"
+                          "Connection: close\r\n"
+                          "Accept: */*\r\n"
+                          "\r\n";
+    socket.putMessageData(request.c_str(), request.size());
+    char buffer[100];
+    std::string response;
+    for (int loop = 0; loop < 100; ++loop) {
+        IOData data = socket.getMessageData(buffer, 100);
+        response += std::string_view(buffer, data.second);
+        if (!data.first) {
+            break;
+        }
+    }
+    auto find = response.find("200 OK");
+    ASSERT_NE(find, std::string::npos);
+}
+
+TEST(SSocketIntegrationTest, ConnectToServerLocal)
+{
+    SSLctxServer        ctxServer;
+    ServerStart         server;
+    server.run<ConnectionType::SSocket>(8080, [](Socket& socket){
+        char buffer[10];
+        socket.getMessageData(buffer,4);
+        socket.putMessageData(buffer,4);
+    }, ctxServer);
+
+    SSLctxClient        ctxClient;
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
+                                    .build();
+    IOData resultPut = socket.putMessageData("Test", 4);
+    char buffer[10];
+    IOData resultGet = socket.getMessageData(buffer, 4);
+    buffer[resultGet.second] = '\0';
+    ASSERT_EQ(std::string("Test"), buffer);
+    ASSERT_TRUE(resultPut.first);
+    ASSERT_TRUE(resultGet.first);
+}
+
+
+TEST(SSocketIntegrationTest, ConnectToSSocket)
+{
+    SSLctxServer        ctxServer;
+    ServerStart         server;
+    server.run<ConnectionType::SSocket>(8080, [](Socket& socket){socket.putMessageData("x", 1);}, ctxServer);
+
+    SSLctxClient        ctxClient;
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
+                                    .build();
+
+    char x;
+    socket.getMessageData(&x, 1);
 
     ASSERT_NE(socket.socketId(Mode::Read), -1);
     ASSERT_NE(socket.socketId(Mode::Write), -1);
 }
 
-TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
+TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 {
+    SSLctxServer        ctxServer;
     std::string const message = "This is a line of text\n";
     ServerStart     server;
-    server.run<ConnectionType::Socket>(8080, [&message](Socket& socket)
+    server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size());
-    });
+    }, ctxServer);
 
 
+    SSLctxClient        ctxClient;
     Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
+                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                         .build();
 
     std::string reply;
@@ -53,12 +117,13 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
     ASSERT_EQ(message, reply);
 }
 
-TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
+TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
 {
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    server.run<ConnectionType::Socket>(8080, [&message](Socket& socket)
+    SSLctxServer        ctxServer;
+    server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
@@ -66,11 +131,12 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
             sleep(1);
             sent += 5;
         }
-    });
+    }, ctxServer);
 
 
+    SSLctxClient        ctxClient;
     Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
+                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                         .build();
 
     std::string reply;
@@ -82,12 +148,13 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
     ASSERT_EQ(message, reply);
 }
 
-TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingRead)
+TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockingRead)
 {
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    server.run<ConnectionType::Socket>(8080, [&message](Socket& socket)
+    SSLctxServer        ctxServer;
+    server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
@@ -95,12 +162,13 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
             sleep(1);
             sent += 5;
         }
-    });
+    }, ctxServer);
 
 
     int yieldCount = 0;
+    SSLctxClient        ctxClient;
     Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::No)
+                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::No)
                         .addReadYield([&yieldCount](){++yieldCount;sleep(2);})
                         .build();
 
@@ -114,19 +182,21 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
     ASSERT_EQ(message, reply);
 }
 
-TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
+TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
 {
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    server.run<ConnectionType::Socket>(8080, [&message](Socket& socket)
+    SSLctxServer        ctxServer;
+    server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size() - 4);
-    });
+    }, ctxServer);
 
 
+    SSLctxClient        ctxClient;
     Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
+                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                         .build();
 
     std::string reply;
@@ -139,7 +209,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
     ASSERT_EQ(message.substr(0, message.size() - 4), reply);
 }
 
-TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
+TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
 {
     std::string const message = "This is a line of text\n";
     ServerStart     server;
@@ -149,7 +219,8 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
     bool                    finished        = false;
     std::size_t             totalWritten    = 0;
 
-    server.run<ConnectionType::Socket>(8080, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
+    SSLctxServer        ctxServer;
+    server.run<ConnectionType::SSocket>(8080, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);
@@ -169,10 +240,11 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
             }
         }
         socket.putMessageData(&totalRead, sizeof(totalRead));
-    });
+    }, ctxServer);
 
+    SSLctxClient        ctxClient;
     Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::No)
+                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::No)
                         .addwriteYield([&mutex, &cond, &finished]()
                         {
                             std::unique_lock<std::mutex> lock(mutex);
@@ -196,7 +268,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
     ASSERT_EQ(readFromServer, totalWritten);
 }
 
-TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
+TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
 {
     std::string const message = "This is a line of text\n";
     ServerStart     server;
@@ -205,7 +277,8 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
     std::condition_variable cond;
     bool                    finished = false;
 
-    server.run<ConnectionType::Socket>(8080, [&mutex, &cond, &finished, &message](Socket& socket)
+    SSLctxServer        ctxServer;
+    server.run<ConnectionType::SSocket>(8080, [&mutex, &cond, &finished, &message](Socket& socket)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);
@@ -219,10 +292,11 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
         totalRead += r.second;
 
         socket.putMessageData(&totalRead, sizeof(totalRead));
-    });
+    }, ctxServer);
 
+    SSLctxClient        ctxClient;
     Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
+                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                         .build();
 
     std::size_t readFromServer = 0;
@@ -241,4 +315,3 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
     ASSERT_TRUE(result2.first);
     ASSERT_EQ(readFromServer, result1.second);
 }
-

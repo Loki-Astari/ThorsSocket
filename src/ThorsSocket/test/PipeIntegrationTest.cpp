@@ -37,7 +37,7 @@ TEST(PipeIntegrationTest, ConnectToPipe)
                         .addConnection<ConnectionType::Pipe>(Blocking::Yes)
                         .build();
 
-    PipeServerStart     server([&pipe](){});
+    PipeServerStart     server([](){});
 
     ASSERT_NE(pipe.socketId(Mode::Read), -1);
     ASSERT_NE(pipe.socketId(Mode::Write), -1);
@@ -205,6 +205,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
     }
 
     IOData result = pipe2.getMessageData(&readFromServer, sizeof(readFromServer));
+    ASSERT_TRUE(result.first);
     ASSERT_EQ(readFromServer, totalWritten);
 }
 
@@ -251,5 +252,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
     }
 
     IOData result2 = pipe2.getMessageData(&readFromServer, sizeof(readFromServer));
+    ASSERT_TRUE(result1.first);
+    ASSERT_TRUE(result2.first);
     ASSERT_EQ(readFromServer, result1.second);
 }

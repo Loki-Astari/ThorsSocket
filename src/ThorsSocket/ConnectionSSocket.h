@@ -22,17 +22,32 @@ class SSLUtil
 enum class SSLMethodType {Client, Server};
 class SSLctx;
 class SSocket;
+class SSLctxClient;
+class SSLctxServer;
 
 class SSLctx
 {
     friend class SSocket;
-    SSL_CTX*            ctx;
+    protected:
+        SSL_CTX*            ctx;
+        SSLctx(SSLMethodType method = SSLMethodType::Client);
     public:
-        SSLctx();
         ~SSLctx();
 
         SSLctx(SSLctx const&)                   = delete;
         SSLctx& operator=(SSLctx const&)        = delete;
+};
+
+class SSLctxClient: public SSLctx
+{
+    public:
+        SSLctxClient();
+};
+
+class SSLctxServer: public SSLctx
+{
+    public:
+        SSLctxServer();
 };
 
 class SSocket: public Socket
@@ -40,6 +55,7 @@ class SSocket: public Socket
     SSL*        ssl;
     public:
         SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking);
+        SSocket(int fd, SSLctx const& ctx);
         virtual ~SSocket();
         virtual void tryFlushBuffer()                               override;
 

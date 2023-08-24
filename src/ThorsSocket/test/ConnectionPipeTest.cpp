@@ -19,7 +19,7 @@ TEST(ConnectionPipeTest, Construct)
 TEST(ConnectionPipeTest, ConstructPipeFail)
 {
     int callCount = 0;
-    MOCK_SYS(pipe, [](int fd[])    {return -1;});
+    MOCK_SYS(pipe, [](int[])            {return -1;});
     MOCK_SYS(close,[&callCount](int)    {++callCount;return 0;});
 
     auto action = [](){
@@ -37,9 +37,9 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
 {
     int callCount = 0;
     int fctlCalled = 0;
-    MOCK_SYS(pipe, [](int fd[])         {return 0;});
+    MOCK_SYS(pipe, [](int[])            {return 0;});
     MOCK_SYS(close,[&callCount](int)    {++callCount;return 0;});
-    MOCK_TSYS(FctlType, fcntl,[&fctlCalled] (int, int, int)         {return -1;});
+    MOCK_TSYS(FctlType, fcntl,[&fctlCalled] (int, int, int)         {++fctlCalled;return -1;});
 
     auto action = [](){
         Pipe                        pipe(Blocking::No);

@@ -5,6 +5,18 @@
 #include <openssl/err.h>
 #include <iostream>
 
+#define CLIENT_CERT     "/Users/martinyork/certs/client.pem"
+#define CLIENT_KEY      "/Users/martinyork/certs/client.key"
+
+#define CIPHER_LIST     "AES128-SHA"
+#define CERT_FILE       "/Users/martinyork/certs/myCA.pem"
+
+#define KEY_FILE        "/Users/martinyork/certs/myCA.key"
+#define KEY_PASSWD      "password"
+
+#define CA_FILE         "/Users/martinyork/certs/myCA.pem"
+#define CA_DIR          nullptr
+
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOResult;
@@ -23,11 +35,18 @@ SSLUtil& SSLUtil::getInstance()
     return instance;
 }
 
-SSLctx::SSLctx()
+SSLctx::SSLctx(SSLMethodType methodType)
     : ctx(nullptr)
 {
     SSLUtil::getInstance();
-    SSL_METHOD const*  method = MOCK_FUNC(TLS_client_method)(); // SSLv23_client_method();
+    SSL_METHOD const*  method;
+    if (methodType == SSLMethodType::Client) {
+        method = MOCK_FUNC(TLS_client_method)(); // SSLv23_client_method();
+    }
+    else {
+        method = MOCK_FUNC(TLS_server_method)();
+    }
+
     if (method == nullptr)
     {
         ThorsLogAndThrow("ThorsAnvil::THorsSocket::SSLctx",
@@ -44,6 +63,90 @@ SSLctx::SSLctx()
     }
 }
 
+SSLctxClient::SSLctxClient()
+    : SSLctx(SSLMethodType::Client)
+{
+    if (MOCK_FUNC(SSL_CTX_use_certificate_file)(ctx, CLIENT_CERT, SSL_FILETYPE_PEM) <= 0 )
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxClient",
+                         "SSLctxClient",
+                         "SSL_CTX_use_certificate_file() failed: ", SSocket::buildErrorMessage());
+    }
+    // set the private key from KeyFile (may be the same as CertFile)
+    if (MOCK_FUNC(SSL_CTX_use_PrivateKey_file)(ctx, CLIENT_KEY, SSL_FILETYPE_PEM) <= 0 )
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxClient",
+                         "SSLctxClient",
+                         "SSL_CTX_use_PrivateKey_file() failed: ", SSocket::buildErrorMessage());
+    }
+    // verify private key
+    if (MOCK_FUNC(SSL_CTX_check_private_key)(ctx) <= 0)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxClient",
+                         "SSLctxClient",
+                         "SSL_CTX_check_private_key() failed: ", SSocket::buildErrorMessage());
+    }
+}
+
+SSLctxServer::SSLctxServer()
+    : SSLctx{SSLMethodType::Server}
+{
+    /*Set the Cipher List*/
+    if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, CIPHER_LIST) <= 0)
+    {
+        ThorsLogAndThrow("TESTING::SSLctxServer",
+                         "SSLctxServer",
+                         "SSL_CTX_set_cipher_list() failed: ", SSocket::buildErrorMessage());
+    }
+
+    /*Set the certificate to be used.*/
+    if (MOCK_FUNC(SSL_CTX_use_certificate_file)(ctx, CERT_FILE, SSL_FILETYPE_PEM) <= 0)
+    {
+        ThorsLogAndThrow("TESTING::SSLctxServer",
+                         "SSLctxServer",
+                         "SSL_CTX_use_certificate_file() failed: ", SSocket::buildErrorMessage());
+    }
+
+    /*Load the password for the Private Key*/
+    MOCK_FUNC(SSL_CTX_set_default_passwd_cb_userdata)(ctx, const_cast<void*>(static_cast<void const*>(KEY_PASSWD)));
+
+    /*Indicate the key file to be used*/
+    if (MOCK_FUNC(SSL_CTX_use_PrivateKey_file)(ctx, KEY_FILE, SSL_FILETYPE_PEM) <= 0)
+    {
+        ThorsLogAndThrow("TESTING::SSLctxServer",
+                         "SSLctxServer",
+                         "SSL_CTX_use_PrivateKey_file() failed: ", SSocket::buildErrorMessage());
+    }
+
+    /*Make sure the key and certificate file match*/
+    if (MOCK_FUNC(SSL_CTX_check_private_key)(ctx) == 0)
+    {
+        ThorsLogAndThrow("TESTING::SSLctxServer",
+                         "SSLctxServer",
+                         "SSL_CTX_check_private_key() failed: ", SSocket::buildErrorMessage());
+    }
+
+    /*Used only if client authentication will be used*/
+    //MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+
+    /* Load certificates of trusted CAs based on file provided*/
+    if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, CA_FILE,CA_DIR) < 1)
+    {
+        ThorsLogAndThrow("TESTING::SSLctxServer",
+                         "SSLctxServer",
+                         "SSL_CTX_load_verify_locations() failed: ", SSocket::buildErrorMessage());
+    }
+
+    /* Set CA list used for client authentication. */
+    /*
+    if (SSL_CTX_load_and_set_client_CA_file(ctx, CA_FILE) < 1) {
+        ThorsLogAndThrow("TESTING::SSLctxServer",
+                         "SSLctxServer",
+                         "SSL_CTX_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
+    }
+    */
+}
+
 #if 0
 SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const& keyFile)
     : SSLctx(method)
@@ -57,22 +160,6 @@ SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const
                          "SSL_CTX_set_ecdh_auto() failed: ", SSLUtil::errorMessage());
     }
 #endif
-// SSL_CTX_set_cipher_list
-    if (SSL_CTX_use_certificate_file(ctx, certFile.c_str(), SSL_FILETYPE_PEM) != 1)
-    {
-        SSL_CTX_free(ctx);
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
-                         "SSLctx",
-                         "SSL_CTX_use_certificate_file() failed: ", SSLUtil::errorMessage());
-    }
-// SSL_CTX_set_default_passwd_cb_userdata
-    if (SSL_CTX_use_PrivateKey_file(ctx, keyFile.c_str(), SSL_FILETYPE_PEM) != 1 )
-    {
-        SSL_CTX_free(ctx);
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
-                         "SSLctx",
-                         "SSL_CTX_use_PrivateKey_file() failed: ", SSLUtil::errorMessage());
-    }
 // SSL_CTX_check_private_key
 // SSL_CTX_load_verify_locations
 // SSL_CTX_set_verify
@@ -136,6 +223,70 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSocket",
                          "SSocket",
                          "SSL_connect() failed: ", buildErrorMessage(error));
+    }
+
+
+    X509* cert = MOCK_FUNC(SSL_get1_peer_certificate)(ssl);
+    if (cert == nullptr)
+    {
+        MOCK_FUNC(SSL_free)(ssl);
+        Socket::close();
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSocket",
+                         "SSocket",
+                         "SSL_connect() failed: ", buildErrorMessage());
+    }
+}
+
+SSocket::SSocket(int fd, SSLctx const& ctx)
+    : Socket(fd)
+{
+    /*Create new ssl object*/
+    ssl = SSL_new(ctx.ctx);
+    if (ssl == nullptr)
+    {
+        Socket::close();
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
+                         "SSocket",
+                         "SSL_new() failed: ", buildErrorMessage());
+    }
+
+    /* Bind the ssl object with the socket*/
+    SSL_set_fd(ssl, fd);
+
+    /*Do the SSL Handshake*/
+    int status;
+    do
+    {
+        status = SSL_accept(ssl);
+        if (status != 1)
+        {
+            int error = SSL_get_error(ssl, status);
+            if (error == SSL_ERROR_WANT_ACCEPT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
+                continue;
+            }
+        }
+        break;
+    }
+    while (true);
+
+    /* Check for error in handshake*/
+    if (status < 1)
+    {
+        int error = SSL_get_error(ssl, status);
+        Socket::close();
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
+                         "SSocket",
+                         "SSL_ccept() failed: ", buildErrorMessage(error));
+    }
+
+    /* Check for Client authentication error */
+    if (SSL_get_verify_result(ssl) != X509_V_OK)
+    {
+        ::SSL_free(ssl);
+        Socket::close();
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
+                         "SSocket",
+                         "SSL_get_verify_result() failed: ", buildErrorMessage());
     }
 }
 

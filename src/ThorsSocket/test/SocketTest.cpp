@@ -38,7 +38,7 @@ class TestConnection: public Connection
         virtual void close()                                        {}
         virtual void tryFlushBuffer()                               {}
 
-        virtual IOResult read(char* buffer, std::size_t size, std::size_t read)
+        virtual IOResult read(char* /*buffer*/, std::size_t size, std::size_t /*read*/)
         {
             if (readCount) {
                 ++(*readCount);
@@ -49,7 +49,7 @@ class TestConnection: public Connection
             }
             return {size, Result::OK};
         }
-        virtual IOResult write(char const* buffer, std::size_t size, std::size_t written)
+        virtual IOResult write(char const* /*buffer*/, std::size_t size, std::size_t /*written*/)
         {
             if (writeCount) {
                 ++(*writeCount);
@@ -262,7 +262,7 @@ TEST(SocketTest, SocketReadCriticalBug)
 
     auto action = [&socket]() {
         char buffer[12];
-        IOData result = socket.getMessageData(buffer, 12);
+        socket.getMessageData(buffer, 12);
     };
 
     ASSERT_THROW(
@@ -307,7 +307,7 @@ TEST(SocketTest, SocketReadUnknown)
 
     auto action = [&socket](){
         char buffer[12];
-        IOData result = socket.getMessageData(buffer, 12);
+        socket.getMessageData(buffer, 12);
     };
 
     ASSERT_THROW(
@@ -336,7 +336,7 @@ TEST(SocketTest, SocketWriteCriticalBug)
 
     auto action = [&socket]() {
         char buffer[12];
-        IOData result = socket.putMessageData(buffer, 12);
+        socket.putMessageData(buffer, 12);
     };
 
     ASSERT_THROW(
@@ -381,7 +381,7 @@ TEST(SocketTest, SocketWriteUnknown)
 
     auto action = [&socket](){
         char buffer[12];
-        IOData result = socket.putMessageData(buffer, 12);
+        socket.putMessageData(buffer, 12);
     };
 
     ASSERT_THROW(
