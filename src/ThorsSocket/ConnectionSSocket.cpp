@@ -5,16 +5,15 @@
 #include <openssl/err.h>
 #include <iostream>
 
-#define CLIENT_CERT     "/Users/martinyork/certs/client.pem"
-#define CLIENT_KEY      "/Users/martinyork/certs/client.key"
+#define CLIENT_CERT     "test/data/client/client.crt"
+#define CLIENT_KEY      "test/data/client/client.key"
 
 #define CIPHER_LIST     "AES128-SHA"
-#define CERT_FILE       "/Users/martinyork/certs/myCA.pem"
+#define CERT_FILE       "test/data/server/server.crt"
+#define KEY_FILE        "test/data/server/server.key"
+#define KEY_PASSWD      "The night is long and full of shadows"
 
-#define KEY_FILE        "/Users/martinyork/certs/myCA.key"
-#define KEY_PASSWD      "password"
-
-#define CA_FILE         "/Users/martinyork/certs/myCA.pem"
+#define CA_FILE         "test/data/root-ca/ca.cert.pem"
 #define CA_DIR          nullptr
 
 
@@ -107,9 +106,6 @@ SSLctxServer::SSLctxServer()
                          "SSL_CTX_use_certificate_file() failed: ", SSocket::buildErrorMessage());
     }
 
-    /*Load the password for the Private Key*/
-    MOCK_FUNC(SSL_CTX_set_default_passwd_cb_userdata)(ctx, const_cast<void*>(static_cast<void const*>(KEY_PASSWD)));
-
     /*Indicate the key file to be used*/
     if (MOCK_FUNC(SSL_CTX_use_PrivateKey_file)(ctx, KEY_FILE, SSL_FILETYPE_PEM) <= 0)
     {
@@ -126,11 +122,13 @@ SSLctxServer::SSLctxServer()
                          "SSL_CTX_check_private_key() failed: ", SSocket::buildErrorMessage());
     }
 
+    /*Load the password for the Private Key*/
+    MOCK_FUNC(SSL_CTX_set_default_passwd_cb_userdata)(ctx, const_cast<void*>(static_cast<void const*>(KEY_PASSWD)));
     /*Used only if client authentication will be used*/
     //MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
 
     /* Load certificates of trusted CAs based on file provided*/
-    if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, CA_FILE,CA_DIR) < 1)
+    if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, CA_FILE, CA_DIR) < 1)
     {
         ThorsLogAndThrow("TESTING::SSLctxServer",
                          "SSLctxServer",

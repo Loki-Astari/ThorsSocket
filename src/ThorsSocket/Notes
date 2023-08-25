@@ -1,0 +1,221 @@
+#!/bin/bash
+
+## 1: Generate a RootCA Certificate
+
+check="y"
+if [[ -e test/data/domain.cnf ]]; then
+    read -p 'Replace domain.cnf? ' check
+fi
+
+if [[ "${check}" == "y" ]]; then
+    #
+    # Get the configuration need for certificate:
+    read -p 'Domain:     ' domain
+    read -p 'Admin:      ' email
+    read -p 'Country:    ' countryCode
+    read -p 'State:      ' state
+    read -p 'City:       ' city
+
+    echo
+    echo "Creating: domain.cnf"
+    cat - > test/data/domain.cnf << CERTIFICATE_CNF
+    # > subject="/C=${countryCode}/ST=${state}/L=${city}/O=NA/CN=${domain}/emailAddress=${email}"
+    [req]
+    distinguished_name = req_distinguished_name
+    prompt = no
+    [req_distinguished_name]
+    CN = ${domain}
+    emailAddress = ${email}
+    C = ${countryCode}
+    ST = ${state}
+    L = ${city}
+    O = NA
+    OU = NA
+CERTIFICATE_CNF
+fi
+
+#
+# Generate the root Certificate Authority Key
+echo
+echo "Creating: ca.key"
+openssl genrsa -out test/data/root-ca/ca.key 4096
+
+#
+# Generate the root Certificate Authority Certificate
+echo
+echo "Creating: ca.cert.pem"
+openssl req -new -x509 -days 365 -key test/data/root-ca/ca.key -out test/data/root-ca/ca.cert.pem -config test/data/domain.cnf
+
+
+
+## 2: Generate Server Certificate:
+
+check="y"
+if [[ -e  test/data/server/password.enc ]]; then
+    read -p 'Replace password.enc? ' check
+fi
+
+if [[ "${check}" == "y" ]]; then
+
+    echo "Enter Pass-Phrase. This is for the certificate. We will protect it with a simple password."
+    read -sp 'Pass-Phrase: ' password
+
+    if [[ "${password}" == "" ]]; then
+        echo "Not Using Password"
+
+    else
+        # This will request user input a simple password
+        echo ${password} | openssl enc -aes256 -pbkdf2 -salt -in - -out test/data/server/password.enc
+    fi
+fi
+
+if [[ -e  test/data/server/password.enc ]]; then
+    # Need the simple password to decode.
+    # If you want to check the password was encoded correctly
+    # openssl enc -aes256 -pbkdf2 -salt -d -in password.enc
+
+    passout="-passout file:test/data/server/password.enc"
+    passin="-passin file:test/data/server/password.enc"
+fi
+
+check="y"
+if [[ -e test/data/server/server.key ]]; then
+    read -p 'Replace server.key? ' check
+fi
+
+if [[ "${check}" == "y" ]]; then
+    #
+    # Key encryption:
+    echo "Key encryption: (<empty> / -des3)"
+    read -p 'Encryption: ' encrypt
+
+    #
+    # Create a private server key
+    echo
+    echo "Creating: server.key"
+    openssl genrsa ${encrypt} ${passout} -out test/data/server/server.key 4096
+fi
+
+#
+# Generate the server certificate signing request (csr)
+echo
+echo "Creating: server.csr"
+openssl req -new -key test/data/server/server.key -out test/data/server/server.csr ${passin} -config test/data/domain.cnf
+
+#
+# Create the self signed certificate (x509)
+# First version is a certificate signed with the server private key.
+# The second version is the certificate signed by the CA private key and chaining the CA certificate
+# openssl x509 -req -days 365 -in test/data/server/server.csr -signkey test/data/server/server.key -out test/data/server/server.crt ${passin}
+echo
+echo "Creating: server.crt"
+openssl x509 -req -days 365 -in test/data/server/server.csr -CA test/data/root-ca/ca.cert.pem -CAkey test/data/root-ca/ca.key -CAcreateserial -out test/data/server/server.crt ${passin}
+
+check="y"
+echo "Dump all the PKI files"
+read -p 'Dump (y): ' check
+
+if [[ "${check}" == "y" ]]; then
+    #
+    # Checking the server.key
+    echo "Show the server.key AKA(Server private Key)"
+    echo "==========================================="
+    openssl rsa -noout -text -in test/data/server/server.key
+    echo
+    echo
+
+    #
+    # Checking the server certificate signing request
+    echo "Show the server.csr AKA(certificate signing request)"
+    echo "===================================================="
+    openssl req -noout -text -in test/data/server/server.csr
+    echo
+    echo
+
+    #
+    # Checking the server certificate
+    echo "Show the server.crt AKA(Server Certificate)"
+    echo "==========================================="
+    openssl x509 -noout -text -in test/data/server/server.crt
+    echo
+    echo
+
+    #
+    # See the Subject/Issuer
+    echo "Show the server.crt Subject/Issuer"
+    echo "=================================="
+    openssl x509 -noout -text -in test/data/server/server.crt | grep -E 'Subject:|Issuer:'
+fi
+
+## 3: Generating the client certificate
+
+#
+# Generate the client.cnf file
+
+check="y"
+if [[ -e test/data/client/client.cnf ]]; then
+    read -p "Replace client.cnf?" check
+fi
+
+if [[ "${check}" == "y" ]]; then
+
+    # basicConstraints      : An end user certificate must either set CA to FALSE or exclude the extension entirely
+    # nsCertType            : This is Netscape Certificate Type which consists of a list of flags to be included.
+    #                         Acceptable values for nsCertType are:
+    #                               client,
+    #                               server,
+    #                               email,
+    #                               objsign,
+    #                               reserved,
+    #                               sslCA,
+    #                               emailCA,
+    #                               objCA
+    # nsComment             : Netscape Comment (nsComment) is a string extension containing a comment which will be displayed
+    #                         when the certificate is viewed in some browsers.
+    # subjectKeyIdentifier  : This is really a string extension and can take two possible values. Either the word hash which will
+    #                         automatically follow the guidelines in RFC3280 or a hex string giving the extension value to include.
+    # authorityKeyIdentifier: The authority key identifier extension permits two options. keyid and issuer: both can take the optional value "always".
+    # keyUsage              : Key usage is a multi valued extension consisting of a list of names of the permitted key usages.
+    # extendedKeyUsage      : This extensions consists of a list of usages indicating purposes for which the certificate public key can be used for,
+
+    echo
+    echo "Creating: client.cnf"
+    cat > test/data/client/client.cnf <<CLIENT_CNF
+    basicConstraints = CA:FALSE
+    nsCertType = client
+    nsComment = "OpenSSL Generated Client Certificate"
+    subjectKeyIdentifier = hash
+    authorityKeyIdentifier = keyid,issuer
+    keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
+    extendedKeyUsage = clientAuth, emailProtection
+CLIENT_CNF
+
+fi
+
+#
+# Generate the Client Private Key
+
+check="y"
+if [[ -e  test/data/client/client.key ]]; then
+    read -p 'Replace client.key? ' check
+fi
+
+if [[ "${check}" ]]; then
+    echo
+    echo "Creating: client.key"
+    openssl genrsa -out test/data/client/client.key 4096
+fi
+
+#
+# Generate the Client certificate signing request
+echo
+echo "Creating: client.csr"
+openssl req -new -key test/data/client/client.key -out test/data/client/client.csr -config test/data/domain.cnf
+
+#
+# Generate the client certificate
+echo
+echo "Creating: client.crt"
+openssl x509 -req -days 365 -in test/data/client/client.csr -CA test/data/root-ca/ca.cert.pem -CAkey test/data/root-ca/ca.key -out test/data/client/client.crt -CAcreateserial -sha256 -extfile test/data/client/client.cnf
+
+
