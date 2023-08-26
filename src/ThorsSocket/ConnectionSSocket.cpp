@@ -5,7 +5,7 @@
 #include <openssl/err.h>
 #include <iostream>
 
-#define CIPHER_LIST     "AES128-SHA"
+#define CIPHER_LIST     "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384"
 
 #define CA_FILE         "test/data/root-ca/ca.cert.pem"
 #define CA_DIR          nullptr
@@ -46,13 +46,13 @@ CertificateInfo::CertificateInfo(std::string const& certificateFileName, std::st
     }
 }
 
-void CertificateInfo::setCertificateInfo(SSL_CTX* ctx)
+void CertificateInfo::setCertificateInfo(SSL_CTX* ctx) const
 {
     if (certificateFileName != "")
     {
         /*Load the password for the Private Key*/
         MOCK_FUNC(SSL_CTX_set_default_passwd_cb)(ctx, certificateInfo_PasswdCB);
-        MOCK_FUNC(SSL_CTX_set_default_passwd_cb_userdata)(ctx, static_cast<void*>(this));
+        MOCK_FUNC(SSL_CTX_set_default_passwd_cb_userdata)(ctx, static_cast<void*>(const_cast<CertificateInfo*>(this)));
 
         /*Set the certificate to be used.*/
         if (MOCK_FUNC(SSL_CTX_use_certificate_file)(ctx, certificateFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
@@ -80,13 +80,13 @@ void CertificateInfo::setCertificateInfo(SSL_CTX* ctx)
     }
 }
 
-void CertificateInfo::setCertificateInfo(SSL* ssl)
+void CertificateInfo::setCertificateInfo(SSL* ssl) const
 {
     if (certificateFileName != "")
     {
         /*Load the password for the Private Key*/
         //MOCK_FUNC(SSL_set_default_passwd_cb)(ssl, certificateInfo_PasswdCB);
-        MOCK_FUNC(SSL_set_default_passwd_cb_userdata)(ssl, static_cast<void*>(this));
+        MOCK_FUNC(SSL_set_default_passwd_cb_userdata)(ssl, static_cast<void*>(const_cast<CertificateInfo*>(this)));
 
         /*Set the certificate to be used.*/
         if (MOCK_FUNC(SSL_use_certificate_file)(ssl, certificateFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
@@ -114,6 +114,70 @@ void CertificateInfo::setCertificateInfo(SSL* ssl)
     }
 }
 
+void CipherList::setCipherList(SSL_CTX* ctx) const
+{
+    /*Set the Cipher List*/
+    if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, CIPHER_LIST) <= 0)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherList",
+                         "setCipherList",
+                         "SSL_CTX_set_cipher_list() failed: ", SSocket::buildErrorMessage());
+    }
+}
+
+void CipherList::setCipherList(SSL* ssl) const
+{
+    /*Set the Cipher List*/
+    if (MOCK_FUNC(SSL_set_cipher_list)(ssl, CIPHER_LIST) <= 0)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherList",
+                         "setCipherList",
+                         "SSL_set_cipher_list() failed: ", SSocket::buildErrorMessage());
+    }
+}
+
+void CAInfo::setCertifcateAuthority(SSL_CTX* ctx) const
+{
+    /* Load certificates of trusted CAs based on file provided*/
+    if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, CA_FILE, CA_DIR) < 1)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CAInfo",
+                         "setCertifcateAuthority",
+                         "SSL_CTX_load_verify_locations() failed: ", SSocket::buildErrorMessage());
+    }
+
+    /* Set CA list used for client authentication. */
+    /*
+    if (SSL_CTX_load_and_set_client_CA_file(ctx, CA_FILE) < 1) {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CAInfo",
+                         "setCertifcateAuthority",
+                         "SSL_CTX_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
+    }
+    */
+}
+
+void CAInfo::setCertifcateAuthority(SSL* /*ssl*/) const
+{
+    /* Load certificates of trusted CAs based on file provided*/
+#if 0
+    if (SSL_load_verify_locations(ssl, CA_FILE, CA_DIR) < 1)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CAInfo",
+                         "setCertifcateAuthority",
+                         "SSL_load_verify_locations() failed: ", SSocket::buildErrorMessage());
+    }
+
+    /* Set CA list used for client authentication. */
+    /*
+    if (SSL_load_and_set_client_CA_file(ssl, CA_FILE) < 1) {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CAInfo",
+                         "setCertifcateAuthority",
+                         "SSL_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
+    }
+    */
+#endif
+}
+
 SSLUtil::SSLUtil()
 {
     SSL_load_error_strings();
@@ -127,7 +191,11 @@ SSLUtil& SSLUtil::getInstance()
     return instance;
 }
 
-SSLctx::SSLctx(SSLMethodType methodType)
+SSLctx::SSLctx(SSLMethodType methodType,
+               Protocol /*protocolMin*/, Protocol /*protocolMax*/,
+               CipherList const& cipherList,
+               CertificateInfo const& certificateInfo,
+               CAInfo const& caInfo)
     : ctx(nullptr)
 {
     SSLUtil::getInstance();
@@ -153,47 +221,25 @@ SSLctx::SSLctx(SSLMethodType methodType)
                          "SSLctx",
                          "SSL_CTX_new() failed: ", SSocket::buildErrorMessage());
     }
+
+    cipherList.setCipherList(ctx);
+    certificateInfo.setCertificateInfo(ctx);
+    caInfo.setCertifcateAuthority(ctx);
 }
 
+#if 0
 SSLctxClient::SSLctxClient(CertificateInfo&& info)
     : SSLctx(SSLMethodType::Client)
-{
-    info.setCertificateInfo(ctx);
-}
+{}
 
 SSLctxServer::SSLctxServer(CertificateInfo&& info)
     : SSLctx{SSLMethodType::Server}
 {
-    /*Set the Cipher List*/
-    if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, CIPHER_LIST) <= 0)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxServer",
-                         "SSLctxServer",
-                         "SSL_CTX_set_cipher_list() failed: ", SSocket::buildErrorMessage());
-    }
-
-    info.setCertificateInfo(ctx);
-
     /*Used only if client authentication will be used*/
     //MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
 
-    /* Load certificates of trusted CAs based on file provided*/
-    if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, CA_FILE, CA_DIR) < 1)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxServer",
-                         "SSLctxServer",
-                         "SSL_CTX_load_verify_locations() failed: ", SSocket::buildErrorMessage());
-    }
-
-    /* Set CA list used for client authentication. */
-    /*
-    if (SSL_CTX_load_and_set_client_CA_file(ctx, CA_FILE) < 1) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxServer",
-                         "SSLctxServer",
-                         "SSL_CTX_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
-    }
-    */
 }
+#endif
 
 #if 0
 SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const& keyFile)

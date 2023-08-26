@@ -26,8 +26,31 @@ struct CertificateInfo
         CertificateInfo();
         CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword = [](int){return "";});
 
-        void setCertificateInfo(SSL_CTX* ctx);
-        void setCertificateInfo(SSL* ssl);
+        void setCertificateInfo(SSL_CTX* ctx)   const;
+        void setCertificateInfo(SSL* ssl)       const;
+};
+
+struct CipherList
+{
+    std::string         cipherList          =   "ECDHE-ECDSA-AES128-GCM-SHA256"     ":"
+                                                "ECDHE-RSA-AES128-GCM-SHA256"       ":"
+                                                "ECDHE-ECDSA-AES256-GCM-SHA384"     ":"
+                                                "ECDHE-RSA-AES256-GCM-SHA384"       ":"
+                                                "ECDHE-ECDSA-CHACHA20-POLY1305"     ":"
+                                                "ECDHE-RSA-CHACHA20-POLY1305"       ":"
+                                                "DHE-RSA-AES128-GCM-SHA256"         ":"
+                                                "DHE-RSA-AES256-GCM-SHA384";
+    void setCipherList(SSL_CTX* ctx)    const;
+    void setCipherList(SSL* ssl)        const;
+};
+
+struct CAInfo
+{
+    std::string     file;
+    std::string     dir;
+
+    void setCertifcateAuthority(SSL_CTX* ctx)   const;
+    void setCertifcateAuthority(SSL* ssl)       const;
 };
 
 class SSLUtil
@@ -41,17 +64,22 @@ class SSLUtil
 };
 
 enum class SSLMethodType {Client, Server};
+enum Protocol { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3 };
 class SSLctx;
 class SSocket;
-class SSLctxClient;
-class SSLctxServer;
+class SSLctxBuilder;
 
 class SSLctx
 {
     friend class SSocket;
-    protected:
+    friend class SSLctxBuilder;
+    private:
         SSL_CTX*            ctx;
-        SSLctx(SSLMethodType method = SSLMethodType::Client);
+        SSLctx(SSLMethodType methodType,
+               Protocol protocolMin, Protocol protocolMax,
+               CipherList const& cipherList,
+               CertificateInfo const& certificateInfo,
+               CAInfo const& caInfo);
     public:
         ~SSLctx();
 
@@ -59,16 +87,27 @@ class SSLctx
         SSLctx& operator=(SSLctx const&)        = delete;
 };
 
-class SSLctxClient: public SSLctx
+class SSLctxBuilder
 {
-    public:
-        SSLctxClient(CertificateInfo&& info = CertificateInfo{});
-};
+    SSLMethodType       method;
+    Protocol            protocolMin         = TLS_1_2;
+    Protocol            protocolMax         = TLS_1_3;
+    CipherList          cipherList;
+    CertificateInfo     certificateInfo;
+    CAInfo              caInfo;
 
-class SSLctxServer: public SSLctx
-{
     public:
-        SSLctxServer(CertificateInfo&& info = CertificateInfo{});
+        SSLctxBuilder(SSLMethodType method): method(method)         {}
+        SSLctxBuilder& setProtocolMin(Protocol min)                 {protocolMin = min;return *this;}
+        SSLctxBuilder& setProtocolMax(Protocol max)                 {protocolMax = max;return *this;}
+        SSLctxBuilder& setCipherList(CipherList&& list)             {cipherList = std::move(list);return *this;}
+        SSLctxBuilder& addCertificateInfo(CertificateInfo&& info)   {certificateInfo = std::move(info);return *this;}
+        SSLctxBuilder& setTrustedCA(CAInfo&& info)                  {caInfo = std::move(info);return *this;}
+
+        SSLctx  build()
+        {
+            return SSLctx{method, protocolMin, protocolMax, cipherList, certificateInfo, caInfo};
+        }
 };
 
 class SSocket: public Socket

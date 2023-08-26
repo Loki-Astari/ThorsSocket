@@ -24,8 +24,9 @@ using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
 using ThorsAnvil::ThorsSocket::Mode;
 
-using ThorsAnvil::ThorsSocket::ConnectionType::SSLctxClient;
-using ThorsAnvil::ThorsSocket::ConnectionType::SSLctxServer;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSLctx;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSLctxBuilder;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
 using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocket;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
@@ -34,7 +35,9 @@ namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SSocketIntegrationTest, ConnectToServer)
 {
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "github.com", 443, Blocking::Yes)
                                     .build();
@@ -60,7 +63,9 @@ TEST(SSocketIntegrationTest, ConnectToServer)
 
 TEST(SSocketIntegrationTest, ConnectToServerLocal)
 {
-    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
+    SSLctx              ctxServer = SSLctxBuilder{SSLMethodType::Server}
+                                        .addCertificateInfo(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}})
+                                        .build();
     ServerStart         server;
     server.run<ConnectionType::SSocket>(8080, [](Socket& socket){
         char buffer[10];
@@ -68,7 +73,9 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
         socket.putMessageData(buffer,4);
     }, ctxServer);
 
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                                     .build();
@@ -84,11 +91,15 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
 
 TEST(SSocketIntegrationTest, ConnectToSSocket)
 {
-    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
+    SSLctx              ctxServer = SSLctxBuilder{SSLMethodType::Server}
+                                        .addCertificateInfo(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}})
+                                        .build();
     ServerStart         server;
     server.run<ConnectionType::SSocket>(8080, [](Socket& socket){socket.putMessageData("x", 1);}, ctxServer);
 
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                                     .build();
@@ -102,7 +113,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 {
-    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
+    SSLctx              ctxServer = SSLctxBuilder{SSLMethodType::Server}
+                                        .addCertificateInfo(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}})
+                                        .build();
     std::string const message = "This is a line of text\n";
     ServerStart     server;
     server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
@@ -111,7 +124,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
     }, ctxServer);
 
 
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                                     .build();
@@ -130,7 +145,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
+    SSLctx              ctxServer = SSLctxBuilder{SSLMethodType::Server}
+                                        .addCertificateInfo(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}})
+                                        .build();
     server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         std::size_t sent = 0;
@@ -142,7 +159,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
     }, ctxServer);
 
 
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                                     .build();
@@ -161,7 +180,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
+    SSLctx              ctxServer = SSLctxBuilder{SSLMethodType::Server}
+                                        .addCertificateInfo(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}})
+                                        .build();
     server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         std::size_t sent = 0;
@@ -174,7 +195,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
 
 
     int yieldCount = 0;
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::No)
                                     .addReadYield([&yieldCount](){++yieldCount;sleep(2);})
@@ -195,14 +218,18 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
+    SSLctx              ctxServer = SSLctxBuilder{SSLMethodType::Server}
+                                        .addCertificateInfo(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}})
+                                        .build();
     server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size() - 4);
     }, ctxServer);
 
 
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                                     .build();
@@ -227,7 +254,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
     bool                    finished        = false;
     std::size_t             totalWritten    = 0;
 
-    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
+    SSLctx              ctxServer = SSLctxBuilder{SSLMethodType::Server}
+                                        .addCertificateInfo(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}})
+                                        .build();
     server.run<ConnectionType::SSocket>(8080, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
     {
         {
@@ -250,7 +279,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     }, ctxServer);
 
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::No)
                                     .addwriteYield([&mutex, &cond, &finished]()
@@ -285,7 +316,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
     std::condition_variable cond;
     bool                    finished = false;
 
-    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
+    SSLctx              ctxServer = SSLctxBuilder{SSLMethodType::Server}
+                                        .addCertificateInfo(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}})
+                                        .build();
     server.run<ConnectionType::SSocket>(8080, [&mutex, &cond, &finished, &message](Socket& socket)
     {
         {
@@ -302,7 +335,9 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     }, ctxServer);
 
-    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    SSLctx              ctxClient = SSLctxBuilder{SSLMethodType::Client}
+                                        .addCertificateInfo(CertificateInfo{CLIENT_CERT, CLIENT_KEY})
+                                        .build();
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                                     .build();
