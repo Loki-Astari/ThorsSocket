@@ -13,6 +13,10 @@
 #define KEY_FILE        "test/data/server/server.key"
 #define KEY_PASSWD      "TheLongDarkNight"
 
+#define CLIENT_CERT     "test/data/client/client.crt"
+#define CLIENT_KEY      "test/data/client/client.key"
+
+
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
@@ -30,10 +34,10 @@ namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SSocketIntegrationTest, ConnectToServer)
 {
-    SSLctxClient      ctxClient;
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::SSocket>(ctxClient, "github.com", 443, Blocking::Yes)
-                        .build();
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "github.com", 443, Blocking::Yes)
+                                    .build();
     std::string request = "GET / HTTP/1.1\r\n"
                           "Host: github.com\r\n"
                           "User-Agent: ThorSocket/1.0\r\n"
@@ -64,7 +68,7 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
         socket.putMessageData(buffer,4);
     }, ctxServer);
 
-    SSLctxClient        ctxClient;
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                                     .build();
@@ -84,7 +88,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
     ServerStart         server;
     server.run<ConnectionType::SSocket>(8080, [](Socket& socket){socket.putMessageData("x", 1);}, ctxServer);
 
-    SSLctxClient        ctxClient;
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
     Socket              socket  = SocketBuilder{}
                                     .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
                                     .build();
@@ -107,10 +111,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
     }, ctxServer);
 
 
-    SSLctxClient        ctxClient;
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
+                                    .build();
 
     std::string reply;
     reply.resize(message.size());
@@ -138,10 +142,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
     }, ctxServer);
 
 
-    SSLctxClient        ctxClient;
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
+                                    .build();
 
     std::string reply;
     reply.resize(message.size());
@@ -170,11 +174,11 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
 
 
     int yieldCount = 0;
-    SSLctxClient        ctxClient;
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::No)
-                        .addReadYield([&yieldCount](){++yieldCount;sleep(2);})
-                        .build();
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::No)
+                                    .addReadYield([&yieldCount](){++yieldCount;sleep(2);})
+                                    .build();
 
     std::string reply;
     reply.resize(message.size());
@@ -198,10 +202,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
     }, ctxServer);
 
 
-    SSLctxClient        ctxClient;
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
+                                    .build();
 
     std::string reply;
     reply.resize(message.size());
@@ -246,17 +250,17 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     }, ctxServer);
 
-    SSLctxClient        ctxClient;
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::No)
-                        .addwriteYield([&mutex, &cond, &finished]()
-                        {
-                            std::unique_lock<std::mutex> lock(mutex);
-                            finished = true;
-                            cond.notify_all();
-                        }
-                        )
-                        .build();
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::No)
+                                    .addwriteYield([&mutex, &cond, &finished]()
+                                    {
+                                        std::unique_lock<std::mutex> lock(mutex);
+                                        finished = true;
+                                        cond.notify_all();
+                                    }
+                                    )
+                                    .build();
 
     std::size_t readFromServer = 0;
 
@@ -298,10 +302,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     }, ctxServer);
 
-    SSLctxClient        ctxClient;
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    SSLctxClient        ctxClient(CertificateInfo{CLIENT_CERT, CLIENT_KEY});
+    Socket              socket  = SocketBuilder{}
+                                    .addConnection<ConnectionType::SSocket>(ctxClient, "127.0.0.1", 8080, Blocking::Yes)
+                                    .build();
 
     std::size_t readFromServer = 0;
 

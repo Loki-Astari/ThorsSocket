@@ -5,9 +5,6 @@
 #include <openssl/err.h>
 #include <iostream>
 
-#define CLIENT_CERT     "test/data/client/client.crt"
-#define CLIENT_KEY      "test/data/client/client.key"
-
 #define CIPHER_LIST     "AES128-SHA"
 
 #define CA_FILE         "test/data/root-ca/ca.cert.pem"
@@ -158,32 +155,13 @@ SSLctx::SSLctx(SSLMethodType methodType)
     }
 }
 
-SSLctxClient::SSLctxClient()
+SSLctxClient::SSLctxClient(CertificateInfo&& info)
     : SSLctx(SSLMethodType::Client)
 {
-    if (MOCK_FUNC(SSL_CTX_use_certificate_file)(ctx, CLIENT_CERT, SSL_FILETYPE_PEM) <= 0 )
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxClient",
-                         "SSLctxClient",
-                         "SSL_CTX_use_certificate_file() failed: ", SSocket::buildErrorMessage());
-    }
-    // set the private key from KeyFile (may be the same as CertFile)
-    if (MOCK_FUNC(SSL_CTX_use_PrivateKey_file)(ctx, CLIENT_KEY, SSL_FILETYPE_PEM) <= 0 )
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxClient",
-                         "SSLctxClient",
-                         "SSL_CTX_use_PrivateKey_file() failed: ", SSocket::buildErrorMessage());
-    }
-    // verify private key
-    if (MOCK_FUNC(SSL_CTX_check_private_key)(ctx) <= 0)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxClient",
-                         "SSLctxClient",
-                         "SSL_CTX_check_private_key() failed: ", SSocket::buildErrorMessage());
-    }
+    info.setCertificateInfo(ctx);
 }
 
-SSLctxServer::SSLctxServer(CertificateInfo&& certificateInfo)
+SSLctxServer::SSLctxServer(CertificateInfo&& info)
     : SSLctx{SSLMethodType::Server}
 {
     /*Set the Cipher List*/
@@ -194,7 +172,7 @@ SSLctxServer::SSLctxServer(CertificateInfo&& certificateInfo)
                          "SSL_CTX_set_cipher_list() failed: ", SSocket::buildErrorMessage());
     }
 
-    certificateInfo.setCertificateInfo(ctx);
+    info.setCertificateInfo(ctx);
 
     /*Used only if client authentication will be used*/
     //MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
@@ -244,7 +222,7 @@ SSLctx::~SSLctx()
     MOCK_FUNC(SSL_CTX_free)(ctx);
 }
 
-SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& certificateInfo)
+SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info)
     : Socket(host, port, blocking)
     , ssl(nullptr)
 {
@@ -257,7 +235,7 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
                          "SSL_new() failed: ", buildErrorMessage());
     }
 
-    certificateInfo.setCertificateInfo(ssl);
+    info.setCertificateInfo(ssl);
 
     int ret;
     int error;
@@ -310,7 +288,7 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
     }
 }
 
-SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& certificateInfo)
+SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
     : Socket(fd)
 {
     /*Create new ssl object*/
@@ -323,7 +301,7 @@ SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& certificateInfo)
                          "SSL_new() failed: ", buildErrorMessage());
     }
 
-    certificateInfo.setCertificateInfo(ssl);
+    info.setCertificateInfo(ssl);
 
     /* Bind the ssl object with the socket*/
     SSL_set_fd(ssl, fd);

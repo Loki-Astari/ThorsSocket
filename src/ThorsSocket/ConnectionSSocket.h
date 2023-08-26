@@ -62,7 +62,7 @@ class SSLctx
 class SSLctxClient: public SSLctx
 {
     public:
-        SSLctxClient();
+        SSLctxClient(CertificateInfo&& info = CertificateInfo{});
 };
 
 class SSLctxServer: public SSLctx
