@@ -30,6 +30,88 @@ extern "C" int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* u
     return password.size();
 }
 
+int ProtocolInfo::convertProtocolToOpenSSL(Protocol protocol) const
+{
+    switch (protocol)
+    {
+        case    TLS_1_0:    return TLS1_VERSION;
+        case    TLS_1_1:    return TLS1_1_VERSION;
+        case    TLS_1_2:    return TLS1_2_VERSION;
+        case    TLS_1_3:    return TLS1_3_VERSION;
+    }
+    throw std::runtime_error("Fix");
+}
+
+void ProtocolInfo::setProtocolInfo(SSL_CTX* ctx) const
+{
+    //if (SSL_CTX_set_min_proto_version(ctx, convertProtocolToOpenSSL(minProtocol)) != 1)
+    if (MOCK_FUNC(SSL_CTX_ctrl)(ctx, SSL_CTRL_SET_MIN_PROTO_VERSION, convertProtocolToOpenSSL(minProtocol), nullptr) != 1)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ProtocolInfo",
+                         "setProtocolInfo",
+                         "SSL_CTX_set_min_proto_version() failed: ", SSocket::buildErrorMessage());
+    }
+    //if (SSL_CTX_set_max_proto_version(ctx, convertProtocolToOpenSSL(maxProtocol)) != 1)
+    if (MOCK_FUNC(SSL_CTX_ctrl)(ctx, SSL_CTRL_SET_MAX_PROTO_VERSION, convertProtocolToOpenSSL(maxProtocol), nullptr) != 1)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ProtocolInfo",
+                         "setProtocolInfo",
+                         "SSL_CTX_set_max_proto_version() failed: ", SSocket::buildErrorMessage());
+    }
+}
+
+void ProtocolInfo::setProtocolInfo(SSL* ssl) const
+{
+    //if (SSL_set_min_proto_version(ssl, convertProtocolToOpenSSL(minProtocol)) != 1)
+    if (MOCK_FUNC(SSL_ctrl)(ssl, SSL_CTRL_SET_MIN_PROTO_VERSION, convertProtocolToOpenSSL(minProtocol), nullptr) != 1)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ProtocolInfo",
+                         "setProtocolInfo",
+                         "SSL_set_min_proto_version() failed: ", SSocket::buildErrorMessage());
+    }
+    //if (SSL_set_max_proto_version(ssl, convertProtocolToOpenSSL(maxProtocol)) != 1)
+    if (MOCK_FUNC(SSL_ctrl)(ssl, SSL_CTRL_SET_MAX_PROTO_VERSION, convertProtocolToOpenSSL(maxProtocol), nullptr) != 1)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ProtocolInfo",
+                         "setProtocolInfo",
+                         "SSL_set_max_proto_version() failed: ", SSocket::buildErrorMessage());
+    }
+}
+
+void CipherInfo::setCipherInfo(SSL_CTX* ctx) const
+{
+    /*Set the Cipher List*/
+    if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, cipherList.c_str()) <= 0)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherInfo",
+                         "setCipherInfo",
+                         "SSL_CTX_set_cipher_list() failed: ", SSocket::buildErrorMessage());
+    }
+    if (MOCK_FUNC(SSL_CTX_set_ciphersuites)(ctx, cipherSuite.c_str()) <= 0)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherInfo",
+                         "setCipherInfo",
+                         "SSL_CTX_set_ciphersuites() failed: ", SSocket::buildErrorMessage());
+    }
+}
+
+void CipherInfo::setCipherInfo(SSL* ssl) const
+{
+    /*Set the Cipher List*/
+    if (MOCK_FUNC(SSL_set_cipher_list)(ssl, cipherList.c_str()) <= 0)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherInfo",
+                         "setCipherInfo",
+                         "SSL_set_cipher_list() failed: ", SSocket::buildErrorMessage());
+    }
+    if (MOCK_FUNC(SSL_set_ciphersuites)(ssl, cipherSuite.c_str()) <= 0)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherInfo",
+                         "setCipherInfo",
+                         "SSL_set_ciphersuites() failed: ", SSocket::buildErrorMessage());
+    }
+}
+
 CertificateInfo::CertificateInfo()
 {}
 
@@ -114,34 +196,12 @@ void CertificateInfo::setCertificateInfo(SSL* ssl) const
     }
 }
 
-void CipherList::setCipherList(SSL_CTX* ctx) const
-{
-    /*Set the Cipher List*/
-    if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, CIPHER_LIST) <= 0)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherList",
-                         "setCipherList",
-                         "SSL_CTX_set_cipher_list() failed: ", SSocket::buildErrorMessage());
-    }
-}
-
-void CipherList::setCipherList(SSL* ssl) const
-{
-    /*Set the Cipher List*/
-    if (MOCK_FUNC(SSL_set_cipher_list)(ssl, CIPHER_LIST) <= 0)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherList",
-                         "setCipherList",
-                         "SSL_set_cipher_list() failed: ", SSocket::buildErrorMessage());
-    }
-}
-
-void CAInfo::setCertifcateAuthority(SSL_CTX* ctx) const
+void CertifcateAuthorityInfo::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
 {
     /* Load certificates of trusted CAs based on file provided*/
     if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, CA_FILE, CA_DIR) < 1)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CAInfo",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo",
                          "setCertifcateAuthority",
                          "SSL_CTX_load_verify_locations() failed: ", SSocket::buildErrorMessage());
     }
@@ -149,20 +209,20 @@ void CAInfo::setCertifcateAuthority(SSL_CTX* ctx) const
     /* Set CA list used for client authentication. */
     /*
     if (SSL_CTX_load_and_set_client_CA_file(ctx, CA_FILE) < 1) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CAInfo",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo",
                          "setCertifcateAuthority",
                          "SSL_CTX_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
     }
     */
 }
 
-void CAInfo::setCertifcateAuthority(SSL* /*ssl*/) const
+void CertifcateAuthorityInfo::setCertifcateAuthorityInfo(SSL* /*ssl*/) const
 {
     /* Load certificates of trusted CAs based on file provided*/
 #if 0
     if (SSL_load_verify_locations(ssl, CA_FILE, CA_DIR) < 1)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CAInfo",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo",
                          "setCertifcateAuthority",
                          "SSL_load_verify_locations() failed: ", SSocket::buildErrorMessage());
     }
@@ -170,7 +230,7 @@ void CAInfo::setCertifcateAuthority(SSL* /*ssl*/) const
     /* Set CA list used for client authentication. */
     /*
     if (SSL_load_and_set_client_CA_file(ssl, CA_FILE) < 1) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CAInfo",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo",
                          "setCertifcateAuthority",
                          "SSL_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
     }
@@ -192,10 +252,10 @@ SSLUtil& SSLUtil::getInstance()
 }
 
 SSLctx::SSLctx(SSLMethodType methodType,
-               Protocol /*protocolMin*/, Protocol /*protocolMax*/,
-               CipherList const& cipherList,
-               CertificateInfo const& certificateInfo,
-               CAInfo const& caInfo)
+               ProtocolInfo protocolRange,
+               CipherInfo const& cipherList,
+               CertificateInfo const& certificate,
+               CertifcateAuthorityInfo const& certifcateAuthority)
     : ctx(nullptr)
 {
     SSLUtil::getInstance();
@@ -222,9 +282,10 @@ SSLctx::SSLctx(SSLMethodType methodType,
                          "SSL_CTX_new() failed: ", SSocket::buildErrorMessage());
     }
 
-    cipherList.setCipherList(ctx);
-    certificateInfo.setCertificateInfo(ctx);
-    caInfo.setCertifcateAuthority(ctx);
+    protocolRange.setProtocolInfo(ctx);
+    cipherList.setCipherInfo(ctx);
+    certificate.setCertificateInfo(ctx);
+    certifcateAuthority.setCertifcateAuthorityInfo(ctx);
 }
 
 #if 0

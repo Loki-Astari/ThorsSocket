@@ -44,7 +44,9 @@ struct MockSocketSYSCalls
     MOCK_MEMBER(SSL_use_PrivateKey_file);
     MOCK_MEMBER(SSL_check_private_key);
     MOCK_MEMBER(SSL_CTX_set_cipher_list);
+    MOCK_MEMBER(SSL_CTX_set_ciphersuites);
     MOCK_MEMBER(SSL_CTX_load_verify_locations);
+    MOCK_MEMBER(SSL_CTX_ctrl);
 
     MockSocketSYSCalls()
         : MOCK_PARAM(socket,            [](int, int, int)       {return 12;})
@@ -71,7 +73,9 @@ struct MockSocketSYSCalls
         , MOCK_PARAM(SSL_use_PrivateKey_file,           [](SSL*, char const*, int)      {return 1;})
         , MOCK_PARAM(SSL_check_private_key,             [](SSL const*)                  {return 1;})
         , MOCK_PARAM(SSL_CTX_set_cipher_list,           [](SSL_CTX*, char const*)       {return 1;})
+        , MOCK_PARAM(SSL_CTX_set_ciphersuites,          [](SSL_CTX*, char const*)       {return 1;})
         , MOCK_PARAM(SSL_CTX_load_verify_locations,     [](SSL_CTX*, char const*, char const*)  {return 1;})
+        , MOCK_PARAM(SSL_CTX_ctrl,                      [](SSL_CTX*, int, int, void*)   {return 1;})
     {}
 };
 
