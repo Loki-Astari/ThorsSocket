@@ -65,15 +65,16 @@ if [[ "${check}" == "y" ]]; then
 
     else
         # This will request user input a simple password
-        echo ${password} | openssl enc -aes256 -pbkdf2 -salt -in - -out test/data/server/password.enc
+        echo -n ${password} | openssl enc -aes256 -pbkdf2 -salt -in - -out test/data/server/password.enc
+        echo -n ${password} > test/data/server/password.enc
     fi
+
+    # Need the simple password to decode.
+    # If you want to check the password was encoded correctly
+    # openssl enc -aes256 -pbkdf2 -salt -d -in test/data/server/password.enc
 fi
 
 if [[ -e  test/data/server/password.enc ]]; then
-    # Need the simple password to decode.
-    # If you want to check the password was encoded correctly
-    # openssl enc -aes256 -pbkdf2 -salt -d -in password.enc
-
     passout="-passout file:test/data/server/password.enc"
     passin="-passin file:test/data/server/password.enc"
 fi
@@ -85,15 +86,11 @@ fi
 
 if [[ "${check}" == "y" ]]; then
     #
-    # Key encryption:
-    echo "Key encryption: (<empty> / -des3)"
-    read -p 'Encryption: ' encrypt
-
-    #
     # Create a private server key
     echo
     echo "Creating: server.key"
-    openssl genrsa ${encrypt} ${passout} -out test/data/server/server.key 4096
+    echo "openssl genrsa -des3 ${passout} -out test/data/server/server.key 4096"
+    openssl genrsa -des3 ${passout} -out test/data/server/server.key 4096
 fi
 
 #
@@ -109,6 +106,7 @@ openssl req -new -key test/data/server/server.key -out test/data/server/server.c
 # openssl x509 -req -days 365 -in test/data/server/server.csr -signkey test/data/server/server.key -out test/data/server/server.crt ${passin}
 echo
 echo "Creating: server.crt"
+echo "openssl x509 -req -days 365 -in test/data/server/server.csr -CA test/data/root-ca/ca.cert.pem -CAkey test/data/root-ca/ca.key -CAcreateserial -out test/data/server/server.crt ${passin}"
 openssl x509 -req -days 365 -in test/data/server/server.csr -CA test/data/root-ca/ca.cert.pem -CAkey test/data/root-ca/ca.key -CAcreateserial -out test/data/server/server.crt ${passin}
 
 check="y"

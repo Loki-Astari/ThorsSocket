@@ -36,6 +36,11 @@ struct MockSocketSYSCalls
     MOCK_MEMBER(SSL_CTX_use_PrivateKey_file);
     MOCK_MEMBER(SSL_CTX_check_private_key);
     MOCK_MEMBER(SSL_get_peer_certificate);
+    MOCK_MEMBER(SSL_set_default_passwd_cb);
+    MOCK_MEMBER(SSL_set_default_passwd_cb_userdata);
+    MOCK_MEMBER(SSL_use_certificate_file);
+    MOCK_MEMBER(SSL_use_PrivateKey_file);
+    MOCK_MEMBER(SSL_check_private_key);
 
     MockSocketSYSCalls()
         : MOCK_PARAM(socket,            [](int, int, int)       {return 12;})
@@ -52,10 +57,15 @@ struct MockSocketSYSCalls
         , MOCK_PARAM(SSL_shutdown,      [](SSL*)                {return 1;})
         , MOCK_PARAM(SSL_free,          [](SSL*)                {return 1;})
         , MOCK_PARAM(SSL_CTX_free,      [](SSL_CTX*)            {return 1;})
-        , MOCK_PARAM(SSL_CTX_use_certificate_file, [](SSL_CTX*, char const*, int) {return 1;})
-        , MOCK_PARAM(SSL_CTX_use_PrivateKey_file,  [](SSL_CTX*, char const*, int) {return 1;})
-        , MOCK_PARAM(SSL_CTX_check_private_key,    [](SSL_CTX const*) {return 1;})
-        , MOCK_PARAM(SSL_get_peer_certificate,     [](SSL const*)   {return (X509*)1;})
+        , MOCK_PARAM(SSL_CTX_use_certificate_file,      [](SSL_CTX*, char const*, int)  {return 1;})
+        , MOCK_PARAM(SSL_CTX_use_PrivateKey_file,       [](SSL_CTX*, char const*, int)  {return 1;})
+        , MOCK_PARAM(SSL_CTX_check_private_key,         [](SSL_CTX const*)              {return 1;})
+        , MOCK_PARAM(SSL_get_peer_certificate,          [](SSL const*)                  {return (X509*)1;})
+        , MOCK_PARAM(SSL_set_default_passwd_cb,         [](SSL*, int(*)(char*, int, int, void*)){})
+        , MOCK_PARAM(SSL_set_default_passwd_cb_userdata,[](SSL*, void*)                 {})
+        , MOCK_PARAM(SSL_use_certificate_file,          [](SSL*, char const*, int)      {return 1;})
+        , MOCK_PARAM(SSL_use_PrivateKey_file,           [](SSL*, char const*, int)      {return 1;})
+        , MOCK_PARAM(SSL_check_private_key,             [](SSL const*)                  {return 1;})
     {}
 };
 

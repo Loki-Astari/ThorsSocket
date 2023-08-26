@@ -9,6 +9,9 @@
 #include <string_view>
 
 
+#define CERT_FILE       "test/data/server/server.crt"
+#define KEY_FILE        "test/data/server/server.key"
+#define KEY_PASSWD      "TheLongDarkNight"
 
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
@@ -19,6 +22,7 @@ using ThorsAnvil::ThorsSocket::Mode;
 
 using ThorsAnvil::ThorsSocket::ConnectionType::SSLctxClient;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSLctxServer;
+using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocket;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
 
@@ -52,7 +56,7 @@ TEST(SSocketIntegrationTest, ConnectToServer)
 
 TEST(SSocketIntegrationTest, ConnectToServerLocal)
 {
-    SSLctxServer        ctxServer;
+    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
     ServerStart         server;
     server.run<ConnectionType::SSocket>(8080, [](Socket& socket){
         char buffer[10];
@@ -76,7 +80,7 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
 
 TEST(SSocketIntegrationTest, ConnectToSSocket)
 {
-    SSLctxServer        ctxServer;
+    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
     ServerStart         server;
     server.run<ConnectionType::SSocket>(8080, [](Socket& socket){socket.putMessageData("x", 1);}, ctxServer);
 
@@ -94,7 +98,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 {
-    SSLctxServer        ctxServer;
+    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
     std::string const message = "This is a line of text\n";
     ServerStart     server;
     server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
@@ -122,7 +126,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    SSLctxServer        ctxServer;
+    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
     server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         std::size_t sent = 0;
@@ -153,7 +157,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    SSLctxServer        ctxServer;
+    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
     server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         std::size_t sent = 0;
@@ -187,7 +191,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    SSLctxServer        ctxServer;
+    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
     server.run<ConnectionType::SSocket>(8080, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size() - 4);
@@ -219,7 +223,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
     bool                    finished        = false;
     std::size_t             totalWritten    = 0;
 
-    SSLctxServer        ctxServer;
+    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
     server.run<ConnectionType::SSocket>(8080, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
     {
         {
@@ -277,7 +281,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
     std::condition_variable cond;
     bool                    finished = false;
 
-    SSLctxServer        ctxServer;
+    SSLctxServer        ctxServer(CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}});
     server.run<ConnectionType::SSocket>(8080, [&mutex, &cond, &finished, &message](Socket& socket)
     {
         {

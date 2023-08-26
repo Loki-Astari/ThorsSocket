@@ -9,9 +9,6 @@
 #define CLIENT_KEY      "test/data/client/client.key"
 
 #define CIPHER_LIST     "AES128-SHA"
-#define CERT_FILE       "test/data/server/server.crt"
-#define KEY_FILE        "test/data/server/server.key"
-#define KEY_PASSWD      "The night is long and full of shadows"
 
 #define CA_FILE         "test/data/root-ca/ca.cert.pem"
 #define CA_DIR          nullptr
@@ -20,6 +17,105 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOResult;
 
+extern "C" int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* userdata)
+{
+    CertificateInfo& certificateInfo = *static_cast<CertificateInfo*>(userdata);
+    std::string&& password = certificateInfo.getPassword(rwflag);
+    if (password.size() > static_cast<std::size_t>(size))
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
+                         "setCertificateInfo",
+                         "certificateInfo_PasswdCB failed: password size exceeds max space. Max=", size, " Actual=", password.size());
+    }
+    for (std::size_t loop = 0; loop < password.size(); ++loop) {
+        buf[loop] = std::exchange(password[loop], 'X');
+    }
+    return password.size();
+}
+
+CertificateInfo::CertificateInfo()
+{}
+
+CertificateInfo::CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword)
+    : certificateFileName(certificateFileName)
+    , keyFileName(keyFileName)
+    , getPassword(std::move(getPassword))
+{
+    if (certificateFileName == "" || keyFileName == "")
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
+                         "CertificateInfo",
+                         "Either both certificate and key are set or neither are set");
+    }
+}
+
+void CertificateInfo::setCertificateInfo(SSL_CTX* ctx)
+{
+    if (certificateFileName != "")
+    {
+        /*Load the password for the Private Key*/
+        MOCK_FUNC(SSL_CTX_set_default_passwd_cb)(ctx, certificateInfo_PasswdCB);
+        MOCK_FUNC(SSL_CTX_set_default_passwd_cb_userdata)(ctx, static_cast<void*>(this));
+
+        /*Set the certificate to be used.*/
+        if (MOCK_FUNC(SSL_CTX_use_certificate_file)(ctx, certificateFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
+                             "setCertificateInfo",
+                             "SSL_CTX_use_certificate_file() failed: ", SSocket::buildErrorMessage());
+        }
+
+        /*Indicate the key file to be used*/
+        if (MOCK_FUNC(SSL_CTX_use_PrivateKey_file)(ctx, keyFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
+                             "setCertificateInfo",
+                             "SSL_CTX_use_PrivateKey_file() failed: ", SSocket::buildErrorMessage());
+        }
+
+        /*Make sure the key and certificate file match*/
+        if (MOCK_FUNC(SSL_CTX_check_private_key)(ctx) == 0)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
+                             "setCertificateInfo",
+                             "SSL_CTX_check_private_key() failed: ", SSocket::buildErrorMessage());
+        }
+    }
+}
+
+void CertificateInfo::setCertificateInfo(SSL* ssl)
+{
+    if (certificateFileName != "")
+    {
+        /*Load the password for the Private Key*/
+        //MOCK_FUNC(SSL_set_default_passwd_cb)(ssl, certificateInfo_PasswdCB);
+        MOCK_FUNC(SSL_set_default_passwd_cb_userdata)(ssl, static_cast<void*>(this));
+
+        /*Set the certificate to be used.*/
+        if (MOCK_FUNC(SSL_use_certificate_file)(ssl, certificateFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
+                             "setCertificateInfo",
+                             "SSL_use_certificate_file() failed: ", SSocket::buildErrorMessage());
+        }
+
+        /*Indicate the key file to be used*/
+        if (MOCK_FUNC(SSL_use_PrivateKey_file)(ssl, keyFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
+                             "setCertificateInfo",
+                             "SSL_use_PrivateKey_file() failed: ", SSocket::buildErrorMessage());
+        }
+
+        /*Make sure the key and certificate file match*/
+        if (MOCK_FUNC(SSL_check_private_key)(ssl) == 0)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
+                             "setCertificateInfo",
+                             "SSL_check_private_key() failed: ", SSocket::buildErrorMessage());
+        }
+    }
+}
 
 SSLUtil::SSLUtil()
 {
@@ -87,50 +183,26 @@ SSLctxClient::SSLctxClient()
     }
 }
 
-SSLctxServer::SSLctxServer()
+SSLctxServer::SSLctxServer(CertificateInfo&& certificateInfo)
     : SSLctx{SSLMethodType::Server}
 {
     /*Set the Cipher List*/
     if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, CIPHER_LIST) <= 0)
     {
-        ThorsLogAndThrow("TESTING::SSLctxServer",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxServer",
                          "SSLctxServer",
                          "SSL_CTX_set_cipher_list() failed: ", SSocket::buildErrorMessage());
     }
 
-    /*Set the certificate to be used.*/
-    if (MOCK_FUNC(SSL_CTX_use_certificate_file)(ctx, CERT_FILE, SSL_FILETYPE_PEM) <= 0)
-    {
-        ThorsLogAndThrow("TESTING::SSLctxServer",
-                         "SSLctxServer",
-                         "SSL_CTX_use_certificate_file() failed: ", SSocket::buildErrorMessage());
-    }
+    certificateInfo.setCertificateInfo(ctx);
 
-    /*Indicate the key file to be used*/
-    if (MOCK_FUNC(SSL_CTX_use_PrivateKey_file)(ctx, KEY_FILE, SSL_FILETYPE_PEM) <= 0)
-    {
-        ThorsLogAndThrow("TESTING::SSLctxServer",
-                         "SSLctxServer",
-                         "SSL_CTX_use_PrivateKey_file() failed: ", SSocket::buildErrorMessage());
-    }
-
-    /*Make sure the key and certificate file match*/
-    if (MOCK_FUNC(SSL_CTX_check_private_key)(ctx) == 0)
-    {
-        ThorsLogAndThrow("TESTING::SSLctxServer",
-                         "SSLctxServer",
-                         "SSL_CTX_check_private_key() failed: ", SSocket::buildErrorMessage());
-    }
-
-    /*Load the password for the Private Key*/
-    MOCK_FUNC(SSL_CTX_set_default_passwd_cb_userdata)(ctx, const_cast<void*>(static_cast<void const*>(KEY_PASSWD)));
     /*Used only if client authentication will be used*/
     //MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
 
     /* Load certificates of trusted CAs based on file provided*/
     if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, CA_FILE, CA_DIR) < 1)
     {
-        ThorsLogAndThrow("TESTING::SSLctxServer",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxServer",
                          "SSLctxServer",
                          "SSL_CTX_load_verify_locations() failed: ", SSocket::buildErrorMessage());
     }
@@ -138,7 +210,7 @@ SSLctxServer::SSLctxServer()
     /* Set CA list used for client authentication. */
     /*
     if (SSL_CTX_load_and_set_client_CA_file(ctx, CA_FILE) < 1) {
-        ThorsLogAndThrow("TESTING::SSLctxServer",
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctxServer",
                          "SSLctxServer",
                          "SSL_CTX_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
     }
@@ -172,7 +244,7 @@ SSLctx::~SSLctx()
     MOCK_FUNC(SSL_CTX_free)(ctx);
 }
 
-SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking)
+SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& certificateInfo)
     : Socket(host, port, blocking)
     , ssl(nullptr)
 {
@@ -184,6 +256,9 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
                          "SSocket",
                          "SSL_new() failed: ", buildErrorMessage());
     }
+
+    certificateInfo.setCertificateInfo(ssl);
+
     int ret;
     int error;
     if ((ret = MOCK_FUNC(SSL_set_fd)(ssl, socketId(Mode::Read))) != 1)
@@ -235,7 +310,7 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
     }
 }
 
-SSocket::SSocket(int fd, SSLctx const& ctx)
+SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& certificateInfo)
     : Socket(fd)
 {
     /*Create new ssl object*/
@@ -247,6 +322,8 @@ SSocket::SSocket(int fd, SSLctx const& ctx)
                          "SSocket",
                          "SSL_new() failed: ", buildErrorMessage());
     }
+
+    certificateInfo.setCertificateInfo(ssl);
 
     /* Bind the ssl object with the socket*/
     SSL_set_fd(ssl, fd);

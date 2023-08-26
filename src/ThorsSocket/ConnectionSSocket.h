@@ -9,6 +9,27 @@
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
+extern "C" int certificateInfo_PasswdCB(char* buf, int size, int /*rwflag*/, void* userdata);
+
+struct CertificateInfo
+{
+    public:
+        using GetPasswordFunc = std::function<std::string(int)>;
+    private:
+        friend int certificateInfo_PasswdCB(char*, int, int, void*);
+
+        std::string     certificateFileName;
+        std::string     keyFileName;
+        GetPasswordFunc getPassword;
+
+    public:
+        CertificateInfo();
+        CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword = [](int){return "";});
+
+        void setCertificateInfo(SSL_CTX* ctx);
+        void setCertificateInfo(SSL* ssl);
+};
+
 class SSLUtil
 {
     SSLUtil();
@@ -47,15 +68,15 @@ class SSLctxClient: public SSLctx
 class SSLctxServer: public SSLctx
 {
     public:
-        SSLctxServer();
+        SSLctxServer(CertificateInfo&& info = CertificateInfo{});
 };
 
 class SSocket: public Socket
 {
     SSL*        ssl;
     public:
-        SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking);
-        SSocket(int fd, SSLctx const& ctx);
+        SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info = CertificateInfo{});
+        SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
         virtual ~SSocket();
         virtual void tryFlushBuffer()                               override;
 
