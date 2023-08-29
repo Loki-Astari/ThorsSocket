@@ -34,10 +34,10 @@ int ProtocolInfo::convertProtocolToOpenSSL(Protocol protocol) const
 {
     switch (protocol)
     {
-        case    TLS_1_0:    return TLS1_VERSION;
-        case    TLS_1_1:    return TLS1_1_VERSION;
-        case    TLS_1_2:    return TLS1_2_VERSION;
-        case    TLS_1_3:    return TLS1_3_VERSION;
+        case TLS_1_0:    return TLS1_VERSION;
+        case TLS_1_1:    return TLS1_1_VERSION;
+        case TLS_1_2:    return TLS1_2_VERSION;
+        case TLS_1_3:    return TLS1_3_VERSION;
     }
     throw std::runtime_error("Fix");
 }
@@ -196,47 +196,111 @@ void CertificateInfo::setCertificateInfo(SSL* ssl) const
     }
 }
 
+template<AuthorityType A>
+void CertifcateAuthorityDataInfo<A>::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
+{
+    int stat = setDefaultCertifcateAuthorityInfo(ctx);
+    if (stat != 1)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityDataInfo",
+                         "setCertifcateAuthority",
+                         "setDefaultCertifcateAuthorityInfo() failed: ", type(), ": ", SSocket::buildErrorMessage());
+    }
+    for (auto const& item: items)
+    {
+        if (!item.empty())
+        {
+            int stat = setOneCertifcateAuthorityInfo(ctx, item.c_str());
+            if (stat != 1)
+            {
+                ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityDataInfo",
+                                 "setCertifcateAuthority",
+                                 "setDefaultCertifcateAuthorityInfo() failed: ", type(), " ", item, ": " , SSocket::buildErrorMessage());
+            }
+        }
+    }
+}
+
+template<> int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)               const {return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);}
+template<> int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);}
+template<> int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)              const {return MOCK_FUNC(SSL_CTX_set_default_verify_store)(ctx);}
+
+template<> int CertifcateAuthorityDataInfo<File>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item) const {return MOCK_FUNC(SSL_CTX_load_verify_file)(ctx, item);}
+template<> int CertifcateAuthorityDataInfo<Dir>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item)  const {return MOCK_FUNC(SSL_CTX_load_verify_dir)(ctx, item);}
+template<> int CertifcateAuthorityDataInfo<Store>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item)const {return MOCK_FUNC(SSL_CTX_load_verify_store)(ctx, item);}
+
+template<> std::string CertifcateAuthorityDataInfo<File>::type()  const {return "CA File";}
+template<> std::string CertifcateAuthorityDataInfo<Dir>::type()   const {return "CA Dir";}
+template<> std::string CertifcateAuthorityDataInfo<Store>::type() const {return "CA Store";}
+
 void CertifcateAuthorityInfo::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
 {
-    /* Load certificates of trusted CAs based on file provided*/
-    if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, CA_FILE, CA_DIR) < 1)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo",
-                         "setCertifcateAuthority",
-                         "SSL_CTX_load_verify_locations() failed: ", SSocket::buildErrorMessage());
-    }
-
-    /* Set CA list used for client authentication. */
-    /*
-    if (SSL_CTX_load_and_set_client_CA_file(ctx, CA_FILE) < 1) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo",
-                         "setCertifcateAuthority",
-                         "SSL_CTX_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
-    }
-    */
+    file.setCertifcateAuthorityInfo(ctx);
+    dir.setCertifcateAuthorityInfo(ctx);
+    store.setCertifcateAuthorityInfo(ctx);
 }
 
-void CertifcateAuthorityInfo::setCertifcateAuthorityInfo(SSL* /*ssl*/) const
+template<> int ClientCAListDataInfo<File>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)   const {return MOCK_FUNC(SSL_add_file_cert_subjects_to_stack)(certs, item);}
+template<> int ClientCAListDataInfo<Dir>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)    const {return MOCK_FUNC(SSL_add_dir_cert_subjects_to_stack)(certs, item);}
+template<> int ClientCAListDataInfo<Store>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)  const {return MOCK_FUNC(SSL_add_store_cert_subjects_to_stack)(certs, item);}
+
+STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
 {
-    /* Load certificates of trusted CAs based on file provided*/
-#if 0
-    if (SSL_load_verify_locations(ssl, CA_FILE, CA_DIR) < 1)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo",
-                         "setCertifcateAuthority",
-                         "SSL_load_verify_locations() failed: ", SSocket::buildErrorMessage());
-    }
+    auto ignore = MOCK_FUNC(OPENSSL_sk_new_null);
 
-    /* Set CA list used for client authentication. */
-    /*
-    if (SSL_load_and_set_client_CA_file(ssl, CA_FILE) < 1) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo",
-                         "setCertifcateAuthority",
-                         "SSL_load_and_set_client_CA_file() failed: ", SSocket::buildErrorMessage());
+    // This macro calls: OPENSSL_sk_new_null (which is mocked).
+    STACK_OF(X509_NAME)* list = sk_X509_NAME_new_null();
+    if (list == nullptr)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ClientCAListInfo",
+                         "buildCAToList",
+                         "sk_X509_NAME_new_null() failed: ", SSocket::buildErrorMessage());
     }
-    */
-#endif
+    for (auto const& item: file.items)
+    {
+        int stat = file.addCAToList(list, item.c_str());
+        if (stat != 1)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<File>",
+                             "addCAToList failed: >", item, "< ", SSocket::buildErrorMessage());
+        }
+    }
+    for (auto const& item: dir.items)
+    {
+        int stat = dir.addCAToList(list, item.c_str());
+        if (stat != 1)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<Dir>",
+                             "addCAToList failed: >", item, "< ", SSocket::buildErrorMessage());
+        }
+    }
+    for (auto const& item: store.items)
+    {
+        int stat = store.addCAToList(list, item.c_str());
+        if (stat != 1)
+        {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<Store>",
+                             "addCAToList failed: >", item, "< ", SSocket::buildErrorMessage());
+        }
+    }
+    return list;
 }
+
+void ClientCAListInfo::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
+{
+    if (verifyClientCA) {
+        MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+    }
+    MOCK_FUNC(SSL_CTX_set_client_CA_list)(ctx, buildCAToList());
+};
+
+void ClientCAListInfo::setCertifcateAuthorityInfo(SSL* ssl) const
+{
+    if (verifyClientCA) {
+        MOCK_FUNC(SSL_set_verify)(ssl, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+    }
+    MOCK_FUNC(SSL_set_client_CA_list)(ssl, buildCAToList());
+};
 
 SSLUtil::SSLUtil()
 {
@@ -255,7 +319,8 @@ SSLctx::SSLctx(SSLMethodType methodType,
                ProtocolInfo protocolRange,
                CipherInfo const& cipherList,
                CertificateInfo const& certificate,
-               CertifcateAuthorityInfo const& certifcateAuthority)
+               CertifcateAuthorityInfo const& certifcateAuthority,
+               ClientCAListInfo const& clientCAList)
     : ctx(nullptr)
 {
     SSLUtil::getInstance();
@@ -286,21 +351,8 @@ SSLctx::SSLctx(SSLMethodType methodType,
     cipherList.setCipherInfo(ctx);
     certificate.setCertificateInfo(ctx);
     certifcateAuthority.setCertifcateAuthorityInfo(ctx);
+    clientCAList.setCertifcateAuthorityInfo(ctx);
 }
-
-#if 0
-SSLctxClient::SSLctxClient(CertificateInfo&& info)
-    : SSLctx(SSLMethodType::Client)
-{}
-
-SSLctxServer::SSLctxServer(CertificateInfo&& info)
-    : SSLctx{SSLMethodType::Server}
-{
-    /*Used only if client authentication will be used*/
-    //MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
-
-}
-#endif
 
 #if 0
 SSLctx::SSLctx(SSLMethod& method, std::string const& certFile, std::string const& keyFile)

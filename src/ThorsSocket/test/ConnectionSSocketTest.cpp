@@ -45,8 +45,19 @@ struct MockSocketSYSCalls
     MOCK_MEMBER(SSL_check_private_key);
     MOCK_MEMBER(SSL_CTX_set_cipher_list);
     MOCK_MEMBER(SSL_CTX_set_ciphersuites);
-    MOCK_MEMBER(SSL_CTX_load_verify_locations);
     MOCK_MEMBER(SSL_CTX_ctrl);
+    MOCK_MEMBER(SSL_CTX_set_default_verify_file);
+    MOCK_MEMBER(SSL_CTX_set_default_verify_dir);
+    MOCK_MEMBER(SSL_CTX_set_default_verify_store);
+    MOCK_MEMBER(SSL_CTX_load_verify_file);
+    MOCK_MEMBER(SSL_CTX_load_verify_dir);
+    MOCK_MEMBER(SSL_CTX_load_verify_store);
+    MOCK_MEMBER(SSL_add_file_cert_subjects_to_stack);
+    MOCK_MEMBER(SSL_add_dir_cert_subjects_to_stack);
+    MOCK_MEMBER(SSL_add_store_cert_subjects_to_stack);
+    MOCK_MEMBER(OPENSSL_sk_new_null);
+    MOCK_MEMBER(SSL_CTX_set_client_CA_list);
+    MOCK_MEMBER(SSL_set_client_CA_list);
 
     MockSocketSYSCalls()
         : MOCK_PARAM(socket,            [](int, int, int)       {return 12;})
@@ -74,8 +85,19 @@ struct MockSocketSYSCalls
         , MOCK_PARAM(SSL_check_private_key,             [](SSL const*)                  {return 1;})
         , MOCK_PARAM(SSL_CTX_set_cipher_list,           [](SSL_CTX*, char const*)       {return 1;})
         , MOCK_PARAM(SSL_CTX_set_ciphersuites,          [](SSL_CTX*, char const*)       {return 1;})
-        , MOCK_PARAM(SSL_CTX_load_verify_locations,     [](SSL_CTX*, char const*, char const*)  {return 1;})
         , MOCK_PARAM(SSL_CTX_ctrl,                      [](SSL_CTX*, int, int, void*)   {return 1;})
+        , MOCK_PARAM(SSL_CTX_set_default_verify_file,   [](SSL_CTX*)                    {return 1;})
+        , MOCK_PARAM(SSL_CTX_set_default_verify_dir,    [](SSL_CTX*)                    {return 1;})
+        , MOCK_PARAM(SSL_CTX_set_default_verify_store,  [](SSL_CTX*)                    {return 1;})
+        , MOCK_PARAM(SSL_CTX_load_verify_file,          [](SSL_CTX*, char const*)       {return 1;})
+        , MOCK_PARAM(SSL_CTX_load_verify_dir,           [](SSL_CTX*, char const*)       {return 1;})
+        , MOCK_PARAM(SSL_CTX_load_verify_store,         [](SSL_CTX*, char const*)       {return 1;})
+        , MOCK_PARAM(OPENSSL_sk_new_null,               []()                            {return (OPENSSL_STACK*)1;})
+        , MOCK_PARAM(SSL_add_file_cert_subjects_to_stack,  [](STACK_OF(X509_NAME)*, char const*)    {return 1;})
+        , MOCK_PARAM(SSL_add_dir_cert_subjects_to_stack,   [](STACK_OF(X509_NAME)*, char const*)    {return 1;})
+        , MOCK_PARAM(SSL_add_store_cert_subjects_to_stack, [](STACK_OF(X509_NAME)*, char const*)    {return 1;})
+        , MOCK_PARAM(SSL_CTX_set_client_CA_list,        [](SSL_CTX*, STACK_OF(X509_NAME)*)  {return 1;})
+        , MOCK_PARAM(SSL_set_client_CA_list,            [](SSL*, STACK_OF(X509_NAME)*)      {return 1;})
     {}
 };
 

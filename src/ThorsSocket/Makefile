@@ -11,5 +11,6 @@ UNITTEST_CXXFLAGS			= -Wno-deprecated-declarations -Wno-writable-strings
 
 UNITTEST_LDLIBS				+= $(LDLIBS_$(PLATFORM))
 LDLIBS						+= $(LDLIBS_$(PLATFORM))
+%/ConnectionSSocket.o:		FILE_WARNING_FLAGS = -Wno-unused-variable
 
 include $(THORSANVIL_ROOT)/build/tools/Makefile
