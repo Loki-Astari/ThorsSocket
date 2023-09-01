@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include "ConnectionFile.h"
+#include "test/ConnectionFileTest.h"
+
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -29,12 +31,22 @@ using ThorsAnvil::ThorsSocket::Result;
 
 TEST(ConnectionFileTest, Construct)
 {
-    TempFileWithCleanup         fileName;
-    File                        file(fileName,Open::Append, Blocking::No);
+    MockConnectionFile          defaultMockedFunctions;
+    MOCK_SYS(close,     [](int) {return 0;});
+
+    auto action = [](){
+        TempFileWithCleanup         fileName;
+        File                        file(fileName,Open::Append, Blocking::No);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, ConstructOpenFail)
 {
+    MockConnectionFile          defaultMockedFunctions;
     using OpenType = int(const char*, int, unsigned short);
     MOCK_TSYS(OpenType, open, [](const char*, int, unsigned short)    {return -1;});
     TempFileWithCleanup         fileName;
@@ -47,56 +59,109 @@ TEST(ConnectionFileTest, ConstructOpenFail)
         action(),
         std::runtime_error
     );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, DestructorCallsClose)
 {
+    MockConnectionFile          defaultMockedFunctions;
     int callCount = 0;
     MOCK_SYS(close, [&callCount](int)    {++callCount;return 0;});
 
-    {
+
+    auto action = [](){
         TempFileWithCleanup     fileName;
         File                    file(12);
-    }
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
 
 
     ASSERT_EQ(callCount, 1);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, notValidOnMinusOne)
 {
+    MockConnectionFile          defaultMockedFunctions;
     MOCK_SYS(close, [](int)    {return 0;});
-    File                        file(-1);
-    ASSERT_FALSE(file.isConnected());
+
+    auto action = [](){
+        File                        file(-1);
+        ASSERT_FALSE(file.isConnected());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, getSocketIdWorks)
 {
+    MockConnectionFile          defaultMockedFunctions;
     MOCK_SYS(close, [](int)    {return 0;});
-    File                        file(12);
-    ASSERT_EQ(file.socketId(Mode::Read), 12);
-    ASSERT_EQ(file.socketId(Mode::Write), 12);
+
+    auto action = [](){
+        File                        file(12);
+        ASSERT_EQ(file.socketId(Mode::Read), 12);
+        ASSERT_EQ(file.socketId(Mode::Write), 12);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, Close)
 {
-    TempFileWithCleanup         fileName;
-    File                        file(fileName,Open::Append, Blocking::No);
-    file.close();
+    MockConnectionFile          defaultMockedFunctions;
+    MOCK_SYS(close, [](int)    {return 0;});
 
-    ASSERT_FALSE(file.isConnected());
+    auto action = [](){
+        TempFileWithCleanup         fileName;
+        File                        file(fileName,Open::Append, Blocking::No);
+        file.close();
+
+        ASSERT_FALSE(file.isConnected());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 {
+    MockConnectionFile          defaultMockedFunctions;
     MOCK_SYS(close, [](int)    {return 0;});
-    File                        file(33);
-    ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
+
+    auto action = [](){
+        File                        file(33);
+        ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
 {
+    MockConnectionFile          defaultMockedFunctions;
     MOCK_SYS(close, [](int)    {return 0;});
-    File                        file(34);
-    ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());
+
+    auto action = [](){
+        File                        file(34);
+        ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionSSocket.h"
+#include "test/ConnectionSSocketUtilTest.h"
 #include "test/ConnectionTest.h"
 
 #include <vector>
@@ -101,7 +102,7 @@ struct MockSocketSYSCalls
 
 TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
     int callOrder = 1;
     int TLS_client_methodCalled = 0;
@@ -120,11 +121,19 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
     MOCK_SYS(SSL_shutdown,      [&](SSL*)               {SSL_shutdownCalled = callOrder++;return 1;});
     MOCK_SYS(SSL_free,          [&](SSL*)               {SSL_freeCalled = callOrder++;return 1;});
     MOCK_SYS(SSL_CTX_free,      [&](SSL_CTX*)           {SSL_CTX_freeCalled = callOrder++;return 1;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
 
-    {
+    auto action = [](){
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
-    }
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
 
     ASSERT_EQ(TLS_client_methodCalled, 1);
     ASSERT_EQ(SSL_CTX_newCalled,       2);
@@ -135,11 +144,12 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
     ASSERT_EQ(SSL_freeCalled,          7);
     ASSERT_EQ(SSL_CTX_freeCalled,      8);
 
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
     int callOrder = 1;
     int TLS_client_methodCalled = 0;
@@ -161,11 +171,19 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
     MOCK_SYS(SSL_shutdown,      [&](SSL*)               {SSL_shutdownCalled = callOrder++;return 1;});
     MOCK_SYS(SSL_free,          [&](SSL*)               {SSL_freeCalled = callOrder++;return 1;});
     MOCK_SYS(SSL_CTX_free,      [&](SSL_CTX*)           {SSL_CTX_freeCalled = callOrder++;return 1;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
 
-    {
+    auto action = [](){
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
-    }
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
 
 
     ASSERT_EQ(TLS_client_methodCalled, 1);
@@ -183,13 +201,15 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
     ASSERT_EQ(SSL_shutdownCalled,      9);
     ASSERT_EQ(SSL_freeCalled,          10);
     ASSERT_EQ(SSL_CTX_freeCalled,      11);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
     MOCK_SYS(TLS_client_method, []()    {return nullptr;});
+
 
     auto action = [](){
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
@@ -199,13 +219,15 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
         action(),
         std::runtime_error
     );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
-    MOCK_SYS(SSL_CTX_new, [](SSL_METHOD const*)    {return nullptr;});
+    MOCK_SYS(SSL_CTX_new,       [](SSL_METHOD const*)    {return nullptr;});
+    MOCK_SYS(TLS_client_method, []()                     {return (SSL_METHOD*)1;});
 
     auto action = [](){
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
@@ -215,14 +237,22 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
         action(),
         std::runtime_error
     );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
     int fdClosed = 0;
-    MOCK_SYS(SSL_new, [](SSL_CTX*)  {return nullptr;});
-    MOCK_SYS(close, [&fdClosed](int){++fdClosed;return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return nullptr;});
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
+    MOCK_SYS(close,                     [&](int)                        {++fdClosed;return 0;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
 
     auto action = [](){
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
@@ -234,17 +264,25 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
         std::runtime_error
     );
     ASSERT_EQ(1, fdClosed);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
     int fdClosed = 0;
     int sslFreeCount = 0;
-    MOCK_SYS(SSL_set_fd, [](SSL*,int)           {return 0;});
-    MOCK_SYS(SSL_free,   [&sslFreeCount](SSL*)  {++sslFreeCount;});
-    MOCK_SYS(close,      [&fdClosed](int)       {++fdClosed;return 0;});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return nullptr;});
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {++sslFreeCount;return 1;});
+    MOCK_SYS(close,                     [&](int)                        {++fdClosed;return 0;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
 
     auto action = [](){
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
@@ -257,18 +295,28 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
     );
     ASSERT_EQ(sslFreeCount, 1);
     ASSERT_EQ(1, fdClosed);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
     int fdClosed = 0;
     int sslFreeCount = 0;
-    MOCK_SYS(SSL_connect,   [](SSL*)               {return 0;});
-    MOCK_SYS(SSL_free,      [&sslFreeCount](SSL*)  {++sslFreeCount;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)    {return SSL_ERROR_SSL;});
-    MOCK_SYS(close,         [&fdClosed](int)       {++fdClosed;return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return nullptr;});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 0;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 0;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {++sslFreeCount;});
+    MOCK_SYS(SSL_get_error,             [&](SSL const*, int)            {return SSL_ERROR_SSL;});
+    MOCK_SYS(close,                     [&](int)                        {++fdClosed;return 0;});
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {++sslFreeCount;return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
 
     auto action = [](){
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
@@ -281,16 +329,29 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
     );
     ASSERT_EQ(sslFreeCount, 1);
     ASSERT_EQ(1, fdClosed);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, DestructorCallsClose)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
     int fdClosed = 0;
     int sslFreeCount = 0;
-    MOCK_SYS(SSL_free,   [&sslFreeCount](SSL*)  {++sslFreeCount;});
-    MOCK_SYS(close,      [&fdClosed](int)       {++fdClosed;return 0;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {++sslFreeCount;});
+    MOCK_SYS(close,                     [&](int)                        {++fdClosed;return 0;});
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     auto action = [](){
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
@@ -302,452 +363,1030 @@ TEST(ConnectionSSocketTest, DestructorCallsClose)
     );
     ASSERT_EQ(sslFreeCount, 1);
     ASSERT_EQ(1, fdClosed);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, getSocketIdWorks)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-    ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+
+        ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Close)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-    socket.close();
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+        socket.close();
 
-    ASSERT_FALSE(socket.isConnected());
+        ASSERT_FALSE(socket.isConnected());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-    ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+
+        ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-    ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+
+        ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_WRITE)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_WRITE;});
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CONNECT)
 {
-    MockSocketSYSCalls  mockSysCalls;
-
+    MockConnectionSSocketUtil   defaultMockedFunctions;
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CONNECT;});
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ACCEPT)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ACCEPT;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_SYSCALL)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SYSCALL;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_SSL)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SSL;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_ZERO_RETURN)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_ZERO_RETURN;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::ConnectionClosed);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::ConnectionClosed);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_READ)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_READ;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::WouldBlock);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::WouldBlock);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_X509_LOOKUP)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_X509_LOOKUP;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::Unknown);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::Unknown);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CLIENT_HELLO_CB)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CLIENT_HELLO_CB;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::Unknown);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::Unknown);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::Unknown);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::Unknown);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC_JOB)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC_JOB;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::Unknown);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::Unknown);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Read_OK)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return 8;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_NONE;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.read(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.read(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     12);
-    ASSERT_EQ(result.second,    Result::OK);
+        ASSERT_EQ(result.first,     12);
+        ASSERT_EQ(result.second,    Result::OK);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_READ)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_READ;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CONNECT)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CONNECT;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ACCEPT)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ACCEPT;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_SYSCALL)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SYSCALL;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_SSL)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SSL;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::CriticalBug);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::CriticalBug);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_ZERO_RETURN)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_ZERO_RETURN;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::ConnectionClosed);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::ConnectionClosed);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_WRITE)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_WRITE;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::WouldBlock);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::WouldBlock);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_X509_LOOKUP;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::Unknown);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::Unknown);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CLIENT_HELLO_CB;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::Unknown);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::Unknown);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::Unknown);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::Unknown);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC_JOB;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     4);
-    ASSERT_EQ(result.second,    Result::Unknown);
+        ASSERT_EQ(result.first,     4);
+        ASSERT_EQ(result.second,    Result::Unknown);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketTest, Write_OK)
 {
-    MockSocketSYSCalls  mockSysCalls;
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(TLS_client_method,         [&]()                           {return (SSL_METHOD*)1;});
+    MOCK_SYS(SSL_CTX_new,               [&](SSL_METHOD const*)          {return (SSL_CTX*)2;});
+    MOCK_SYS(SSL_CTX_ctrl,              [&](SSL_CTX*, int, int, void*)  {return 1;});
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const*)      {return 1;});
+    MOCK_TSYS(FctlType, fcntl,          [&](int, int, int)              {return 0;});
+    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return reinterpret_cast<SSL*>(0x08);});
+    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 1;});
+    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_get1_peer_certificate, [&](SSL const*)                 {return reinterpret_cast<X509*>(0x08);});
+    MOCK_SYS(SSL_shutdown,              [&](SSL*)                       {return 1;});
+    MOCK_SYS(SSL_free,                  [&](SSL*)                       {});
+    MOCK_SYS(close,                     [&](int)                        {return 0;});
+    MOCK_SYS(SSL_CTX_free,              [&](SSL_CTX*)                   {return 1;});
 
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return 8;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_NONE;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
+    auto action = [](){
+        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
-    char    buffer[12];
-    IOResult result = socket.write(buffer, 12, 4);
+        char    buffer[12];
+        IOResult result = socket.write(buffer, 12, 4);
 
-    ASSERT_EQ(result.first,     12);
-    ASSERT_EQ(result.second,    Result::OK);
+        ASSERT_EQ(result.first,     12);
+        ASSERT_EQ(result.second,    Result::OK);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 

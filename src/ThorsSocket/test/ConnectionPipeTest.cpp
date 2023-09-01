@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionPipe.h"
+#include "test/ConnectionPipeTest.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -18,9 +19,9 @@ TEST(ConnectionPipeTest, Construct)
 
 TEST(ConnectionPipeTest, ConstructPipeFail)
 {
+    MockConnectionPipe          defaultMockedFunctions;
     int callCount = 0;
     MOCK_SYS(pipe, [](int[])            {return -1;});
-    MOCK_SYS(close,[&callCount](int)    {++callCount;return 0;});
 
     auto action = [](){
         Pipe                        pipe(Blocking::No);
@@ -30,16 +31,18 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(callCount, 0);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
 {
-    int callCount = 0;
-    int fctlCalled = 0;
-    MOCK_SYS(pipe, [](int[])            {return 0;});
-    MOCK_SYS(close,[&callCount](int)    {++callCount;return 0;});
-    MOCK_TSYS(FctlType, fcntl,[&fctlCalled] (int, int, int)         {++fctlCalled;return -1;});
+    MockConnectionPipe          defaultMockedFunctions;
+    int pipeCount = 0;
+    int closeCount = 0;
+    int fctlCount = 0;
+    MOCK_SYS(pipe,              [&](int*)               {++pipeCount;return 0;});
+    MOCK_SYS(close,             [&](int)                {++closeCount;return 0;});
+    MOCK_TSYS(FctlType, fcntl,  [&] (int, int, int)     {++fctlCount;return -1;});
 
     auto action = [](){
         Pipe                        pipe(Blocking::No);
@@ -49,56 +52,120 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(callCount, 2);
+    ASSERT_EQ(pipeCount, 1);
+    ASSERT_EQ(closeCount, 2);
+    ASSERT_EQ(fctlCount, 2);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, DestructorCallsClose)
 {
+    MockConnectionPipe          defaultMockedFunctions;
     int callCount = 0;
     MOCK_SYS(pipe, [](int fd[])           {fd[0]=12;fd[1]=13;return 0;});
     MOCK_SYS(close, [&callCount](int)    {++callCount;return 0;});
 
-    {
+    auto action = [](){
         Pipe                    pipe(Blocking::Yes);
-    }
-
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
 
     ASSERT_EQ(callCount, 2);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, notValidOnMinusOne)
 {
-    int fd[] = {-1, -1};
-    Pipe                        pipe(fd);
-    ASSERT_FALSE(pipe.isConnected());
+    MockConnectionPipe          defaultMockedFunctions;
+
+    auto action = [](){
+        int fd[] = {-1, -1};
+        Pipe                        pipe(fd);
+        ASSERT_FALSE(pipe.isConnected());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, getSocketIdWorks)
 {
-    int fd[] = {12, 13};
-    Pipe                        pipe(fd);
-    ASSERT_EQ(pipe.socketId(Mode::Read), 12);
-    ASSERT_EQ(pipe.socketId(Mode::Write), 13);
+    MockConnectionPipe          defaultMockedFunctions;
+    MOCK_SYS(close,         [](int) {return 0;});
+
+    auto action = [](){
+        int fd[] = {12, 13};
+        Pipe                        pipe(fd);
+        ASSERT_EQ(pipe.socketId(Mode::Read), 12);
+        ASSERT_EQ(pipe.socketId(Mode::Write), 13);
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, Close)
 {
-    Pipe                        pipe(Blocking::No);
-    pipe.close();
+    MockConnectionPipe          defaultMockedFunctions;
+    int pipeCount = 0;
+    int closeCount = 0;
+    int fctlCount = 0;
+    MOCK_SYS(pipe,              [&](int*)               {++pipeCount;return 0;});
+    MOCK_SYS(close,             [&](int)                {++closeCount;return 0;});
+    MOCK_TSYS(FctlType, fcntl,  [&] (int, int, int)     {++fctlCount;return 0;});
 
-    ASSERT_FALSE(pipe.isConnected());
+    auto action = [](){
+        Pipe                        pipe(Blocking::No);
+        pipe.close();
+
+        ASSERT_FALSE(pipe.isConnected());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(pipeCount, 1);
+    ASSERT_EQ(closeCount, 2);
+    ASSERT_EQ(fctlCount, 2);
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
 {
-    int fd[] = {33, 34};
-    Pipe                        pipe(fd);
-    ASSERT_EQ(pipe.socketId(Mode::Read), pipe.getReadFD());
+    MockConnectionPipe          defaultMockedFunctions;
+    MOCK_SYS(close,     [](int) {return 0;});
+
+    auto action = [](){
+        int fd[] = {33, 34};
+        Pipe                        pipe(fd);
+        ASSERT_EQ(pipe.socketId(Mode::Read), pipe.getReadFD());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
 {
-    int fd[] = {33, 34};
-    Pipe                        pipe(fd);
-    ASSERT_EQ(pipe.socketId(Mode::Write), pipe.getWriteFD());
+    MockConnectionPipe          defaultMockedFunctions;
+    MOCK_SYS(close,     [](int) {return 0;});
+
+    auto action = [](){
+        int fd[] = {33, 34};
+        Pipe                        pipe(fd);
+        ASSERT_EQ(pipe.socketId(Mode::Write), pipe.getWriteFD());
+    };
+    ASSERT_NO_THROW(
+        action()
+    );
+
+    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
