@@ -1,0 +1,121 @@
+#ifndef THORSANVIL_THORSSOCKET_CONNECTION_SECURE_SOCKET_CONFIG_H
+#define THORSANVIL_THORSSOCKET_CONNECTION_SECURE_SOCKET_CONFIG_H
+
+#include "ThorsSocketConfig.h"
+#include "OpenSSLMacroWrappers.h"
+#include <openssl/ssl.h>
+#include <string>
+
+
+namespace ThorsAnvil::ThorsSocket::ConnectionType
+{
+
+extern "C" int certificateInfo_PasswdCB(char* buf, int size, int /*rwflag*/, void* userdata);
+std::string buildOpenSSLErrorMessage(bool prefix = true);
+
+enum class SSLMethodType {Client, Server};
+
+enum Protocol { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3 };
+
+struct ProtocolInfo
+{
+    private:
+        Protocol    minProtocol     = TLS_1_2;
+        Protocol    maxProtocol     = TLS_1_3;
+
+        int convertProtocolToOpenSSL(Protocol protocol) const;
+    public:
+        ProtocolInfo()
+            : ProtocolInfo(TLS_1_2, TLS_1_3)
+        {}
+        ProtocolInfo(Protocol minProtocol, Protocol maxProtocol)
+            : minProtocol(minProtocol)
+            , maxProtocol(maxProtocol)
+        {}
+
+        void setProtocolInfo(SSL_CTX* ctx)   const;
+        void setProtocolInfo(SSL* ssl)       const;
+};
+
+struct CipherInfo
+{
+    std::string         cipherList          =   "ECDHE-ECDSA-AES128-GCM-SHA256"     ":"
+                                                "ECDHE-RSA-AES128-GCM-SHA256"       ":"
+                                                "ECDHE-ECDSA-AES256-GCM-SHA384"     ":"
+                                                "ECDHE-RSA-AES256-GCM-SHA384"       ":"
+                                                "ECDHE-ECDSA-CHACHA20-POLY1305"     ":"
+                                                "ECDHE-RSA-CHACHA20-POLY1305"       ":"
+                                                "DHE-RSA-AES128-GCM-SHA256"         ":"
+                                                "DHE-RSA-AES256-GCM-SHA384";
+    std::string         cipherSuite         =   "TLS_AES_256_GCM_SHA384"            ":"
+                                                "TLS_CHACHA20_POLY1305_SHA256"      ":"
+                                                "TLS_AES_128_GCM_SHA256";
+    void setCipherInfo(SSL_CTX* ctx)    const;
+    void setCipherInfo(SSL* ssl)        const;
+};
+
+struct CertificateInfo
+{
+    public:
+        using GetPasswordFunc = std::function<std::string(int)>;
+    private:
+        friend int certificateInfo_PasswdCB(char*, int, int, void*);
+
+        std::string     certificateFileName;
+        std::string     keyFileName;
+        GetPasswordFunc getPassword;
+
+    public:
+        CertificateInfo();
+        CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword = [](int){return "";});
+
+        void setCertificateInfo(SSL_CTX* ctx)   const;
+        void setCertificateInfo(SSL* ssl)       const;
+};
+
+enum AuthorityType { File, Dir, Store };
+
+template<AuthorityType A>
+struct CertifcateAuthorityDataInfo
+{
+    bool                        loadDefault = false;
+    std::vector<std::string>    items;
+
+    void setCertifcateAuthorityInfo(SSL_CTX* ctx)   const;
+    int setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const;
+    int setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const*) const;
+    std::string type() const;
+};
+
+struct CertifcateAuthorityInfo
+{
+    CertifcateAuthorityDataInfo<File>   file;
+    CertifcateAuthorityDataInfo<Dir>    dir;
+    CertifcateAuthorityDataInfo<Store>  store;
+
+    void setCertifcateAuthorityInfo(SSL_CTX* ctx)   const;
+};
+
+template<AuthorityType A>
+struct ClientCAListDataInfo
+{
+    std::vector<std::string>        items;
+
+    int addCAToList(STACK_OF(X509_NAME)* certs, char const* item) const;
+};
+
+struct ClientCAListInfo
+{
+    bool                                verifyClientCA = false;
+    ClientCAListDataInfo<File>          file;
+    ClientCAListDataInfo<Dir>           dir;
+    ClientCAListDataInfo<Store>         store;
+
+    STACK_OF(X509_NAME)* buildCAToList()            const;
+    void setCertifcateAuthorityInfo(SSL_CTX* ctx)   const;
+    void setCertifcateAuthorityInfo(SSL* ssl)       const;
+};
+
+}
+
+#endif

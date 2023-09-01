@@ -55,7 +55,6 @@ struct MockSocketSYSCalls
     MOCK_MEMBER(SSL_add_file_cert_subjects_to_stack);
     MOCK_MEMBER(SSL_add_dir_cert_subjects_to_stack);
     MOCK_MEMBER(SSL_add_store_cert_subjects_to_stack);
-    MOCK_MEMBER(OPENSSL_sk_new_null);
     MOCK_MEMBER(SSL_CTX_set_client_CA_list);
     MOCK_MEMBER(SSL_set_client_CA_list);
 
@@ -92,7 +91,6 @@ struct MockSocketSYSCalls
         , MOCK_PARAM(SSL_CTX_load_verify_file,          [](SSL_CTX*, char const*)       {return 1;})
         , MOCK_PARAM(SSL_CTX_load_verify_dir,           [](SSL_CTX*, char const*)       {return 1;})
         , MOCK_PARAM(SSL_CTX_load_verify_store,         [](SSL_CTX*, char const*)       {return 1;})
-        , MOCK_PARAM(OPENSSL_sk_new_null,               []()                            {return (OPENSSL_STACK*)1;})
         , MOCK_PARAM(SSL_add_file_cert_subjects_to_stack,  [](STACK_OF(X509_NAME)*, char const*)    {return 1;})
         , MOCK_PARAM(SSL_add_dir_cert_subjects_to_stack,   [](STACK_OF(X509_NAME)*, char const*)    {return 1;})
         , MOCK_PARAM(SSL_add_store_cert_subjects_to_stack, [](STACK_OF(X509_NAME)*, char const*)    {return 1;})

@@ -208,3 +208,55 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
     Socket                      socket(34);
     ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
 }
+
+TEST(ConnectionSocketTest, SetNonBlockingFails)
+{
+    int closeCount = 0;
+    MOCK_SYS(socket,    [](int, int, int)   {return 12;});
+    MOCK_SYS(close,     [&closeCount](int)  {++closeCount;return 0;});
+    auto getHostByNameMock =[](char const*)            {
+        static char* addrList[] = {""};
+        static HostEnt result {.h_length=1, .h_addr_list=addrList};
+        return &result;
+    };
+    MOCK_SYS(gethostbyname, std::move(getHostByNameMock));
+    MOCK_SYS(connect,           [] (int, SocketAddr const*, unsigned int) {return 0;});
+    MOCK_TSYS(FctlType, fcntl,  [] (int, int, int)                        {return -1;});
+
+    auto action = [](){
+        Socket                      socket("google.com", 80, Blocking::No);
+    };
+
+    ASSERT_THROW(
+        action(),
+        std::runtime_error
+    );
+    ASSERT_EQ(closeCount, 1);
+}
+
+TEST(ConnectionSocketTest, ShutdownFails)
+{
+    int closeCount = 0;
+    MOCK_SYS(socket,    [](int, int, int)   {return 12;});
+    MOCK_SYS(close,     [&closeCount](int)  {++closeCount;return 0;});
+    auto getHostByNameMock =[](char const*)            {
+        static char* addrList[] = {""};
+        static HostEnt result {.h_length=1, .h_addr_list=addrList};
+        return &result;
+    };
+    MOCK_SYS(gethostbyname, std::move(getHostByNameMock));
+    MOCK_SYS(connect,           [] (int, SocketAddr const*, unsigned int) {return 0;});
+    MOCK_TSYS(FctlType, fcntl,  [] (int, int, int)                        {return 0;});
+    MOCK_SYS(shutdown,          [] (int, int)                             {return -1;});
+
+    auto action = [](){
+        Socket                      socket("google.com", 80, Blocking::No);
+        socket.tryFlushBuffer();
+    };
+
+    ASSERT_THROW(
+        action(),
+        std::runtime_error
+    );
+    ASSERT_EQ(closeCount, 1);
+}
