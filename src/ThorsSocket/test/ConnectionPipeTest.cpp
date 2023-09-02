@@ -31,7 +31,6 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
@@ -55,7 +54,6 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
     ASSERT_EQ(pipeCount, 1);
     ASSERT_EQ(closeCount, 2);
     ASSERT_EQ(fctlCount, 2);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, DestructorCallsClose)
@@ -73,7 +71,6 @@ TEST(ConnectionPipeTest, DestructorCallsClose)
     );
 
     ASSERT_EQ(callCount, 2);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, notValidOnMinusOne)
@@ -88,8 +85,6 @@ TEST(ConnectionPipeTest, notValidOnMinusOne)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, getSocketIdWorks)
@@ -106,8 +101,6 @@ TEST(ConnectionPipeTest, getSocketIdWorks)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, Close)
@@ -133,7 +126,6 @@ TEST(ConnectionPipeTest, Close)
     ASSERT_EQ(pipeCount, 1);
     ASSERT_EQ(closeCount, 2);
     ASSERT_EQ(fctlCount, 2);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
@@ -149,8 +141,6 @@ TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
@@ -166,6 +156,4 @@ TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }

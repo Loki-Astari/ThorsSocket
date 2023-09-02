@@ -72,7 +72,6 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
     ssl = MOCK_FUNC(SSL_new)(ctx.ctx);
     if (!ssl)
     {
-        Socket::close();
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
                          "SSocket",
                          "SSL_new() failed: ", buildOpenSSLErrorMessage());
@@ -85,7 +84,6 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
     if ((ret = MOCK_FUNC(SSL_set_fd)(ssl, socketId(Mode::Read))) != 1)
     {
         MOCK_FUNC(SSL_free)(ssl);
-        Socket::close();
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
                          "SSocket",
                          "SSL_set_fd() failed: ", buildOpenSSLErrorMessage());
@@ -113,7 +111,6 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
     if (ret != 1)
     {
         MOCK_FUNC(SSL_free)(ssl);
-        Socket::close();
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSocket",
                          "SSocket",
                          "SSL_connect() failed: ", buildErrorMessage(error));
@@ -123,12 +120,13 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
     X509* cert = MOCK_FUNC(SSL_get1_peer_certificate)(ssl);
     if (cert == nullptr)
     {
+        MOCK_FUNC(SSL_shutdown)(ssl);
         MOCK_FUNC(SSL_free)(ssl);
-        Socket::close();
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSocket",
                          "SSocket",
                          "SSL_connect() failed: ", buildOpenSSLErrorMessage());
     }
+    MOCK_FUNC(X509_free)(cert);
 }
 
 SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
@@ -138,7 +136,7 @@ SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
     ssl = SSL_new(ctx.ctx);
     if (ssl == nullptr)
     {
-        Socket::close();
+        MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
                          "SSocket",
                          "SSL_new() failed: ", buildOpenSSLErrorMessage());
@@ -169,7 +167,7 @@ SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
     if (status < 1)
     {
         int error = SSL_get_error(ssl, status);
-        Socket::close();
+        MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
                          "SSocket",
                          "SSL_ccept() failed: ", buildErrorMessage(error));
@@ -178,8 +176,7 @@ SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
     /* Check for Client authentication error */
     if (SSL_get_verify_result(ssl) != X509_V_OK)
     {
-        ::SSL_free(ssl);
-        Socket::close();
+        MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
                          "SSocket",
                          "SSL_get_verify_result() failed: ", buildOpenSSLErrorMessage());

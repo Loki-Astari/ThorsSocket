@@ -5,17 +5,14 @@
 
 class MockConnectionFile: public MockConnectionFileDescriptor
 {
-    int count;
     MOCK_MEMBER(close);
     MOCK_TMEMBER(FctlType, fcntl);
 
     public:
         MockConnectionFile()
-            : count(0)
-            , MOCK_PARAM(close,            [&](int)             {++count;std::cerr << "Unexpected: close\n";return 0;})
-            , MOCK_PARAM(fcntl,            [&](int, int, int)   {++count;std::cerr << "Unexpected: fcntl\n";return 0;})
+            : MOCK_PARAM(close,            [&](int)             {checkExpected("close");return 0;})
+            , MOCK_PARAM(fcntl,            [&](int, int, int)   {checkExpected("fcntl");return 0;})
         {}
-        int callCount() const {return MockConnectionFileDescriptor::callCount() + count;}
 };
 
 #endif

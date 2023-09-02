@@ -24,8 +24,8 @@ TEST(ConnectionFileDescriptorTest, ReadEBADF)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadEFAULT)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -42,9 +42,8 @@ TEST(ConnectionFileDescriptorTest, ReadEFAULT)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadEINVAL)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -61,9 +60,8 @@ TEST(ConnectionFileDescriptorTest, ReadEINVAL)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadEISDIR)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -80,8 +78,8 @@ TEST(ConnectionFileDescriptorTest, ReadEISDIR)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadENOTCONN)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -98,9 +96,8 @@ TEST(ConnectionFileDescriptorTest, ReadENOTCONN)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadEBADMSG)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -117,9 +114,8 @@ TEST(ConnectionFileDescriptorTest, ReadEBADMSG)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadEOVERFLOW)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -136,9 +132,8 @@ TEST(ConnectionFileDescriptorTest, ReadEOVERFLOW)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadENXIO)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -155,9 +150,8 @@ TEST(ConnectionFileDescriptorTest, ReadENXIO)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadESPIPE)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -174,8 +168,8 @@ TEST(ConnectionFileDescriptorTest, ReadESPIPE)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadEINTR)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -192,9 +186,8 @@ TEST(ConnectionFileDescriptorTest, ReadEINTR)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadECONNRESET)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -211,9 +204,8 @@ TEST(ConnectionFileDescriptorTest, ReadECONNRESET)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadEAGAIN)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -230,9 +222,8 @@ TEST(ConnectionFileDescriptorTest, ReadEAGAIN)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadEWOULDBLOCK)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -249,9 +240,8 @@ TEST(ConnectionFileDescriptorTest, ReadEWOULDBLOCK)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadUnknownError)
 {
     /*
@@ -273,9 +263,8 @@ TEST(ConnectionFileDescriptorTest, ReadUnknownError)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, ReadOK)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -292,8 +281,6 @@ TEST(ConnectionFileDescriptorTest, ReadOK)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileDescriptorTest, writeEBADF)
@@ -313,9 +300,8 @@ TEST(ConnectionFileDescriptorTest, writeEBADF)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeEFAULT)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -332,9 +318,8 @@ TEST(ConnectionFileDescriptorTest, writeEFAULT)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeEINVAL)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -351,9 +336,8 @@ TEST(ConnectionFileDescriptorTest, writeEINVAL)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeENOTCONN)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -370,9 +354,8 @@ TEST(ConnectionFileDescriptorTest, writeENOTCONN)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeENXIO)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -389,9 +372,8 @@ TEST(ConnectionFileDescriptorTest, writeENXIO)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeESPIPE)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -408,9 +390,8 @@ TEST(ConnectionFileDescriptorTest, writeESPIPE)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeEDESTADDRREQ)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -427,9 +408,8 @@ TEST(ConnectionFileDescriptorTest, writeEDESTADDRREQ)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeERANGE)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -446,9 +426,8 @@ TEST(ConnectionFileDescriptorTest, writeERANGE)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeEPIPE)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -465,9 +444,8 @@ TEST(ConnectionFileDescriptorTest, writeEPIPE)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeEACCES)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -484,9 +462,8 @@ TEST(ConnectionFileDescriptorTest, writeEACCES)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeEINTR)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -503,8 +480,8 @@ TEST(ConnectionFileDescriptorTest, writeEINTR)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeECONNRESET)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -521,8 +498,8 @@ TEST(ConnectionFileDescriptorTest, writeECONNRESET)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeEAGAIN)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -539,9 +516,8 @@ TEST(ConnectionFileDescriptorTest, writeEAGAIN)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, writeEWOULDBLOCK)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -558,8 +534,8 @@ TEST(ConnectionFileDescriptorTest, writeEWOULDBLOCK)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, WriteUnknownError)
 {
     /*
@@ -581,8 +557,8 @@ TEST(ConnectionFileDescriptorTest, WriteUnknownError)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
+
 TEST(ConnectionFileDescriptorTest, WriteOK)
 {
     MockConnectionFileDescriptor    defaultMockedFunctions;
@@ -599,9 +575,7 @@ TEST(ConnectionFileDescriptorTest, WriteOK)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
-
 
 TEST(ConnectionFileDescriptorTest, CheckErrorMsg)
 {

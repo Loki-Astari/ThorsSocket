@@ -19,7 +19,6 @@ TEST(ConnectionSSocketUtilTest, DefaultBuildProtocolInfo)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, BuildProtocolInfo)
@@ -32,7 +31,6 @@ TEST(ConnectionSSocketUtilTest, BuildProtocolInfo)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
@@ -56,7 +54,6 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 
     ASSERT_EQ(control[1], SSL_CTRL_SET_MAX_PROTO_VERSION);
     ASSERT_EQ(setting[1], TLS1_1_VERSION);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
@@ -81,7 +78,6 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 
     ASSERT_EQ(control[1], SSL_CTRL_SET_MAX_PROTO_VERSION);
     ASSERT_EQ(setting[1], TLS1_3_VERSION);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
@@ -98,7 +94,6 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
@@ -115,7 +110,6 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
@@ -134,7 +128,6 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
     ASSERT_EQ(cipherInfo.cipherSuite,"TLS_AES_256_GCM_SHA384"            ":"
                                      "TLS_CHACHA20_POLY1305_SHA256"      ":"
                                      "TLS_AES_128_GCM_SHA256");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
@@ -149,7 +142,6 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
@@ -174,8 +166,6 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
@@ -200,8 +190,6 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
@@ -221,7 +209,6 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
@@ -241,7 +228,6 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
@@ -261,7 +247,6 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
@@ -281,7 +266,6 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstruct)
@@ -293,7 +277,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstruct)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
@@ -305,7 +288,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 
@@ -330,7 +312,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstructNoAction)
     );
 
     ASSERT_EQ(calledCount, 0);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
@@ -366,7 +347,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
     ASSERT_EQ(checkKeyCalled, 1);
     ASSERT_EQ(cerFile, "File1");
     ASSERT_EQ(keyFile, "File2");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
@@ -402,7 +382,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
     ASSERT_EQ(checkKeyCalled, 1);
     ASSERT_EQ(cerFile, "File1");
     ASSERT_EQ(keyFile, "File2");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
@@ -415,7 +394,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
@@ -428,7 +406,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
@@ -465,7 +442,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
     ASSERT_EQ(checkKeyCalled, 0);
     ASSERT_EQ(cerFile, "File1");
     ASSERT_EQ(keyFile, "");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
@@ -502,7 +478,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
     ASSERT_EQ(checkKeyCalled, 0);
     ASSERT_EQ(cerFile, "File1");
     ASSERT_EQ(keyFile, "File2");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
@@ -539,7 +514,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
     ASSERT_EQ(checkKeyCalled, 1);
     ASSERT_EQ(cerFile, "File1");
     ASSERT_EQ(keyFile, "File2");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
@@ -576,7 +550,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
     ASSERT_EQ(checkKeyCalled, 0);
     ASSERT_EQ(cerFile, "File1");
     ASSERT_EQ(keyFile, "");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
@@ -613,7 +586,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
     ASSERT_EQ(checkKeyCalled, 0);
     ASSERT_EQ(cerFile, "File1");
     ASSERT_EQ(keyFile, "File2");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
@@ -650,7 +622,6 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
     ASSERT_EQ(checkKeyCalled, 1);
     ASSERT_EQ(cerFile, "File1");
     ASSERT_EQ(keyFile, "File2");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
@@ -674,7 +645,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
     );
 
     ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
@@ -701,7 +671,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 
@@ -729,7 +698,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
@@ -756,7 +724,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
@@ -785,7 +752,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
     ASSERT_EQ(expectedItem, "Item 1");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
@@ -814,7 +780,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
     ASSERT_EQ(expectedItem, "Item 1");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
@@ -843,7 +808,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
     ASSERT_EQ(expectedItem, "Item 1");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
@@ -871,7 +835,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
@@ -899,7 +862,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
@@ -927,7 +889,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
@@ -957,7 +918,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
     ASSERT_EQ(expectedItem, "Item 1");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
@@ -987,7 +947,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
     ASSERT_EQ(expectedItem, "Item 1");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
@@ -1017,7 +976,6 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
     ASSERT_EQ(expectedItem, "Item 1");
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
@@ -1039,7 +997,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
     list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
 
     ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
@@ -1070,7 +1027,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
@@ -1101,7 +1057,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
@@ -1132,7 +1087,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
@@ -1163,7 +1117,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
@@ -1194,7 +1147,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
@@ -1226,7 +1178,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
@@ -1258,7 +1209,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
@@ -1290,7 +1240,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
@@ -1317,7 +1266,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
     );
 
     ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
@@ -1348,7 +1296,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
@@ -1379,7 +1326,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
@@ -1410,7 +1356,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
@@ -1441,7 +1386,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
@@ -1472,7 +1416,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
@@ -1504,7 +1447,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
@@ -1536,7 +1478,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
@@ -1568,6 +1509,5 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
 
     ASSERT_EQ(countCalled, 0);
     ASSERT_EQ(expectedCalled, 3);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 

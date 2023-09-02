@@ -41,7 +41,6 @@ TEST(ConnectionFileTest, Construct)
     ASSERT_NO_THROW(
         action()
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, ConstructOpenFail)
@@ -59,7 +58,6 @@ TEST(ConnectionFileTest, ConstructOpenFail)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, DestructorCallsClose)
@@ -79,7 +77,6 @@ TEST(ConnectionFileTest, DestructorCallsClose)
 
 
     ASSERT_EQ(callCount, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, notValidOnMinusOne)
@@ -94,8 +91,6 @@ TEST(ConnectionFileTest, notValidOnMinusOne)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, getSocketIdWorks)
@@ -111,8 +106,6 @@ TEST(ConnectionFileTest, getSocketIdWorks)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, Close)
@@ -130,8 +123,6 @@ TEST(ConnectionFileTest, Close)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
@@ -146,8 +137,6 @@ TEST(ConnectionFileTest, ReadFDSameAsSocketId)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
@@ -162,6 +151,4 @@ TEST(ConnectionFileTest, WriteFDSameAsSocketId)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }

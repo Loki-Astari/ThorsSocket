@@ -37,7 +37,6 @@ TEST(ConnectionSocketTest, Construct)
     ASSERT_EQ(closeCalled, 1);
     ASSERT_EQ(fctlCalled, 1);
     ASSERT_EQ(connectCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, SocketCallFails)
@@ -53,7 +52,6 @@ TEST(ConnectionSocketTest, SocketCallFails)
         action(),
         std::runtime_error
     );
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, GetHostCallFails)
@@ -77,7 +75,6 @@ TEST(ConnectionSocketTest, GetHostCallFails)
     ASSERT_EQ(closeCalled, 1);
     ASSERT_EQ(getHCalled, 1);
     ASSERT_EQ(h_errno, HOST_NOT_FOUND);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
@@ -101,7 +98,6 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
     ASSERT_EQ(closeCalled, 1);
     ASSERT_EQ(getHCalled,  2);
     ASSERT_EQ(h_errno, HOST_NOT_FOUND);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, ConnectCallFailes)
@@ -133,7 +129,6 @@ TEST(ConnectionSocketTest, ConnectCallFailes)
     ASSERT_EQ(closeCalled, 1);
     ASSERT_EQ(getHCalled,  1);
     ASSERT_EQ(conCalled,   1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, CreateNonBlocking)
@@ -167,7 +162,6 @@ TEST(ConnectionSocketTest, CreateNonBlocking)
     ASSERT_EQ(getHCalled,  1);
     ASSERT_EQ(conCalled,   1);
     ASSERT_EQ(fctlCalled,  0);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, CreateBlocking)
@@ -201,7 +195,6 @@ TEST(ConnectionSocketTest, CreateBlocking)
     ASSERT_EQ(getHCalled,  1);
     ASSERT_EQ(conCalled,   1);
     ASSERT_EQ(fctlCalled,  1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, DestructorCallsClose)
@@ -215,7 +208,6 @@ TEST(ConnectionSocketTest, DestructorCallsClose)
     }
 
     ASSERT_EQ(callCount, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, notValidOnMinusOne)
@@ -223,7 +215,6 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
     MockConnectionSocket          defaultMockedFunctions;
     Socket                      socket(-1);
     ASSERT_FALSE(socket.isConnected());
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, getSocketIdWorks)
@@ -239,8 +230,6 @@ TEST(ConnectionSocketTest, getSocketIdWorks)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, Close)
@@ -272,7 +261,6 @@ TEST(ConnectionSocketTest, Close)
     ASSERT_EQ(closeCalled, 1);
     ASSERT_EQ(fctlCalled, 1);
     ASSERT_EQ(connectCalled, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
@@ -287,8 +275,6 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
@@ -303,8 +289,6 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
     ASSERT_NO_THROW(
         action()
     );
-
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, SetNonBlockingFails)
@@ -331,7 +315,6 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
         std::runtime_error
     );
     ASSERT_EQ(closeCount, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }
 
 TEST(ConnectionSocketTest, ShutdownFails)
@@ -360,5 +343,4 @@ TEST(ConnectionSocketTest, ShutdownFails)
         std::runtime_error
     );
     ASSERT_EQ(closeCount, 1);
-    ASSERT_EQ(defaultMockedFunctions.callCount(), 0);
 }

@@ -5,15 +5,12 @@
 
 class  MockConnectionPipe: public MockConnectionFile
 {
-    int count;
     MOCK_MEMBER(pipe);
 
     public:
         MockConnectionPipe()
-            : count(0)
-            , MOCK_PARAM(pipe,            [&](int* p)       {++count;p[0] = 12; p[1] =13;std::cerr << "Unexpected: pipe\n";return 0;})
+            : MOCK_PARAM(pipe,            [&](int* p)       {p[0] = 12; p[1] =13;checkExpected("pipe");return 0;})
         {}
-        int callCount() const {return MockConnectionFile::callCount() + count;}
 };
 
 #endif
