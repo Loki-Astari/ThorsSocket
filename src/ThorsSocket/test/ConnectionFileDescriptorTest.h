@@ -12,7 +12,6 @@ struct MockAction
 {
     std::string                 action;
     std::vector<std::string>    expectedInit;
-    std::vector<std::string>    expectedCode;
     std::vector<std::string>    expectedDest;
     std::vector<std::string>    optional;
     std::vector<std::string>    expectedError;
@@ -23,7 +22,7 @@ class MockConnectionFileDescriptor
     MOCK_MEMBER(read);
     MOCK_MEMBER(write);
 
-    enum State {Construct, Code, Destruct, Error};
+    enum State {Construct, Destruct, Error};
 
     State                   state;
     bool                    exceptionHappened;
@@ -66,7 +65,6 @@ class MockConnectionFileDescriptor
             switch (state)
             {
                 case Construct:
-                case Code:
                 case Error:     CheckExpectedConstruct(called);break;
                 case Destruct:  CheckExpectedDestruct(called);break;
             }
@@ -92,7 +90,7 @@ class MockConnectionFileDescriptor
             {
                 auto& optional  = expected[nextExpected].optional;
                 auto& error     = expected[nextExpected].expectedError;
-                auto& init      = (state == Construct) ? expected[nextExpected].expectedInit : (state == Code) ? expected[nextExpected].expectedCode : expected[nextExpected].expectedError;
+                auto& init      = (state == Construct) ? expected[nextExpected].expectedInit : expected[nextExpected].expectedError;
 
                 if (nextInSequence < init.size() && init[nextInSequence] == called) {
                     ++nextInSequence;
@@ -129,13 +127,7 @@ class MockConnectionFileDescriptor
                     return;
                 }
                 nextInSequence  = 0;
-                if (state == Construct) {
-                    state = Code;
-                }
-                else {
-                    state = Construct;
-                    ++nextExpected;
-                }
+                ++nextExpected;
             }
             state = Destruct;
             --nextExpected;
@@ -165,9 +157,9 @@ class MockConnectionFileDescriptor
             std::cerr << "Unexpected: " << called << "\n";
             EXPECT_TRUE(false);
         }
-        void setAction(std::string const& action, std::initializer_list<std::string> init, std::initializer_list<std::string> code, std::initializer_list<std::string> dest, std::initializer_list<std::string> optional)
+        void setAction(std::string const& action, std::initializer_list<std::string> init, std::initializer_list<std::string> dest, std::initializer_list<std::string> optional)
         {
-            expected.emplace_back(MockAction{action, init, code, dest, optional});
+            expected.emplace_back(MockAction{action, init, dest, optional});
         }
     private:
         friend class MockActionThrowDetext;

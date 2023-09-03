@@ -32,7 +32,6 @@ class MockConnectionSocket: public MockConnectionFile
             return {
                         "Socket",
                         {"socket", "gethostbyname", "connect"},
-                        {},
                         {"close"},
                         {}
                    };
@@ -42,7 +41,6 @@ class MockConnectionSocket: public MockConnectionFile
             return {
                         "Socket",
                         {"socket", "gethostbyname", "connect", "fcntl"},
-                        {},
                         {"close"},
                         {}
                    };
