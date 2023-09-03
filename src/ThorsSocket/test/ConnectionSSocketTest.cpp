@@ -18,10 +18,10 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
     MockConnectionSSocketUtil   defaultMockedFunctions;
 
     auto action = [&](){
-        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctx());
+        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocket());
+        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocketBlocking());
         MockActionAddObject         checkSSocket(defaultMockedFunctions, MockConnectionSSocket::getActionSSocket());
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
     };
@@ -51,13 +51,11 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
     MOCK_SYS(SSL_get_error,     getErrorLambda);
 
     auto action = [&](){
-        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctx());
+        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocket());
-        MockActionAddObject         checkSSocket(defaultMockedFunctions, MockConnectionSSocket::getActionSSocket());
-        MockActionAddCode           checkSSocketConnect(defaultMockedFunctions,
-                                                        MockAction{"Slow Connect", {}, {"SSL_connect", "SSL_connect", "SSL_connect"}, {}, {"SSL_get_error", "SSL_get1_peer_certificate", "X509_free", "SSL_free"}});
+        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocketBlocking());
+        MockActionAddObject         checkSSocket(defaultMockedFunctions, MockConnectionSSocket::getActionSSocket(), {"SSL_get_error", "SSL_connect", "SSL_get_error", "SSL_connect", "SSL_get_error", "SSL_connect", "SSL_get1_peer_certificate", "X509_free"});
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
     };
     ASSERT_NO_THROW(
@@ -75,7 +73,7 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
     MOCK_SYS(TLS_client_method, [&]()    {defaultMockedFunctions.checkExpected("TLS_client_method");return nullptr;});
 
     auto action = [&](){
-        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctx());
+        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
     };
 
@@ -93,7 +91,7 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
     MOCK_SYS(SSL_CTX_new,       [&](SSL_METHOD const*)    {defaultMockedFunctions.checkExpected("SSL_CTX_new");return nullptr;});
 
     auto action = [&](){
-        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctx());
+        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
     };
 
@@ -111,10 +109,10 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
     MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {defaultMockedFunctions.checkExpected("SSL_new");return nullptr;});
 
     auto action = [&](){
-        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctx());
+        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocket());
+        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking());
         MockActionAddObject         checkSSocket(defaultMockedFunctions, MockConnectionSSocket::getActionSSocket());
         SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     };
@@ -133,11 +131,11 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
     MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {defaultMockedFunctions.checkExpected("SSL_set_fd");return 0;});
 
     auto action = [&](){
-        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctx());
+        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocket());
-        MockActionAddObject         checkSSocket(defaultMockedFunctions, MockConnectionSSocket::getActionSSocket());
+        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSSocket(defaultMockedFunctions, MockConnectionSSocket::getActionSSocket(), {"SSL_free"});
         SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     };
 
@@ -154,11 +152,11 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
     MOCK_SYS(SSL_connect,               [&](SSL*)                       {defaultMockedFunctions.checkExpected("SSL_connect");return 0;});
 
     auto action = [&](){
-        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctx());
+        MockActionAddObject         checkSSLctx(defaultMockedFunctions, MockConnectionSSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocket());
-        MockActionAddObject         checkSSocket(defaultMockedFunctions, MockConnectionSSocket::getActionSSocket());
+        MockActionAddObject         checkSocket(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSSocket(defaultMockedFunctions, MockConnectionSSocket::getActionSSocket(), {"SSL_get_error", "SSL_free"});
         SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     };
 

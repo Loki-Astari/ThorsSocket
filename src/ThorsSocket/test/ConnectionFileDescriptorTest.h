@@ -15,6 +15,7 @@ struct MockAction
     std::vector<std::string>    expectedCode;
     std::vector<std::string>    expectedDest;
     std::vector<std::string>    optional;
+    std::vector<std::string>    expectedError;
 };
 
 class MockConnectionFileDescriptor
@@ -22,7 +23,7 @@ class MockConnectionFileDescriptor
     MOCK_MEMBER(read);
     MOCK_MEMBER(write);
 
-    enum State {Construct, Code, Destruct};
+    enum State {Construct, Code, Destruct, Error};
 
     State                   state;
     bool                    exceptionHappened;
@@ -65,14 +66,15 @@ class MockConnectionFileDescriptor
             switch (state)
             {
                 case Construct:
-                case Code:      CheckExpectedConstruct(called);break;
+                case Code:
+                case Error:     CheckExpectedConstruct(called);break;
                 case Destruct:  CheckExpectedDestruct(called);break;
             }
         }
         bool peekDestructor(std::string const& called)
         {
             int nextDestruct = nextExpected;
-            if (state == Construct) {
+            if (state == Construct || state == Error) {
                 --nextDestruct;
             }
             while (nextDestruct >= 0 && expected[nextDestruct].expectedDest.size() == 0) {
@@ -89,20 +91,30 @@ class MockConnectionFileDescriptor
             while (nextExpected < expected.size())
             {
                 auto& optional  = expected[nextExpected].optional;
-                auto& init      = (state == Construct) ? expected[nextExpected].expectedInit : expected[nextExpected].expectedCode;
+                auto& error     = expected[nextExpected].expectedError;
+                auto& init      = (state == Construct) ? expected[nextExpected].expectedInit : (state == Code) ? expected[nextExpected].expectedCode : expected[nextExpected].expectedError;
 
                 if (nextInSequence < init.size() && init[nextInSequence] == called) {
                     ++nextInSequence;
                     return;
                 }
-
+                std::cerr << "state != Error => " << (state != Error) << "\n";
+                std::cerr << "!error.empty() => " << (!error.empty()) << "\n";
+                if (state != Error && !error.empty()) {
+                    std::cerr << "error[0] >" << error[0] << "< called >" << called << "< => " << ( error[0] == called) << "\n";
+                }
+                if (state != Error && !error.empty() && error[0] == called) {
+                    state = Error;
+                    nextInSequence = 1;
+                    return;
+                }
                 auto find = std::find(std::begin(optional), std::end(optional), called);
-                if (find != optional.end()) {
+                if (find != std::end(optional)) {
                     return;
                 }
                 if (peekDestructor(called))
                 {
-                    if (state == Construct) {
+                    if (state == Construct || state == Error) {
                         --nextExpected;
                     }
                     state = Destruct;
@@ -190,10 +202,11 @@ class MockActionThrowDetext
             : parent(parent)
             , pushedAction(false)
         {}
-        MockActionThrowDetext(MockConnectionFileDescriptor& parent, MockAction action)
+        MockActionThrowDetext(MockConnectionFileDescriptor& parent, MockAction action, std::initializer_list<std::string> errors = {})
             : parent(parent)
             , pushedAction(true)
         {
+            action.expectedError = errors;
             parent.pushAction(std::move(action));
         }
         ~MockActionThrowDetext()
