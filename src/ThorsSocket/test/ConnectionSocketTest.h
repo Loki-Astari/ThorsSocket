@@ -27,6 +27,16 @@ class MockConnectionSocket: public MockConnectionFile
             , MOCK_PARAM(connect,           [&](int, ThorsAnvil::ThorsSocket::ConnectionType::SocketAddr const*, unsigned int) {checkExpected("connect");return 0;})
             , MOCK_PARAM(shutdown,          [&](int, int)            {checkExpected("shutdown");return 0;})
         {}
+        static MockAction getActionSocket()
+        {
+            return {
+                        "Socket",
+                        {"socket", "gethostbyname", "connect"},
+                        {},
+                        {"close"},
+                        {"fcntl", "gethostbyname", "close"}
+                   };
+        }
 };
 
 #endif

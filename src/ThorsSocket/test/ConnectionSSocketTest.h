@@ -37,6 +37,26 @@ class MockConnectionSSocket: public MockConnectionSocket
             , MOCK_PARAM(SSL_write,                     [&](SSL*, void const*, int)  {checkExpected("SSL_write");return 1;})
             , MOCK_PARAM(SSL_shutdown,                  [&](SSL*)                    {checkExpected("SSL_shutdown");return 1;})
         {}
+        static MockAction getActionSSLctx()
+        {
+            return  {
+                        "SSLctx",
+                        {"TLS_client_method", "SSL_CTX_new"},
+                        {},
+                        {"SSL_CTX_free"},
+                        {"SSL_CTX_ctrl", "SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}
+                    };
+        }
+        static MockAction getActionSSocket()
+        {
+            return {
+                        "SSocket",
+                        {"SSL_new", "SSL_set_fd", "SSL_connect"},
+                        {},
+                        {"SSL_shutdown", "SSL_free"},
+                        {"SSL_get1_peer_certificate", "X509_free", "SSL_get_error", "SSL_free"}
+                   };
+        }
 };
 
 #endif

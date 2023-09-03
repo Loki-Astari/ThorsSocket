@@ -8,7 +8,7 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
-struct Action
+struct MockAction
 {
     std::string                 action;
     std::vector<std::string>    expectedInit;
@@ -28,7 +28,7 @@ class MockConnectionFileDescriptor
     bool                    exceptionHappened;
     int                     nextExpected;
     int                     nextInSequence;
-    std::vector<Action>     expected;
+    std::vector<MockAction> expected;
 
     public:
         MockConnectionFileDescriptor()
@@ -58,6 +58,7 @@ class MockConnectionFileDescriptor
 
         void checkExpected(std::string const& called)
         {
+            std::cerr << "Checking: " << called << "\n";
             if (expected.size() == 0) {
                 return;
             }
@@ -154,7 +155,26 @@ class MockConnectionFileDescriptor
         }
         void setAction(std::string const& action, std::initializer_list<std::string> init, std::initializer_list<std::string> code, std::initializer_list<std::string> dest, std::initializer_list<std::string> optional)
         {
-            expected.emplace_back(Action{action, init, code, dest, optional});
+            expected.emplace_back(MockAction{action, init, code, dest, optional});
+        }
+    private:
+        friend class MockActionThrowDetext;
+        void pushAction(MockAction action)
+        {
+            expected.emplace_back(std::move(action));
+        }
+        void popAction()
+        {
+            if (nextExpected == expected.size() - 1)
+            {
+                if (!exceptionHappened && !expected[nextExpected].expectedDest.empty()) {
+                    EXPECT_EQ(state, Destruct);
+                    EXPECT_EQ(nextInSequence, expected[nextExpected].expectedDest.size());
+                }
+                --nextExpected;
+                nextInSequence = 0;
+            }
+            expected.pop_back();
         }
         void noteException()
         {
@@ -164,16 +184,37 @@ class MockConnectionFileDescriptor
 class MockActionThrowDetext
 {
     MockConnectionFileDescriptor& parent;
+    bool                          pushedAction;
     public:
         MockActionThrowDetext(MockConnectionFileDescriptor& parent)
             : parent(parent)
+            , pushedAction(false)
         {}
+        MockActionThrowDetext(MockConnectionFileDescriptor& parent, MockAction action)
+            : parent(parent)
+            , pushedAction(true)
+        {
+            parent.pushAction(std::move(action));
+        }
         ~MockActionThrowDetext()
         {
             if (std::uncaught_exceptions() != 0) {
                 parent.noteException();
             }
+            if (pushedAction) {
+                parent.popAction();
+            }
         }
+};
+class MockActionAddObject: public MockActionThrowDetext
+{
+    public:
+        using MockActionThrowDetext::MockActionThrowDetext;
+};
+class MockActionAddCode: public MockActionThrowDetext
+{
+    public:
+        using MockActionThrowDetext::MockActionThrowDetext;
 };
 
 #endif
