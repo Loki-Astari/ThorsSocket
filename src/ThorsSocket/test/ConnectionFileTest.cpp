@@ -6,22 +6,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-class TempFileWithCleanup
-{
-    std::string     fileName;
-    public:
-        TempFileWithCleanup()
-            : fileName("/var/tmp/XXXXXX")
-        {
-            mktemp(fileName.data());
-        }
-        ~TempFileWithCleanup()
-        {
-            unlink(fileName.c_str());
-        }
-        operator std::string const&() {return fileName;}
-};
-
 using ThorsAnvil::ThorsSocket::ConnectionType::File;
 using ThorsAnvil::ThorsSocket::Open;
 using ThorsAnvil::ThorsSocket::Mode;
@@ -32,123 +16,96 @@ using ThorsAnvil::ThorsSocket::Result;
 TEST(ConnectionFileTest, Construct)
 {
     MockConnectionFile          defaultMockedFunctions;
-    MOCK_SYS(close,     [](int) {return 0;});
 
-    auto action = [](){
-        TempFileWithCleanup         fileName;
-        File                        file(fileName,Open::Append, Blocking::No);
+    auto action = [&](){
+        MockActionAddObject         checkFile(defaultMockedFunctions, MockConnectionFile::getActionFile());
+        File                        file("TestFile", Open::Append, Blocking::No);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
 TEST(ConnectionFileTest, ConstructOpenFail)
 {
     MockConnectionFile          defaultMockedFunctions;
-    using OpenType = int(const char*, int, unsigned short);
+    // Override default behavior
     MOCK_TSYS(OpenType, open, [](const char*, int, unsigned short)    {return -1;});
-    TempFileWithCleanup         fileName;
 
-    auto action = [&fileName](){
-        File                        file(fileName,Open::Append, Blocking::No);
+    auto action = [&](){
+        MockActionAddObject         checkFile(defaultMockedFunctions, MockConnectionFile::getActionFile());
+        File                        file("TestFile", Open::Append, Blocking::No);
     };
-
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-}
-
-TEST(ConnectionFileTest, DestructorCallsClose)
-{
-    MockConnectionFile          defaultMockedFunctions;
-    int callCount = 0;
-    MOCK_SYS(close, [&callCount](int)    {++callCount;return 0;});
-
-
-    auto action = [](){
-        TempFileWithCleanup     fileName;
-        File                    file(12);
-    };
-    ASSERT_NO_THROW(
-        action()
-    );
-
-
-    ASSERT_EQ(callCount, 1);
 }
 
 TEST(ConnectionFileTest, notValidOnMinusOne)
 {
     MockConnectionFile          defaultMockedFunctions;
-    MOCK_SYS(close, [](int)    {return 0;});
+    File                        file(-1);
 
-    auto action = [](){
-        File                        file(-1);
+    auto action = [&](){
         ASSERT_FALSE(file.isConnected());
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
 TEST(ConnectionFileTest, getSocketIdWorks)
 {
     MockConnectionFile          defaultMockedFunctions;
-    MOCK_SYS(close, [](int)    {return 0;});
+    File                        file(12);
 
-    auto action = [](){
-        File                        file(12);
+    auto action = [&](){
         ASSERT_EQ(file.socketId(Mode::Read), 12);
         ASSERT_EQ(file.socketId(Mode::Write), 12);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
 TEST(ConnectionFileTest, Close)
 {
     MockConnectionFile          defaultMockedFunctions;
-    MOCK_SYS(close, [](int)    {return 0;});
+    File                        file("TestFile", Open::Append, Blocking::No);
 
-    auto action = [](){
-        TempFileWithCleanup         fileName;
-        File                        file(fileName,Open::Append, Blocking::No);
+    auto action = [&](){
+        MockActionAddObject         checkClose(defaultMockedFunctions, MockAction{"Close", {"close"}, {}, {}, {}});
         file.close();
-
         ASSERT_FALSE(file.isConnected());
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 {
     MockConnectionFile          defaultMockedFunctions;
-    MOCK_SYS(close, [](int)    {return 0;});
+    File                        file(33);
 
-    auto action = [](){
-        File                        file(33);
+    auto action = [&](){
         ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
 {
     MockConnectionFile          defaultMockedFunctions;
-    MOCK_SYS(close, [](int)    {return 0;});
+    File                        file(34);
 
-    auto action = [](){
-        File                        file(34);
+    auto action = [&](){
         ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }

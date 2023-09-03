@@ -58,7 +58,7 @@ class MockConnectionFileDescriptor
 
         void checkExpected(std::string const& called)
         {
-            std::cerr << "Checking: " << called << "\n";
+            //std::cerr << "Checking: " << called << "\n";
             if (expected.size() == 0) {
                 return;
             }
@@ -71,6 +71,7 @@ class MockConnectionFileDescriptor
         }
         bool peekDestructor(std::string const& called)
         {
+            //std::cerr << "peekDestructor\n";
             int nextDestruct = nextExpected;
             if (state == Construct || state == Error) {
                 --nextDestruct;
@@ -78,7 +79,7 @@ class MockConnectionFileDescriptor
             while (nextDestruct >= 0 && expected[nextDestruct].expectedDest.size() == 0) {
                 --nextDestruct;
             }
-            if (nextDestruct > 0 && expected[nextDestruct].expectedDest[0] == called) {
+            if (nextDestruct >= 0 && expected[nextDestruct].expectedDest[0] == called) {
                 return true;
             }
             return false;
@@ -95,11 +96,6 @@ class MockConnectionFileDescriptor
                 if (nextInSequence < init.size() && init[nextInSequence] == called) {
                     ++nextInSequence;
                     return;
-                }
-                std::cerr << "state != Error => " << (state != Error) << "\n";
-                std::cerr << "!error.empty() => " << (!error.empty()) << "\n";
-                if (state != Error && !error.empty()) {
-                    std::cerr << "error[0] >" << error[0] << "< called >" << called << "< => " << ( error[0] == called) << "\n";
                 }
                 if (state != Error && !error.empty() && error[0] == called) {
                     state = Error;
@@ -175,6 +171,7 @@ class MockConnectionFileDescriptor
                     EXPECT_EQ(state, Destruct);
                     EXPECT_EQ(nextInSequence, expected[nextExpected].expectedDest.size());
                 }
+                state = Destruct;
                 --nextExpected;
                 nextInSequence = 0;
             }
@@ -188,15 +185,14 @@ class MockConnectionFileDescriptor
 class MockActionThrowDetext
 {
     MockConnectionFileDescriptor& parent;
-    bool                          pushedAction;
     public:
         MockActionThrowDetext(MockConnectionFileDescriptor& parent)
             : parent(parent)
-            , pushedAction(false)
-        {}
+        {
+            parent.pushAction(MockAction{"ForceCheck", {}, {}, {}, {}});
+        }
         MockActionThrowDetext(MockConnectionFileDescriptor& parent, MockAction action, std::initializer_list<std::string> errors = {})
             : parent(parent)
-            , pushedAction(true)
         {
             action.expectedError = errors;
             parent.pushAction(std::move(action));
@@ -206,9 +202,7 @@ class MockActionThrowDetext
             if (std::uncaught_exceptions() != 0) {
                 parent.noteException();
             }
-            if (pushedAction) {
-                parent.popAction();
-            }
+            parent.popAction();
         }
 };
 class MockActionAddObject: public MockActionThrowDetext

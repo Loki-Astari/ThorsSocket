@@ -11,6 +11,26 @@ class  MockConnectionPipe: public MockConnectionFile
         MockConnectionPipe()
             : MOCK_PARAM(pipe,            [&](int* p)       {p[0] = 12; p[1] =13;checkExpected("pipe");return 0;})
         {}
+        static MockAction getActionPipeBlocking()
+        {
+            return {
+                        "Pipe",
+                        {"pipe"},
+                        {"close", "close"},
+                        {},
+                        {}
+                   };
+        }
+        static MockAction getActionPipeNonBlocking()
+        {
+            return {
+                        "Pipe",
+                        {"pipe", "fcntl", "fcntl"},
+                        {"close", "close"},
+                        {},
+                        {}
+                   };
+        }
 };
 
 #endif

@@ -26,7 +26,7 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -59,7 +59,7 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 
 
@@ -177,7 +177,7 @@ TEST(ConnectionSSocketTest, getSocketIdWorks)
         ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action();
     );
 }
 
@@ -189,11 +189,12 @@ TEST(ConnectionSSocketTest, Close)
    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
+        MockActionAddObject     checkClose(defaultMockedFunctions, MockAction{"Close", {"SSL_shutdown", "SSL_free", "close"}, {}, {}, {}});
         socket.close();
         ASSERT_FALSE(socket.isConnected());
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -208,7 +209,7 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -223,7 +224,7 @@ TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -248,7 +249,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_WRITE)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -273,7 +274,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CONNECT)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -298,7 +299,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ACCEPT)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -323,7 +324,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_SYSCALL)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -348,7 +349,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_SSL)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -373,7 +374,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_ZERO_RETURN)
         ASSERT_EQ(result.second,    Result::ConnectionClosed);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -398,7 +399,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_READ)
         ASSERT_EQ(result.second,    Result::WouldBlock);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -423,7 +424,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_X509_LOOKUP)
         ASSERT_EQ(result.second,    Result::Unknown);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -448,7 +449,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CLIENT_HELLO_CB)
         ASSERT_EQ(result.second,    Result::Unknown);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -473,7 +474,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC)
         ASSERT_EQ(result.second,    Result::Unknown);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -498,7 +499,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC_JOB)
         ASSERT_EQ(result.second,    Result::Unknown);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -523,7 +524,7 @@ TEST(ConnectionSSocketTest, Read_OK)
         ASSERT_EQ(result.second,    Result::OK);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -547,7 +548,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_READ)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -572,7 +573,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CONNECT)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -597,7 +598,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ACCEPT)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -622,7 +623,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_SYSCALL)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -647,7 +648,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_SSL)
         ASSERT_EQ(result.second,    Result::CriticalBug);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -672,7 +673,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_ZERO_RETURN)
         ASSERT_EQ(result.second,    Result::ConnectionClosed);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -696,7 +697,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_WRITE)
         ASSERT_EQ(result.second,    Result::WouldBlock);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -721,7 +722,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)
         ASSERT_EQ(result.second,    Result::Unknown);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -745,7 +746,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)
         ASSERT_EQ(result.second,    Result::Unknown);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -770,7 +771,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)
         ASSERT_EQ(result.second,    Result::Unknown);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -795,7 +796,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)
         ASSERT_EQ(result.second,    Result::Unknown);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -820,7 +821,7 @@ TEST(ConnectionSSocketTest, Write_OK)
         ASSERT_EQ(result.second,    Result::OK);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
