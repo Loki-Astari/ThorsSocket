@@ -12,8 +12,8 @@ class MockConnectionFileDescriptor: public ThorsAnvil::BuildTools::Mock::MockOve
 
     public:
         MockConnectionFileDescriptor()
-            : MOCK_PARAM(read,            [&](int, void*, ssize_t size)             {checkExpected("read");return size;})
-            , MOCK_PARAM(write,           [&](int, void const*, ssize_t size)       {checkExpected("write");return size;})
+            : MOCK_PARAM(read,            [&](int, void*, ssize_t size)             {return size;})
+            , MOCK_PARAM(write,           [&](int, void const*, ssize_t size)       {return size;})
         {}
 };
 

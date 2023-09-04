@@ -17,11 +17,11 @@ TEST(ConnectionSocketTest, Construct)
     MockConnectionSocket        defaultMockedFunctions;
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking());
         Socket                      socket("github.com",80 , Blocking::No);
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -30,14 +30,14 @@ TEST(ConnectionSocketTest, SocketCallFails)
     MockConnectionSocket          defaultMockedFunctions;
 
     // Override default behavior
-    MOCK_SYS(socket, [&](int, int, int)    {defaultMockedFunctions.checkExpected("socket");return -1;});
+    MOCK_SYS(socket, [&](int, int, int)    {return -1;});
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking());
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
 }
@@ -48,14 +48,14 @@ TEST(ConnectionSocketTest, GetHostCallFails)
     h_errno = NO_DATA;
 
     // Override default behavior
-    MOCK_SYS(gethostbyname, [&](char const*)     {defaultMockedFunctions.checkExpected("gethostbyname");h_errno = HOST_NOT_FOUND;return nullptr;});
+    MOCK_SYS(gethostbyname, [&](char const*)     {h_errno = HOST_NOT_FOUND;return nullptr;});
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
     ASSERT_EQ(h_errno, HOST_NOT_FOUND);
@@ -67,14 +67,14 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
     h_errno = NO_DATA;
 
     // Override default behavior
-    MOCK_SYS(gethostbyname, [&](char const*)     {defaultMockedFunctions.checkExpected("gethostbyname");static int call =0; ++call; h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND; return nullptr;});
+    MOCK_SYS(gethostbyname, [&](char const*)     {static int call =0; ++call; h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND; return nullptr;});
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking(), {"gethostbyname", "close"});
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking(), {"gethostbyname", "close"});
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
     ASSERT_EQ(h_errno, HOST_NOT_FOUND);
@@ -85,14 +85,14 @@ TEST(ConnectionSocketTest, ConnectCallFailes)
     MockConnectionSocket          defaultMockedFunctions;
 
     // Override default behavior
-    MOCK_SYS(connect,   [&](int, SocketAddr const*, unsigned int) {defaultMockedFunctions.checkExpected("connect");return -1;});
+    MOCK_SYS(connect,   [&](int, SocketAddr const*, unsigned int) {return -1;});
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
 }
@@ -102,11 +102,11 @@ TEST(ConnectionSocketTest, CreateNonBlocking)
     MockConnectionSocket          defaultMockedFunctions;
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketBlocking());
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketBlocking());
         Socket                      socket("github.com", 80, Blocking::Yes);
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -115,11 +115,11 @@ TEST(ConnectionSocketTest, CreateBlocking)
     MockConnectionSocket          defaultMockedFunctions;
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking());
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -132,7 +132,7 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
         ASSERT_FALSE(socket.isConnected());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -146,7 +146,7 @@ TEST(ConnectionSocketTest, getSocketIdWorks)
         ASSERT_EQ(socket.socketId(Mode::Write), 12);
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -156,12 +156,12 @@ TEST(ConnectionSocketTest, Close)
     Socket                      socket("github.com",80 , Blocking::No);
 
     auto action = [&](){
-        MockActionAddObject     checkClose(defaultMockedFunctions, MockAction{"Close", {"close"}, {}, {}, {}});
+        MockActionAddObject     checkClose(MockAction{"Close", {"close"}, {}, {}, {}});
         socket.close();
         ASSERT_FALSE(socket.isConnected());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -174,7 +174,7 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -187,7 +187,7 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -195,15 +195,15 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
 {
     MockConnectionSocket          defaultMockedFunctions;
     // Override default behavior
-    MOCK_TSYS(FctlType, fcntl,  [&](int, int, int){defaultMockedFunctions.checkExpected("fcntl");return -1;});
+    MOCK_TSYS(FctlType, fcntl,  [&](int, int, int){return -1;});
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
         Socket                      socket("google.com", 80, Blocking::No);
     };
 
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
 }
@@ -212,18 +212,18 @@ TEST(ConnectionSocketTest, ShutdownFails)
 {
     MockConnectionSocket          defaultMockedFunctions;
     // Override default behavior
-    MOCK_SYS(shutdown,  [&](int, int)    {defaultMockedFunctions.checkExpected("shutdown");return -1;});
+    MOCK_SYS(shutdown,  [&](int, int)    {return -1;});
 
     auto action = [&](){
-        MockActionAddObject         checkSokcet(defaultMockedFunctions, MockConnectionSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking());
         Socket                      socket("google.com", 80, Blocking::No);
 
-        MockActionAddCode           checkShutdown(defaultMockedFunctions, MockAction{"shutdown", {"shutdown"}, {}, {}, {}});
+        MockActionAddCode           checkShutdown(MockAction{"shutdown", {"shutdown"}, {}, {}, {}});
         socket.tryFlushBuffer();
     };
 
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
 }

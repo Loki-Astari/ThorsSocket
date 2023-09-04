@@ -21,11 +21,11 @@ TEST(ConnectionFileTest, Construct)
     MockConnectionFile          defaultMockedFunctions;
 
     auto action = [&](){
-        MockActionAddObject         checkFile(defaultMockedFunctions, MockConnectionFile::getActionFile());
+        MockActionAddObject         checkFile(MockConnectionFile::getActionFile());
         File                        file("TestFile", Open::Append, Blocking::No);
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -36,11 +36,11 @@ TEST(ConnectionFileTest, ConstructOpenFail)
     MOCK_TSYS(OpenType, open, [](const char*, int, unsigned short)    {return -1;});
 
     auto action = [&](){
-        MockActionAddObject         checkFile(defaultMockedFunctions, MockConnectionFile::getActionFile());
+        MockActionAddObject         checkFile(MockConnectionFile::getActionFile());
         File                        file("TestFile", Open::Append, Blocking::No);
     };
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
 }
@@ -54,7 +54,7 @@ TEST(ConnectionFileTest, notValidOnMinusOne)
         ASSERT_FALSE(file.isConnected());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -68,7 +68,7 @@ TEST(ConnectionFileTest, getSocketIdWorks)
         ASSERT_EQ(file.socketId(Mode::Write), 12);
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -78,12 +78,12 @@ TEST(ConnectionFileTest, Close)
     File                        file("TestFile", Open::Append, Blocking::No);
 
     auto action = [&](){
-        MockActionAddObject         checkClose(defaultMockedFunctions, MockAction{"Close", {"close"}, {}, {}, {}});
+        MockActionAddObject         checkClose(MockAction{"Close", {"close"}, {}, {}, {}});
         file.close();
         ASSERT_FALSE(file.isConnected());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -96,7 +96,7 @@ TEST(ConnectionFileTest, ReadFDSameAsSocketId)
         ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -109,6 +109,6 @@ TEST(ConnectionFileTest, WriteFDSameAsSocketId)
         ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }

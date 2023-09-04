@@ -154,7 +154,7 @@ SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
         status = SSL_accept(ssl);
         if (status != 1)
         {
-            int error = SSL_get_error(ssl, status);
+            int error = MOCK_FUNC(SSL_get_error)(ssl, status);
             if (error == SSL_ERROR_WANT_ACCEPT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
                 continue;
             }

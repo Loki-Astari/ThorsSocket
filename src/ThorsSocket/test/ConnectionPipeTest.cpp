@@ -20,11 +20,11 @@ TEST(ConnectionPipeTest, Construct)
     MockConnectionPipe          defaultMockedFunctions;
 
     auto action = [&](){
-        MockActionAddObject         checkPipe(defaultMockedFunctions, MockConnectionPipe::getActionPipeNonBlocking());
+        MockActionAddObject         checkPipe(MockConnectionPipe::getActionPipeNonBlocking());
         Pipe                        pipe(Blocking::No);
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -32,14 +32,14 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
 {
     MockConnectionPipe          defaultMockedFunctions;
     // Override default behavior
-    MOCK_SYS(pipe, [&](int[])            {defaultMockedFunctions.checkExpected("pipe");return -1;});
+    MOCK_SYS(pipe, [&](int[])            {return -1;});
 
     auto action = [&](){
-        MockActionAddObject         checkPipe(defaultMockedFunctions, MockConnectionPipe::getActionPipeNonBlocking());
+        MockActionAddObject         checkPipe(MockConnectionPipe::getActionPipeNonBlocking());
         Pipe                        pipe(Blocking::No);
     };
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
 }
@@ -48,14 +48,14 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
 {
     MockConnectionPipe          defaultMockedFunctions;
     // Override default behavior
-    MOCK_TSYS(FctlType, fcntl,  [&](int, int, int)     {defaultMockedFunctions.checkExpected("fcntl");return -1;});
+    MOCK_TSYS(FctlType, fcntl,  [&](int, int, int)     {return -1;});
 
     auto action = [&](){
-        MockActionAddObject         checkPipe(defaultMockedFunctions, MockConnectionPipe::getActionPipeNonBlocking(), {"close"});
+        MockActionAddObject         checkPipe(MockConnectionPipe::getActionPipeNonBlocking(), {"close"});
         Pipe                        pipe(Blocking::No);
     };
     ASSERT_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        MockActionThrowDetext detect;action(),
         std::runtime_error
     );
 }
@@ -70,7 +70,7 @@ TEST(ConnectionPipeTest, notValidOnMinusOne)
         ASSERT_FALSE(pipe.isConnected());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -85,7 +85,7 @@ TEST(ConnectionPipeTest, getSocketIdWorks)
         ASSERT_EQ(pipe.socketId(Mode::Write), 13);
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -95,13 +95,13 @@ TEST(ConnectionPipeTest, Close)
     Pipe                        pipe(Blocking::No);
 
     auto action = [&](){
-        MockActionAddObject         checkClose(defaultMockedFunctions, MockAction{"Close", {"close", "close"}, {}, {}, {}});
+        MockActionAddObject         checkClose(MockAction{"Close", {"close", "close"}, {}, {}, {}});
         pipe.close();
 
         ASSERT_FALSE(pipe.isConnected());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -115,7 +115,7 @@ TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
         ASSERT_EQ(pipe.socketId(Mode::Read), pipe.getReadFD());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }
 
@@ -129,6 +129,6 @@ TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
         ASSERT_EQ(pipe.socketId(Mode::Write), pipe.getWriteFD());
     };
     ASSERT_NO_THROW(
-        MockActionThrowDetext detect(defaultMockedFunctions);action()
+        MockActionThrowDetext detect;action()
     );
 }

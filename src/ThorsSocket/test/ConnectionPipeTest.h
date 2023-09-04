@@ -9,7 +9,7 @@ class  MockConnectionPipe: public MockConnectionFile
 
     public:
         MockConnectionPipe()
-            : MOCK_PARAM(pipe,            [&](int* p)       {p[0] = 12; p[1] =13;checkExpected("pipe");return 0;})
+            : MOCK_PARAM(pipe,            [&](int* p)       {p[0] = 12; p[1] =13;return 0;})
         {}
         static ThorsAnvil::BuildTools::Mock::MockAction getActionPipeBlocking()
         {
