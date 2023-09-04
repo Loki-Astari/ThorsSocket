@@ -9,7 +9,7 @@ using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::CertifcateAuthorityInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::ClientCAListInfo;
 
-TEST(ConnectionSSocketUtilTest, DefaultBuildProtocolInfo)
+TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
 
@@ -17,11 +17,11 @@ TEST(ConnectionSSocketUtilTest, DefaultBuildProtocolInfo)
         ProtocolInfo    protocol;
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
-TEST(ConnectionSSocketUtilTest, BuildProtocolInfo)
+TEST(ConnectionSSocketUtilTest, ProtocolInfoBuild)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
 
@@ -29,69 +29,40 @@ TEST(ConnectionSSocketUtilTest, BuildProtocolInfo)
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int count =  0;
-    int control[] = {0, 0};
-    int setting[] = {0, 0};
-    MOCK_SYS(SSL_CTX_ctrl,  [&](SSL_CTX*, int v, long m, void*)   {control[count]= v;setting[count] = m;++count;return 1;});
+    MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, nullptr);
+    MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_1_VERSION, nullptr);
 
-    auto action = [](){
-        ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
+    ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo(defaultMockedFunctions, {"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}});
         protocol.setProtocolInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-    ASSERT_EQ(count, 2);
-    ASSERT_EQ(control[0], SSL_CTRL_SET_MIN_PROTO_VERSION);
-    ASSERT_EQ(setting[0], TLS1_VERSION);
-
-    ASSERT_EQ(control[1], SSL_CTRL_SET_MAX_PROTO_VERSION);
-    ASSERT_EQ(setting[1], TLS1_1_VERSION);
-}
-
-TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
-{
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    int count =  0;
-    int control[] = {0, 0};
-    int setting[] = {0, 0};
-    MOCK_SYS(SSL_ctrl,  [&](SSL*, int v, long m, void*)   {control[count]= v;setting[count] = m;++count;return 1;});
-
-    auto action = [](){
-        ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
-        protocol.setProtocolInfo(reinterpret_cast<SSL*>(0x08));
-    };
-    ASSERT_NO_THROW(
-        action()
-    );
-
-    ASSERT_EQ(count, 2);
-    ASSERT_EQ(control[0], SSL_CTRL_SET_MIN_PROTO_VERSION);
-    ASSERT_EQ(setting[0], TLS1_2_VERSION);
-
-    ASSERT_EQ(control[1], SSL_CTRL_SET_MAX_PROTO_VERSION);
-    ASSERT_EQ(setting[1], TLS1_3_VERSION);
 }
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_ctrl,  [&](SSL*, int v, long m, void*)   {static int count = 0;++count;return count == 1 ? 1 : 0;});
+    MOCK_SYS(SSL_CTX_ctrl,  [&](SSL_CTX*, int v, long m, void*)   {defaultMockedFunctions.checkExpected("SSL_CTX_ctrl");static int count = 0;++count;return count == 1 ? 1 : 0;});
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
 
-    auto action = [](){
-        ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
-        protocol.setProtocolInfo(reinterpret_cast<SSL*>(0x08));
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo(defaultMockedFunctions, {"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}});
+        protocol.setProtocolInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
 
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
 }
@@ -99,15 +70,67 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_ctrl,  [&](SSL*, int v, long m, void*)   {static int count = 0;++count;return count == 2 ? 1 : 0;});
+    MOCK_SYS(SSL_CTX_ctrl,  [&](SSL_CTX*, int v, long m, void*)   {defaultMockedFunctions.checkExpected("SSL_CTX_ctrl");static int count = 0;++count;return count == 2 ? 1 : 0;});
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
 
-    auto action = [](){
-        ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo(defaultMockedFunctions, {"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}});
+        protocol.setProtocolInfo(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+
+    ASSERT_THROW(
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        std::runtime_error
+    );
+}
+
+TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
+{
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_2_VERSION, nullptr);
+    MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_3_VERSION, nullptr);
+
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo(defaultMockedFunctions, {"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}});
+        protocol.setProtocolInfo(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
+    );
+}
+
+TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
+{
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(SSL_ctrl,  [&](SSL*, int v, long m, void*)   {defaultMockedFunctions.checkExpected("SSL_ctrl");static int count = 0;++count;return count == 1 ? 1 : 0;});
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo(defaultMockedFunctions, {"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}});
         protocol.setProtocolInfo(reinterpret_cast<SSL*>(0x08));
     };
 
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
+        std::runtime_error
+    );
+}
+
+TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
+{
+    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MOCK_SYS(SSL_ctrl,  [&](SSL*, int v, long m, void*)   {defaultMockedFunctions.checkExpected("SSL_ctrl");static int count = 0;++count;return count == 2 ? 1 : 0;});
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo(defaultMockedFunctions, {"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}});
+        protocol.setProtocolInfo(reinterpret_cast<SSL*>(0x08));
+    };
+
+    ASSERT_THROW(
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
 }
@@ -115,19 +138,24 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    CipherInfo      cipherInfo;
 
-    ASSERT_EQ(cipherInfo.cipherList, "ECDHE-ECDSA-AES128-GCM-SHA256"     ":"
-                                     "ECDHE-RSA-AES128-GCM-SHA256"       ":"
-                                     "ECDHE-ECDSA-AES256-GCM-SHA384"     ":"
-                                     "ECDHE-RSA-AES256-GCM-SHA384"       ":"
-                                     "ECDHE-ECDSA-CHACHA20-POLY1305"     ":"
-                                     "ECDHE-RSA-CHACHA20-POLY1305"       ":"
-                                     "DHE-RSA-AES128-GCM-SHA256"         ":"
-                                     "DHE-RSA-AES256-GCM-SHA384");
-    ASSERT_EQ(cipherInfo.cipherSuite,"TLS_AES_256_GCM_SHA384"            ":"
-                                     "TLS_CHACHA20_POLY1305_SHA256"      ":"
-                                     "TLS_AES_128_GCM_SHA256");
+    auto action = [&](){
+        CipherInfo      cipherInfo;
+        ASSERT_EQ(cipherInfo.cipherList, "ECDHE-ECDSA-AES128-GCM-SHA256"     ":"
+                                         "ECDHE-RSA-AES128-GCM-SHA256"       ":"
+                                         "ECDHE-ECDSA-AES256-GCM-SHA384"     ":"
+                                         "ECDHE-RSA-AES256-GCM-SHA384"       ":"
+                                         "ECDHE-ECDSA-CHACHA20-POLY1305"     ":"
+                                         "ECDHE-RSA-CHACHA20-POLY1305"       ":"
+                                         "DHE-RSA-AES128-GCM-SHA256"         ":"
+                                         "DHE-RSA-AES256-GCM-SHA384");
+        ASSERT_EQ(cipherInfo.cipherSuite,"TLS_AES_256_GCM_SHA384"            ":"
+                                         "TLS_CHACHA20_POLY1305_SHA256"      ":"
+                                         "TLS_AES_128_GCM_SHA256");
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
+    );
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
@@ -140,31 +168,25 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
         ASSERT_EQ(cipherInfo.cipherSuite,"Value2");
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    std::string const input1 = "List1";
-    std::string const input2 = "Suite2";
-    char const*  list = nullptr;
-    char const*  suite = nullptr;
-    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const* val)    {list = val;return 1;});
-    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const* val)    {suite = val;return 1;});
+    std::string input1 = "List1";
+    std::string input2 = "Suite2";
+    MOCK_INPUT(SSL_CTX_set_cipher_list, reinterpret_cast<SSL_CTX*>(0x08), input1);
+    MOCK_INPUT(SSL_CTX_set_ciphersuites, reinterpret_cast<SSL_CTX*>(0x08), input2);
+    CipherInfo      cipherInfo{input1, input2};
 
     auto action = [&](){
-        CipherInfo      cipherInfo{input1, input2};
+        MockActionAddObject         checksetCipherInfo(defaultMockedFunctions, {"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}});
         cipherInfo.setCipherInfo(reinterpret_cast<SSL_CTX*>(0x08));
-
-        ASSERT_NE(list, nullptr);
-        ASSERT_NE(suite, nullptr);
-        ASSERT_EQ(input1, list);
-        ASSERT_EQ(input2, suite);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -173,22 +195,16 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
     MockConnectionSSocketUtil   defaultMockedFunctions;
     std::string const input1 = "List1";
     std::string const input2 = "Suite2";
-    char const*  list = nullptr;
-    char const*  suite = nullptr;
-    MOCK_SYS(SSL_set_cipher_list,   [&](SSL*, char const* val)    {list = val;return 1;});
-    MOCK_SYS(SSL_set_ciphersuites,  [&](SSL*, char const* val)    {suite = val;return 1;});
+    MOCK_INPUT(SSL_set_cipher_list, reinterpret_cast<SSL*>(0x08), input1);
+    MOCK_INPUT(SSL_set_ciphersuites, reinterpret_cast<SSL*>(0x08), input2);
+    CipherInfo      cipherInfo{input1, input2};
 
     auto action = [&](){
-        CipherInfo      cipherInfo{input1, input2};
+        MockActionAddObject         checksetCipherInfo(defaultMockedFunctions, {"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}});
         cipherInfo.setCipherInfo(reinterpret_cast<SSL*>(0x08));
-
-        ASSERT_NE(list, nullptr);
-        ASSERT_NE(suite, nullptr);
-        ASSERT_EQ(input1, list);
-        ASSERT_EQ(input2, suite);
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -196,17 +212,14 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
     MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const* val)    {return 0;});
-    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const* val)    {return 1;});
+    CipherInfo      cipherInfo{"List1", "Suite2"};
 
-    auto action = []() {
-        std::string const input1 = "List1";
-        std::string const input2 = "Suite2";
-        CipherInfo      cipherInfo{input1, input2};
+    auto action = [&]() {
+        MockActionAddObject         checksetCipherInfo(defaultMockedFunctions, {"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}});
         cipherInfo.setCipherInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
-
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
 }
@@ -214,18 +227,15 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const* val)    {return 1;});
     MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const* val)    {return 0;});
+    CipherInfo      cipherInfo{"List1", "Suite2"};
 
-    auto action = []() {
-        std::string const input1 = "List1";
-        std::string const input2 = "Suite2";
-        CipherInfo      cipherInfo{input1, input2};
+    auto action = [&]() {
+        MockActionAddObject         checksetCipherInfo(defaultMockedFunctions, {"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}});
         cipherInfo.setCipherInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
-
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
 }
@@ -234,17 +244,14 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
     MOCK_SYS(SSL_set_cipher_list,   [&](SSL*, char const* val)    {return 0;});
-    MOCK_SYS(SSL_set_ciphersuites,  [&](SSL*, char const* val)    {return 1;});
+    CipherInfo      cipherInfo{"List1", "Suite2"};
 
-    auto action = []() {
-        std::string const input1 = "List1";
-        std::string const input2 = "Suite2";
-        CipherInfo      cipherInfo{input1, input2};
+    auto action = [&]() {
+        MockActionAddObject         checksetCipherInfo(defaultMockedFunctions, {"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}});
         cipherInfo.setCipherInfo(reinterpret_cast<SSL*>(0x08));
     };
-
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
 }
@@ -252,18 +259,15 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_set_cipher_list,   [&](SSL*, char const* val)    {return 1;});
     MOCK_SYS(SSL_set_ciphersuites,  [&](SSL*, char const* val)    {return 0;});
+    CipherInfo      cipherInfo{"List1", "Suite2"};
 
-    auto action = []() {
-        std::string const input1 = "List1";
-        std::string const input2 = "Suite2";
-        CipherInfo      cipherInfo{input1, input2};
+    auto action = [&]() {
+        MockActionAddObject         checksetCipherInfo(defaultMockedFunctions, {"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}});
         cipherInfo.setCipherInfo(reinterpret_cast<SSL*>(0x08));
     };
-
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
 }
@@ -275,7 +279,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstruct)
         CertificateInfo     ca;
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -286,7 +290,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
         CertificateInfo     ca("File1", "File2", [](int){return "password";});;
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
 }
 
@@ -294,94 +298,68 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
 TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstructNoAction)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int calledCount = 0;
-    typedef int(*CB)(char*, int, int, void*);
+    CertificateInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb,             [&](SSL_CTX*, CB)                {++calledCount;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb_userdata,    [&](SSL_CTX*, void*)             {++calledCount;return 1;});
-    MOCK_SYS(SSL_CTX_use_certificate_file,              [&](SSL_CTX*, char const*, int)  {++calledCount;return 1;});
-    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [&](SSL_CTX*, char const*, int)  {++calledCount;return 1;});
-    MOCK_SYS(SSL_CTX_check_private_key,                 [&](SSL_CTX const*)              {++calledCount;return 1;});
-
-    auto action = [](){
-        CertificateInfo     ca;
+    auto action = [&](){
         ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(calledCount, 0);
 }
 
+MockAction getsetCertificateInfoCTX()
+{
+    return {
+                "setCertificateInfo",
+                {"SSL_CTX_set_default_passwd_cb", "SSL_CTX_set_default_passwd_cb_userdata", "SSL_CTX_use_certificate_file", "SSL_CTX_use_PrivateKey_file", "SSL_CTX_check_private_key"},
+                {}, {}, {}
+            };
+}
+MockAction getsetCertificateInfoSSL()
+{
+    return {
+                "setCertificateInfo",
+                {"SSL_set_default_passwd_cb", "SSL_set_default_passwd_cb_userdata", "SSL_use_certificate_file", "SSL_use_PrivateKey_file", "SSL_check_private_key"},
+                {}, {}, {}
+            };
+}
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int passwdFunCalled     = 0;
-    int passwdDataCalled    = 0;
-    int certificateCalled   = 0;
-    int keyCalled           = 0;
-    int checkKeyCalled      = 0;
-    std::string cerFile;
-    std::string keyFile;
-    typedef int(*CB)(char*, int, int, void*);
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb,             [&](SSL_CTX*, CB)                   {++passwdFunCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb_userdata,    [&](SSL_CTX*, void*)                {++passwdDataCalled;return 1;});
-    MOCK_SYS(SSL_CTX_use_certificate_file,              [&](SSL_CTX*, char const* v, int)   {cerFile = v;++certificateCalled;return 1;});
-    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [&](SSL_CTX*, char const* v, int)   {keyFile = v;++keyCalled;return 1;});
-    MOCK_SYS(SSL_CTX_check_private_key,                 [&](SSL_CTX const*)                 {++checkKeyCalled;return 1;});
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
 
-    auto action = [](){
-        CertificateInfo     ca("File1", "File2", [](int){return "password";});
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(defaultMockedFunctions, getsetCertificateInfoCTX());
         ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(passwdFunCalled, 1);
-    ASSERT_EQ(passwdDataCalled, 1);
-    ASSERT_EQ(certificateCalled, 1);
-    ASSERT_EQ(keyCalled, 1);
-    ASSERT_EQ(checkKeyCalled, 1);
-    ASSERT_EQ(cerFile, "File1");
-    ASSERT_EQ(keyFile, "File2");
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int passwdFunCalled     = 0;
-    int passwdDataCalled    = 0;
-    int certificateCalled   = 0;
-    int keyCalled           = 0;
-    int checkKeyCalled      = 0;
-    std::string cerFile;
-    std::string keyFile;
-    typedef int(*CB)(char*, int, int, void*);
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
-    MOCK_SYS(SSL_set_default_passwd_cb,             [&](SSL*, CB)                   {++passwdFunCalled;return 1;});
-    MOCK_SYS(SSL_set_default_passwd_cb_userdata,    [&](SSL*, void*)                {++passwdDataCalled;return 1;});
-    MOCK_SYS(SSL_use_certificate_file,              [&](SSL*, char const* v, int)   {cerFile = v;++certificateCalled;return 1;});
-    MOCK_SYS(SSL_use_PrivateKey_file,               [&](SSL*, char const* v, int)   {keyFile = v;++keyCalled;return 1;});
-    MOCK_SYS(SSL_check_private_key,                 [&](SSL const*)                 {++checkKeyCalled;return 1;});
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
 
-    auto action = [](){
-        CertificateInfo     ca("File1", "File2", [](int){return "password";});
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(defaultMockedFunctions, getsetCertificateInfoSSL());
         ca.setCertificateInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(passwdFunCalled, 1);
-    ASSERT_EQ(passwdDataCalled, 1);
-    ASSERT_EQ(certificateCalled, 1);
-    ASSERT_EQ(keyCalled, 1);
-    ASSERT_EQ(checkKeyCalled, 1);
-    ASSERT_EQ(cerFile, "File1");
-    ASSERT_EQ(keyFile, "File2");
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
@@ -391,7 +369,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
         CertificateInfo     ca("File1", "");
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
 }
@@ -403,7 +381,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
         CertificateInfo     ca("", "File2");
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
 }
@@ -411,1103 +389,620 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int passwdFunCalled     = 0;
-    int passwdDataCalled    = 0;
-    int certificateCalled   = 0;
-    int keyCalled           = 0;
-    int checkKeyCalled      = 0;
-    std::string cerFile;
-    std::string keyFile;
-    typedef int(*CB)(char*, int, int, void*);
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_CTX_use_certificate_file,              [&](SSL_CTX*, char const* v, int)   {defaultMockedFunctions.checkExpected("SSL_CTX_use_certificate_file");return 0;});
+    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
 
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb,             [&](SSL_CTX*, CB)                   {++passwdFunCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb_userdata,    [&](SSL_CTX*, void*)                {++passwdDataCalled;return 1;});
-    MOCK_SYS(SSL_CTX_use_certificate_file,              [&](SSL_CTX*, char const* v, int)   {cerFile = v;++certificateCalled;return 0;});
-    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [&](SSL_CTX*, char const* v, int)   {keyFile = v;++keyCalled;return 1;});
-    MOCK_SYS(SSL_CTX_check_private_key,                 [&](SSL_CTX const*)                 {++checkKeyCalled;return 1;});
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
 
-    auto action = [](){
-        CertificateInfo     ca("File1", "File2", [](int){return "password";});
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(defaultMockedFunctions, getsetCertificateInfoCTX());
         ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(passwdFunCalled, 1);
-    ASSERT_EQ(passwdDataCalled, 1);
-    ASSERT_EQ(certificateCalled, 1);
-    ASSERT_EQ(keyCalled, 0);
-    ASSERT_EQ(checkKeyCalled, 0);
-    ASSERT_EQ(cerFile, "File1");
-    ASSERT_EQ(keyFile, "");
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int passwdFunCalled     = 0;
-    int passwdDataCalled    = 0;
-    int certificateCalled   = 0;
-    int keyCalled           = 0;
-    int checkKeyCalled      = 0;
-    std::string cerFile;
-    std::string keyFile;
-    typedef int(*CB)(char*, int, int, void*);
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [&](SSL_CTX*, char const* v, int)   {defaultMockedFunctions.checkExpected("SSL_CTX_use_PrivateKey_file");return 0;});
+    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb,             [&](SSL_CTX*, CB)                   {++passwdFunCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb_userdata,    [&](SSL_CTX*, void*)                {++passwdDataCalled;return 1;});
-    MOCK_SYS(SSL_CTX_use_certificate_file,              [&](SSL_CTX*, char const* v, int)   {cerFile = v;++certificateCalled;return 1;});
-    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [&](SSL_CTX*, char const* v, int)   {keyFile = v;++keyCalled;return 0;});
-    MOCK_SYS(SSL_CTX_check_private_key,                 [&](SSL_CTX const*)                 {++checkKeyCalled;return 1;});
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
 
-    auto action = [](){
-        CertificateInfo     ca("File1", "File2", [](int){return "password";});
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(defaultMockedFunctions, getsetCertificateInfoCTX());
         ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(passwdFunCalled, 1);
-    ASSERT_EQ(passwdDataCalled, 1);
-    ASSERT_EQ(certificateCalled, 1);
-    ASSERT_EQ(keyCalled, 1);
-    ASSERT_EQ(checkKeyCalled, 0);
-    ASSERT_EQ(cerFile, "File1");
-    ASSERT_EQ(keyFile, "File2");
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int passwdFunCalled     = 0;
-    int passwdDataCalled    = 0;
-    int certificateCalled   = 0;
-    int keyCalled           = 0;
-    int checkKeyCalled      = 0;
-    std::string cerFile;
-    std::string keyFile;
-    typedef int(*CB)(char*, int, int, void*);
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_CTX_check_private_key,                 [&](SSL_CTX const*)                 {defaultMockedFunctions.checkExpected("SSL_CTX_check_private_key");return 0;});
+    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb,             [&](SSL_CTX*, CB)                   {++passwdFunCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_passwd_cb_userdata,    [&](SSL_CTX*, void*)                {++passwdDataCalled;return 1;});
-    MOCK_SYS(SSL_CTX_use_certificate_file,              [&](SSL_CTX*, char const* v, int)   {cerFile = v;++certificateCalled;return 1;});
-    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [&](SSL_CTX*, char const* v, int)   {keyFile = v;++keyCalled;return 1;});
-    MOCK_SYS(SSL_CTX_check_private_key,                 [&](SSL_CTX const*)                 {++checkKeyCalled;return 0;});
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
 
-    auto action = [](){
-        CertificateInfo     ca("File1", "File2", [](int){return "password";});
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(defaultMockedFunctions, getsetCertificateInfoCTX());
         ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(passwdFunCalled, 1);
-    ASSERT_EQ(passwdDataCalled, 1);
-    ASSERT_EQ(certificateCalled, 1);
-    ASSERT_EQ(keyCalled, 1);
-    ASSERT_EQ(checkKeyCalled, 1);
-    ASSERT_EQ(cerFile, "File1");
-    ASSERT_EQ(keyFile, "File2");
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int passwdFunCalled     = 0;
-    int passwdDataCalled    = 0;
-    int certificateCalled   = 0;
-    int keyCalled           = 0;
-    int checkKeyCalled      = 0;
-    std::string cerFile;
-    std::string keyFile;
-    typedef int(*CB)(char*, int, int, void*);
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_use_certificate_file,              [&](SSL*, char const* v, int)   {defaultMockedFunctions.checkExpected("SSL_use_certificate_file");return 0;});
+    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
+    //MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
-    MOCK_SYS(SSL_set_default_passwd_cb,             [&](SSL*, CB)                   {++passwdFunCalled;return 1;});
-    MOCK_SYS(SSL_set_default_passwd_cb_userdata,    [&](SSL*, void*)                {++passwdDataCalled;return 1;});
-    MOCK_SYS(SSL_use_certificate_file,              [&](SSL*, char const* v, int)   {cerFile = v;++certificateCalled;return 0;});
-    MOCK_SYS(SSL_use_PrivateKey_file,               [&](SSL*, char const* v, int)   {keyFile = v;++keyCalled;return 1;});
-    MOCK_SYS(SSL_check_private_key,                 [&](SSL const*)                 {++checkKeyCalled;return 1;});
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
 
-    auto action = [](){
-        CertificateInfo     ca("File1", "File2", [](int){return "password";});
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(defaultMockedFunctions, getsetCertificateInfoSSL());
         ca.setCertificateInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(passwdFunCalled, 1);
-    ASSERT_EQ(passwdDataCalled, 1);
-    ASSERT_EQ(certificateCalled, 1);
-    ASSERT_EQ(keyCalled, 0);
-    ASSERT_EQ(checkKeyCalled, 0);
-    ASSERT_EQ(cerFile, "File1");
-    ASSERT_EQ(keyFile, "");
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int passwdFunCalled     = 0;
-    int passwdDataCalled    = 0;
-    int certificateCalled   = 0;
-    int keyCalled           = 0;
-    int checkKeyCalled      = 0;
-    std::string cerFile;
-    std::string keyFile;
-    typedef int(*CB)(char*, int, int, void*);
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_use_PrivateKey_file,               [&](SSL*, char const* v, int)   {defaultMockedFunctions.checkExpected("SSL_use_PrivateKey_file");return 0;});
+    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
-    MOCK_SYS(SSL_set_default_passwd_cb,             [&](SSL*, CB)                   {++passwdFunCalled;return 1;});
-    MOCK_SYS(SSL_set_default_passwd_cb_userdata,    [&](SSL*, void*)                {++passwdDataCalled;return 1;});
-    MOCK_SYS(SSL_use_certificate_file,              [&](SSL*, char const* v, int)   {cerFile = v;++certificateCalled;return 1;});
-    MOCK_SYS(SSL_use_PrivateKey_file,               [&](SSL*, char const* v, int)   {keyFile = v;++keyCalled;return 0;});
-    MOCK_SYS(SSL_check_private_key,                 [&](SSL const*)                 {++checkKeyCalled;return 1;});
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
 
-    auto action = [](){
-        CertificateInfo     ca("File1", "File2", [](int){return "password";});
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(defaultMockedFunctions, getsetCertificateInfoSSL());
         ca.setCertificateInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(passwdFunCalled, 1);
-    ASSERT_EQ(passwdDataCalled, 1);
-    ASSERT_EQ(certificateCalled, 1);
-    ASSERT_EQ(keyCalled, 1);
-    ASSERT_EQ(checkKeyCalled, 0);
-    ASSERT_EQ(cerFile, "File1");
-    ASSERT_EQ(keyFile, "File2");
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int passwdFunCalled     = 0;
-    int passwdDataCalled    = 0;
-    int certificateCalled   = 0;
-    int keyCalled           = 0;
-    int checkKeyCalled      = 0;
-    std::string cerFile;
-    std::string keyFile;
-    typedef int(*CB)(char*, int, int, void*);
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_check_private_key,                 [&](SSL const*)                 {defaultMockedFunctions.checkExpected("SSL_check_private_key");return 0;});
+    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
-    MOCK_SYS(SSL_set_default_passwd_cb,             [&](SSL*, CB)                   {++passwdFunCalled;return 1;});
-    MOCK_SYS(SSL_set_default_passwd_cb_userdata,    [&](SSL*, void*)                {++passwdDataCalled;return 1;});
-    MOCK_SYS(SSL_use_certificate_file,              [&](SSL*, char const* v, int)   {cerFile = v;++certificateCalled;return 1;});
-    MOCK_SYS(SSL_use_PrivateKey_file,               [&](SSL*, char const* v, int)   {keyFile = v;++keyCalled;return 1;});
-    MOCK_SYS(SSL_check_private_key,                 [&](SSL const*)                 {++checkKeyCalled;return 0;});
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
 
-    auto action = [](){
-        CertificateInfo     ca("File1", "File2", [](int){return "password";});
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(defaultMockedFunctions, getsetCertificateInfoSSL());
         ca.setCertificateInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(passwdFunCalled, 1);
-    ASSERT_EQ(passwdDataCalled, 1);
-    ASSERT_EQ(certificateCalled, 1);
-    ASSERT_EQ(keyCalled, 1);
-    ASSERT_EQ(checkKeyCalled, 1);
-    ASSERT_EQ(cerFile, "File1");
-    ASSERT_EQ(keyFile, "File2");
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
+    auto action = [&](){
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_set_default_verify_file"}, {}, {}, {}});
         ca.file.loadDefault = true;
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
-
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_set_default_verify_dir"}, {}, {}, {}});
         ca.dir.loadDefault = true;
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_set_default_verify_store"}, {}, {}, {}});
         ca.store.loadDefault = true;
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    std::string expectedItem;
+    std::string  file = "Item 1";
+    MOCK_INPUT(SSL_CTX_load_verify_file, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const* v){expectedItem=v;++expectedCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
-        ca.file.items.push_back("Item 1");
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_load_verify_file"}, {}, {}, {}});
+        ca.file.items.push_back(file);
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(expectedItem, "Item 1");
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    std::string expectedItem;
+    std::string  file = "Item 1";
+    MOCK_INPUT(SSL_CTX_load_verify_dir, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const* v){expectedItem=v;++expectedCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
-        ca.dir.items.push_back("Item 1");
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_load_verify_dir"}, {}, {}, {}});
+        ca.dir.items.push_back(file);
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(expectedItem, "Item 1");
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    std::string expectedItem;
+    std::string  file = "Item 1";
+    MOCK_INPUT(SSL_CTX_load_verify_store, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const* v){expectedItem=v;++expectedCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
-        ca.store.items.push_back("Item 1");
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_load_verify_store"}, {}, {}, {}});
+        ca.store.items.push_back(file);
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(expectedItem, "Item 1");
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
+    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {defaultMockedFunctions.checkExpected("SSL_CTX_set_default_verify_file");return 0;});
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_set_default_verify_file"}, {}, {}, {}});
         ca.file.loadDefault = true;
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
+    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {defaultMockedFunctions.checkExpected("SSL_CTX_set_default_verify_dir");return 0;});
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_set_default_verify_dir"}, {}, {}, {}});
         ca.dir.loadDefault = true;
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
+    MOCK_SYS(SSL_CTX_set_default_verify_store,    [&](SSL_CTX*)             {defaultMockedFunctions.checkExpected("SSL_CTX_set_default_verify_store");return 0;});
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_set_default_verify_store"}, {}, {}, {}});
         ca.store.loadDefault = true;
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    std::string expectedItem;
+    std::string  file = "Item 1";
+    MOCK_SYS(SSL_CTX_load_verify_file,         [&](SSL_CTX*, char const*)  {defaultMockedFunctions.checkExpected("SSL_CTX_load_verify_file");return 0;});
+    MOCK_INPUT(SSL_CTX_load_verify_file, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const* v){expectedItem=v;++expectedCalled;return 0;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 0;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
-        ca.file.items.push_back("Item 1");
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_load_verify_file"}, {}, {}, {}});
+        ca.file.items.push_back(file);
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(expectedItem, "Item 1");
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    std::string expectedItem;
+    std::string  file = "Item 1";
+    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const* v){defaultMockedFunctions.checkExpected("SSL_CTX_load_verify_dir");return 0;});
+    MOCK_INPUT(SSL_CTX_load_verify_dir, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const* v){expectedItem=v;++expectedCalled;return 0;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
-        ca.dir.items.push_back("Item 1");
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_load_verify_dir"}, {}, {}, {}});
+        ca.dir.items.push_back(file);
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(expectedItem, "Item 1");
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    std::string expectedItem;
+    std::string  file = "Item 1";
+    MOCK_SYS(SSL_CTX_load_verify_store,           [&](SSL_CTX*, char const* v){defaultMockedFunctions.checkExpected("SSL_CTX_load_verify_store");return 0;});
+    MOCK_INPUT(SSL_CTX_load_verify_store, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
 
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_default_verify_store,  [&](SSL_CTX*)               {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_file,          [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const*)  {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_load_verify_store,         [&](SSL_CTX*, char const* v){expectedItem=v;++expectedCalled;return 0;});
-
-    auto action = [](){
-        CertifcateAuthorityInfo     ca;
-        ca.store.items.push_back("Item 1");
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_load_verify_store"}, {}, {}, {}});
+        ca.store.items.push_back(file);
         ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
-    ASSERT_EQ(expectedItem, "Item 1");
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
 
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++countCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    ClientCAListInfo  list;
-    list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
-
-    ASSERT_EQ(countCalled, 0);
+    auto action = [](){
+        ClientCAListInfo  list;
+        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
+    );
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++expectedCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++countCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"ClientCAList", {"SSL_CTX_set_verify"}, {}, {}, {}});
         list.verifyClientCA = true;
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++expectedCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.file.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++expectedCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.dir.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++expectedCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.store.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++expectedCalled;return 0;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++countCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_CTX_set_verify"}, {}, {}, {}});
         list.verifyClientCA = true;
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {defaultMockedFunctions.checkExpected("SSL_add_file_cert_subjects_to_stack");return 0;});
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++expectedCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}});
         list.file.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {defaultMockedFunctions.checkExpected("SSL_add_dir_cert_subjects_to_stack");return 0;});
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++expectedCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}});
         list.dir.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {defaultMockedFunctions.checkExpected("SSL_add_store_cert_subjects_to_stack");return 0;});
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_CTX_set_verify,                    [&](SSL_CTX*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++expectedCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_CTX_set_client_CA_list,            [&](SSL_CTX*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}});
         list.store.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++countCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
 
     auto action = [](){
         ClientCAListInfo  list;
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++expectedCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++countCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"ClientCAList", {"SSL_set_verify"}, {}, {}, {}});
         list.verifyClientCA = true;
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++expectedCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.file.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++expectedCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.dir.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 1;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++expectedCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.store.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++expectedCalled;return 0;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++countCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_set_verify"}, {}, {}, {}});
         list.verifyClientCA = true;
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
-        action()
+        MockActionThrowDetext detect(defaultMockedFunctions);action()
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 1);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {defaultMockedFunctions.checkExpected("SSL_add_file_cert_subjects_to_stack");return 0;});
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++expectedCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}});
         list.file.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {defaultMockedFunctions.checkExpected("SSL_add_dir_cert_subjects_to_stack");return 0;});
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++expectedCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}});
         list.dir.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
 {
     MockConnectionSSocketUtil   defaultMockedFunctions;
-    int countCalled = 0;
-    int expectedCalled = 0;
-    typedef int (*CB)(int, x509_store_ctx_st *);
+    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {defaultMockedFunctions.checkExpected("SSL_add_store_cert_subjects_to_stack");return 0;});
+    ClientCAListInfo            list;
 
-
-    MOCK_SYS(SSL_set_verify,                    [&](SSL*, int, CB)                   {++countCalled;return 1;});
-    MOCK_SYS(sk_X509_NAME_new_null_wrapper,         [&]()                                    {++expectedCalled;return reinterpret_cast<STACK_OF(X509_NAME)*>(0x08);});
-    MOCK_SYS(sk_X509_NAME_free_wrapper,             [&](STACK_OF(X509_NAME)*)                {++countCalled;});
-    MOCK_SYS(sk_X509_NAME_pop_free_wrapper,         [&](STACK_OF(X509_NAME)*)                {++expectedCalled;});
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {++countCalled;return 1;});
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {++expectedCalled;return 0;});
-    MOCK_SYS(SSL_set_client_CA_list,            [&](SSL*, STACK_OF(X509_NAME)*)      {++countCalled;return 1;});
-
-    auto action = [](){
-        ClientCAListInfo  list;
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo(defaultMockedFunctions, {"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}});
         list.store.items.push_back("File 1");
         list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
-        action(),
+        MockActionThrowDetext detect(defaultMockedFunctions);action(),
         std::runtime_error
     );
-
-    ASSERT_EQ(countCalled, 0);
-    ASSERT_EQ(expectedCalled, 3);
 }
 

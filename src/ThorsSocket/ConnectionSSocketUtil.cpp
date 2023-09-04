@@ -289,7 +289,7 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
 void ClientCAListInfo::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
 {
     if (verifyClientCA) {
-        MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+        MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
     }
     STACK_OF(X509_NAME)* list = buildCAToList();
     if (list != nullptr) {
@@ -300,7 +300,7 @@ void ClientCAListInfo::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
 void ClientCAListInfo::setCertifcateAuthorityInfo(SSL* ssl) const
 {
     if (verifyClientCA) {
-        MOCK_FUNC(SSL_set_verify)(ssl, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+        MOCK_FUNC(SSL_set_verify)(ssl, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
     }
     STACK_OF(X509_NAME)* list = buildCAToList();
     if (list != nullptr) {
