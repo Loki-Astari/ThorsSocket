@@ -11,7 +11,7 @@ class  MockConnectionPipe: public MockConnectionFile
         MockConnectionPipe()
             : MOCK_PARAM(pipe,            [&](int* p)       {p[0] = 12; p[1] =13;checkExpected("pipe");return 0;})
         {}
-        static MockAction getActionPipeBlocking()
+        static ThorsAnvil::BuildTools::Mock::MockAction getActionPipeBlocking()
         {
             return {
                         "Pipe",
@@ -21,7 +21,7 @@ class  MockConnectionPipe: public MockConnectionFile
                         {}
                    };
         }
-        static MockAction getActionPipeNonBlocking()
+        static ThorsAnvil::BuildTools::Mock::MockAction getActionPipeNonBlocking()
         {
             return {
                         "Pipe",

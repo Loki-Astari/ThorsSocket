@@ -12,6 +12,9 @@ using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
+using ThorsAnvil::BuildTools::Mock::MockActionThrowDetext;
+using ThorsAnvil::BuildTools::Mock::MockActionAddObject;
+using ThorsAnvil::BuildTools::Mock::MockAction;
 
 TEST(ConnectionFileTest, Construct)
 {

@@ -16,7 +16,7 @@ class MockConnectionFile: public MockConnectionFileDescriptor
             , MOCK_PARAM(fcntl,     [&](int, int, int)          {checkExpected("fcntl");return 0;})
         {}
 
-        static MockAction getActionFile()
+        static ThorsAnvil::BuildTools::Mock::MockAction getActionFile()
         {
             return {
                         "File",

@@ -37,7 +37,7 @@ class MockConnectionSSocket: public MockConnectionSocket
             , MOCK_PARAM(SSL_write,                     [&](SSL*, void const*, int)  {checkExpected("SSL_write");return 1;})
             , MOCK_PARAM(SSL_shutdown,                  [&](SSL*)                    {checkExpected("SSL_shutdown");return 1;})
         {}
-        static MockAction getActionSSLctxClient()
+        static ThorsAnvil::BuildTools::Mock::MockAction getActionSSLctxClient()
         {
             return  {
                         "SSLctx",
@@ -46,7 +46,7 @@ class MockConnectionSSocket: public MockConnectionSocket
                         {"SSL_CTX_ctrl", "SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites", "SSL_CTX_set_default_passwd_cb", "SSL_CTX_set_default_passwd_cb_userdata", "SSL_CTX_use_certificate_file", "SSL_CTX_use_PrivateKey_file", "SSL_CTX_check_private_key", "SSL_CTX_set_default_verify_file", "SSL_CTX_set_default_verify_dir", "SSL_CTX_set_default_verify_store", "SSL_CTX_load_verify_file", "SSL_CTX_load_verify_dir", "SSL_CTX_load_verify_store", "sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_free_wrapper", "sk_X509_NAME_pop_free_wrapper", "SSL_CTX_set_verify", "SSL_CTX_set_client_CA_list", "ERR_get_error"}
                     };
         }
-        static MockAction getActionSSLctxServer()
+        static ThorsAnvil::BuildTools::Mock::MockAction getActionSSLctxServer()
         {
             return  {
                         "SSLctx",
@@ -55,7 +55,7 @@ class MockConnectionSSocket: public MockConnectionSocket
                         {"SSL_CTX_ctrl", "SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites", "SSL_CTX_set_default_passwd_cb", "SSL_CTX_set_default_passwd_cb_userdata", "SSL_CTX_use_certificate_file", "SSL_CTX_use_PrivateKey_file", "SSL_CTX_check_private_key", "SSL_CTX_set_default_verify_file", "SSL_CTX_set_default_verify_dir", "SSL_CTX_set_default_verify_store", "SSL_CTX_load_verify_file", "SSL_CTX_load_verify_dir", "SSL_CTX_load_verify_store", "sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_free_wrapper", "sk_X509_NAME_pop_free_wrapper", "SSL_CTX_set_verify", "SSL_CTX_set_client_CA_list", "ERR_get_error"}
                     };
         }
-        static MockAction getActionSSocket()
+        static ThorsAnvil::BuildTools::Mock::MockAction getActionSSocket()
         {
             return {
                         "SSocket",

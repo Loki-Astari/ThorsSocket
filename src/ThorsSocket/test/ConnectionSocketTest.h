@@ -27,7 +27,7 @@ class MockConnectionSocket: public MockConnectionFile
             , MOCK_PARAM(connect,           [&](int, ThorsAnvil::ThorsSocket::ConnectionType::SocketAddr const*, unsigned int) {checkExpected("connect");return 0;})
             , MOCK_PARAM(shutdown,          [&](int, int)            {checkExpected("shutdown");return 0;})
         {}
-        static MockAction getActionSocketBlocking()
+        static ThorsAnvil::BuildTools::Mock::MockAction getActionSocketBlocking()
         {
             return {
                         "Socket",
@@ -36,7 +36,7 @@ class MockConnectionSocket: public MockConnectionFile
                         {}
                    };
         }
-        static MockAction getActionSocketNonBlocking()
+        static ThorsAnvil::BuildTools::Mock::MockAction getActionSocketNonBlocking()
         {
             return {
                         "Socket",
