@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "ConnectionSocket.h"
-#include "test/ConnectionSocketTest.h"
 #include "test/ConnectionTest.h"
+#include "test/MockDefaultThorsSocket.h"
 
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
@@ -14,10 +14,10 @@ using ThorsAnvil::BuildTools::Mock::MockAction;
 
 TEST(ConnectionSocketTest, Construct)
 {
-    MockConnectionSocket        defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking());
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
         Socket                      socket("github.com",80 , Blocking::No);
     };
     ASSERT_NO_THROW(
@@ -27,13 +27,13 @@ TEST(ConnectionSocketTest, Construct)
 
 TEST(ConnectionSocketTest, SocketCallFails)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
     // Override default behavior
-    MOCK_SYS(socket, [&](int, int, int)    {return -1;});
+    MOCK_SYS(socket, [](int, int, int)    {return -1;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking());
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_THROW(
@@ -44,14 +44,14 @@ TEST(ConnectionSocketTest, SocketCallFails)
 
 TEST(ConnectionSocketTest, GetHostCallFails)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     h_errno = NO_DATA;
 
     // Override default behavior
-    MOCK_SYS(gethostbyname, [&](char const*)     {h_errno = HOST_NOT_FOUND;return nullptr;});
+    MOCK_SYS(gethostbyname, [](char const*)     {h_errno = HOST_NOT_FOUND;return nullptr;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_THROW(
@@ -63,14 +63,14 @@ TEST(ConnectionSocketTest, GetHostCallFails)
 
 TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     h_errno = NO_DATA;
 
     // Override default behavior
-    MOCK_SYS(gethostbyname, [&](char const*)     {static int call =0; ++call; h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND; return nullptr;});
+    MOCK_SYS(gethostbyname, [](char const*)     {static int call =0; ++call; h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND; return nullptr;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking(), {"gethostbyname", "close"});
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"gethostbyname", "close"});
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_THROW(
@@ -82,13 +82,13 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 
 TEST(ConnectionSocketTest, ConnectCallFailes)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
     // Override default behavior
-    MOCK_SYS(connect,   [&](int, SocketAddr const*, unsigned int) {return -1;});
+    MOCK_SYS(connect,   [](int, SocketAddr const*, unsigned int) {return -1;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_THROW(
@@ -99,10 +99,10 @@ TEST(ConnectionSocketTest, ConnectCallFailes)
 
 TEST(ConnectionSocketTest, CreateNonBlocking)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketBlocking());
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketBlocking());
         Socket                      socket("github.com", 80, Blocking::Yes);
     };
     ASSERT_NO_THROW(
@@ -112,10 +112,10 @@ TEST(ConnectionSocketTest, CreateNonBlocking)
 
 TEST(ConnectionSocketTest, CreateBlocking)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking());
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
         Socket                      socket("github.com", 80, Blocking::No);
     };
     ASSERT_NO_THROW(
@@ -125,7 +125,7 @@ TEST(ConnectionSocketTest, CreateBlocking)
 
 TEST(ConnectionSocketTest, notValidOnMinusOne)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                        socket(-1);
 
     auto action = [&]() {
@@ -138,7 +138,7 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
 
 TEST(ConnectionSocketTest, getSocketIdWorks)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                        socket(12);
 
     auto action = [&](){
@@ -152,7 +152,7 @@ TEST(ConnectionSocketTest, getSocketIdWorks)
 
 TEST(ConnectionSocketTest, Close)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                      socket("github.com",80 , Blocking::No);
 
     auto action = [&](){
@@ -167,7 +167,7 @@ TEST(ConnectionSocketTest, Close)
 
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                        socket(33);
 
     auto action = [&](){
@@ -180,7 +180,7 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                        socket(34);
 
     auto action = [&](){
@@ -193,12 +193,12 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 
 TEST(ConnectionSocketTest, SetNonBlockingFails)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket        defaultMockedFunctions;
     // Override default behavior
-    MOCK_TSYS(FctlType, fcntl,  [&](int, int, int){return -1;});
+    MOCK_TSYS(FctlType, fcntl,  [](int, int, int){return -1;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking(), {"close"});
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
         Socket                      socket("google.com", 80, Blocking::No);
     };
 
@@ -210,12 +210,12 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
 
 TEST(ConnectionSocketTest, ShutdownFails)
 {
-    MockConnectionSocket          defaultMockedFunctions;
+    MockDefaultThorsSocket        defaultMockedFunctions;
     // Override default behavior
-    MOCK_SYS(shutdown,  [&](int, int)    {return -1;});
+    MOCK_SYS(shutdown,  [](int, int)    {return -1;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSokcet(MockConnectionSocket::getActionSocketNonBlocking());
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
         Socket                      socket("google.com", 80, Blocking::No);
 
         MockActionAddCode           checkShutdown(MockAction{"shutdown", {"shutdown"}, {}, {}, {}});

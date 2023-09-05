@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionSSocketUtil.h"
-#include "test/ConnectionSSocketUtilTest.h"
+#include "test/MockDefaultThorsSocket.h"
 
 using ThorsAnvil::ThorsSocket::ConnectionType::Protocol;
 using ThorsAnvil::ThorsSocket::ConnectionType::ProtocolInfo;
@@ -14,7 +14,7 @@ using ThorsAnvil::BuildTools::Mock::MockAction;
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     auto action = [](){
         ProtocolInfo    protocol;
@@ -26,7 +26,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoBuild)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     auto action = [](){
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
@@ -38,7 +38,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoBuild)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, nullptr);
     MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_1_VERSION, nullptr);
 
@@ -55,8 +55,8 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_CTX_ctrl,  [&](SSL_CTX*, int v, long m, void*)   {static int count = 0;++count;return count == 1 ? 1 : 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_ctrl,  [](SSL_CTX*, int v, long m, void*)   {static int count = 0;++count;return count == 1 ? 1 : 0;});
     ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
 
     auto action = [&](){
@@ -72,8 +72,8 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_CTX_ctrl,  [&](SSL_CTX*, int v, long m, void*)   {static int count = 0;++count;return count == 2 ? 1 : 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_ctrl,  [](SSL_CTX*, int v, long m, void*)   {static int count = 0;++count;return count == 2 ? 1 : 0;});
     ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
 
     auto action = [&](){
@@ -89,7 +89,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_2_VERSION, nullptr);
     MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_3_VERSION, nullptr);
 
@@ -106,8 +106,8 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_ctrl,  [&](SSL*, int v, long m, void*)   {static int count = 0;++count;return count == 1 ? 1 : 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_ctrl,  [](SSL*, int v, long m, void*)   {static int count = 0;++count;return count == 1 ? 1 : 0;});
     ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
 
     auto action = [&](){
@@ -123,8 +123,8 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_ctrl,  [&](SSL*, int v, long m, void*)   {static int count = 0;++count;return count == 2 ? 1 : 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_ctrl,  [](SSL*, int v, long m, void*)   {static int count = 0;++count;return count == 2 ? 1 : 0;});
     ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
 
     auto action = [&](){
@@ -140,9 +140,9 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
-    auto action = [&](){
+    auto action = [](){
         CipherInfo      cipherInfo;
         ASSERT_EQ(cipherInfo.cipherList, "ECDHE-ECDSA-AES128-GCM-SHA256"     ":"
                                          "ECDHE-RSA-AES128-GCM-SHA256"       ":"
@@ -163,7 +163,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     auto action = [](){
         CipherInfo      cipherInfo{"Value1", "Value2"};;
 
@@ -177,7 +177,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string input1 = "List1";
     std::string input2 = "Suite2";
     MOCK_INPUT(SSL_CTX_set_cipher_list, reinterpret_cast<SSL_CTX*>(0x08), input1);
@@ -195,7 +195,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string const input1 = "List1";
     std::string const input2 = "Suite2";
     MOCK_INPUT(SSL_set_cipher_list, reinterpret_cast<SSL*>(0x08), input1);
@@ -213,8 +213,8 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_CTX_set_cipher_list,   [&](SSL_CTX*, char const* val)    {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [](SSL_CTX*, char const* val)    {return 0;});
     CipherInfo      cipherInfo{"List1", "Suite2"};
 
     auto action = [&]() {
@@ -229,8 +229,8 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_CTX_set_ciphersuites,  [&](SSL_CTX*, char const* val)    {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [](SSL_CTX*, char const* val)    {return 0;});
     CipherInfo      cipherInfo{"List1", "Suite2"};
 
     auto action = [&]() {
@@ -245,8 +245,8 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_set_cipher_list,   [&](SSL*, char const* val)    {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_set_cipher_list,   [](SSL*, char const* val)    {return 0;});
     CipherInfo      cipherInfo{"List1", "Suite2"};
 
     auto action = [&]() {
@@ -261,8 +261,8 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_set_ciphersuites,  [&](SSL*, char const* val)    {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_set_ciphersuites,  [](SSL*, char const* val)    {return 0;});
     CipherInfo      cipherInfo{"List1", "Suite2"};
 
     auto action = [&]() {
@@ -277,7 +277,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstruct)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     auto action = [](){
         CertificateInfo     ca;
     };
@@ -288,7 +288,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstruct)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     auto action = [](){
         CertificateInfo     ca("File1", "File2", [](int){return "password";});;
     };
@@ -300,7 +300,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstructNoAction)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     CertificateInfo     ca;
 
     auto action = [&](){
@@ -329,7 +329,7 @@ MockAction getsetCertificateInfoSSL()
 }
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
     MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -348,7 +348,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
     MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -367,7 +367,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     auto action = [](){
         CertificateInfo     ca("File1", "");
     };
@@ -379,7 +379,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     auto action = [](){
         CertificateInfo     ca("", "File2");
     };
@@ -391,10 +391,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
-    MOCK_SYS(SSL_CTX_use_certificate_file,              [&](SSL_CTX*, char const* v, int)   {return 0;});
+    MOCK_SYS(SSL_CTX_use_certificate_file,              [](SSL_CTX*, char const* v, int)   {return 0;});
     MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
 
     CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
@@ -411,10 +411,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
-    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [&](SSL_CTX*, char const* v, int)   {return 0;});
+    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [](SSL_CTX*, char const* v, int)   {return 0;});
     MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
     MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
@@ -432,10 +432,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
-    MOCK_SYS(SSL_CTX_check_private_key,                 [&](SSL_CTX const*)                 {return 0;});
+    MOCK_SYS(SSL_CTX_check_private_key,                 [](SSL_CTX const*)                 {return 0;});
     MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
     MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
@@ -453,10 +453,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
-    MOCK_SYS(SSL_use_certificate_file,              [&](SSL*, char const* v, int)   {return 0;});
+    MOCK_SYS(SSL_use_certificate_file,              [](SSL*, char const* v, int)   {return 0;});
     MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
 
     CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
@@ -473,10 +473,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
-    MOCK_SYS(SSL_use_PrivateKey_file,               [&](SSL*, char const* v, int)   {return 0;});
+    MOCK_SYS(SSL_use_PrivateKey_file,               [](SSL*, char const* v, int)   {return 0;});
     MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
     MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
@@ -494,10 +494,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
-    MOCK_SYS(SSL_check_private_key,                 [&](SSL const*)                 {return 0;});
+    MOCK_SYS(SSL_check_private_key,                 [](SSL const*)                 {return 0;});
     MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
     MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
 
@@ -515,7 +515,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     CertifcateAuthorityInfo     ca;
 
     auto action = [&](){
@@ -528,7 +528,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     CertifcateAuthorityInfo     ca;
 
     auto action = [&](){
@@ -543,7 +543,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     CertifcateAuthorityInfo     ca;
 
     auto action = [&](){
@@ -558,7 +558,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     CertifcateAuthorityInfo     ca;
 
     auto action = [&](){
@@ -573,7 +573,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string  file = "Item 1";
     MOCK_INPUT(SSL_CTX_load_verify_file, reinterpret_cast<SSL_CTX*>(0x08), file);
     CertifcateAuthorityInfo     ca;
@@ -590,7 +590,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string  file = "Item 1";
     MOCK_INPUT(SSL_CTX_load_verify_dir, reinterpret_cast<SSL_CTX*>(0x08), file);
     CertifcateAuthorityInfo     ca;
@@ -607,7 +607,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string  file = "Item 1";
     MOCK_INPUT(SSL_CTX_load_verify_store, reinterpret_cast<SSL_CTX*>(0x08), file);
     CertifcateAuthorityInfo     ca;
@@ -624,8 +624,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_CTX_set_default_verify_file,   [&](SSL_CTX*)               {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_default_verify_file,   [](SSL_CTX*)               {return 0;});
     CertifcateAuthorityInfo     ca;
 
     auto action = [&](){
@@ -641,8 +641,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [&](SSL_CTX*)               {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [](SSL_CTX*)               {return 0;});
     CertifcateAuthorityInfo     ca;
 
     auto action = [&](){
@@ -658,8 +658,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_CTX_set_default_verify_store,    [&](SSL_CTX*)             {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_default_verify_store,    [](SSL_CTX*)             {return 0;});
     CertifcateAuthorityInfo     ca;
 
     auto action = [&](){
@@ -675,9 +675,9 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string  file = "Item 1";
-    MOCK_SYS(SSL_CTX_load_verify_file,         [&](SSL_CTX*, char const*)  {return 0;});
+    MOCK_SYS(SSL_CTX_load_verify_file,         [](SSL_CTX*, char const*)  {return 0;});
     MOCK_INPUT(SSL_CTX_load_verify_file, reinterpret_cast<SSL_CTX*>(0x08), file);
     CertifcateAuthorityInfo     ca;
 
@@ -694,9 +694,9 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string  file = "Item 1";
-    MOCK_SYS(SSL_CTX_load_verify_dir,           [&](SSL_CTX*, char const* v){return 0;});
+    MOCK_SYS(SSL_CTX_load_verify_dir,           [](SSL_CTX*, char const* v){return 0;});
     MOCK_INPUT(SSL_CTX_load_verify_dir, reinterpret_cast<SSL_CTX*>(0x08), file);
     CertifcateAuthorityInfo     ca;
 
@@ -713,9 +713,9 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     std::string  file = "Item 1";
-    MOCK_SYS(SSL_CTX_load_verify_store,           [&](SSL_CTX*, char const* v){return 0;});
+    MOCK_SYS(SSL_CTX_load_verify_store,           [](SSL_CTX*, char const* v){return 0;});
     MOCK_INPUT(SSL_CTX_load_verify_store, reinterpret_cast<SSL_CTX*>(0x08), file);
     CertifcateAuthorityInfo     ca;
 
@@ -732,7 +732,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     auto action = [](){
         ClientCAListInfo  list;
@@ -745,7 +745,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -760,7 +760,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -775,7 +775,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -790,7 +790,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -805,7 +805,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -820,8 +820,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -837,8 +837,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -854,8 +854,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -871,7 +871,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     auto action = [](){
         ClientCAListInfo  list;
@@ -884,7 +884,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -899,7 +899,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -914,7 +914,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -929,7 +929,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -944,7 +944,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -959,8 +959,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [&](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -976,8 +976,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [&](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
     ClientCAListInfo            list;
 
     auto action = [&](){
@@ -993,8 +993,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
-    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [&](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
     ClientCAListInfo            list;
 
     auto action = [&](){

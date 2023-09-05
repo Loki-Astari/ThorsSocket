@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "ConnectionSSocket.h"
-#include "test/ConnectionSSocketUtilTest.h"
 #include "test/ConnectionTest.h"
+#include "test/MockDefaultThorsSocket.h"
 
 #include <vector>
 
@@ -19,14 +19,14 @@ using ThorsAnvil::BuildTools::Mock::MockAction;
 
 TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    auto action = [&](){
-        MockActionAddObject         checkSSLctx(MockConnectionSSocket::getActionSSLctxClient());
+    auto action = [](){
+        MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(MockConnectionSocket::getActionSocketBlocking());
-        MockActionAddObject         checkSSocket(MockConnectionSSocket::getActionSSocket());
+        MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketBlocking());
+        MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket());
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
     };
     ASSERT_NO_THROW(
@@ -36,15 +36,15 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 
 TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
-    auto connectLambda = [&](SSL*) {
+    auto connectLambda = [](SSL*) {
         static int result[] ={-1, -1, -1, 1};
         static int r = 0;
         return result[r++];
     };
-    auto getErrorLambda = [&](SSL const*, int) {
+    auto getErrorLambda = [](SSL const*, int) {
         static int result[] ={SSL_ERROR_WANT_CONNECT, SSL_ERROR_WANT_READ, SSL_ERROR_WANT_WRITE};
         static int r = 0;
         return result[r++];
@@ -52,12 +52,12 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
     MOCK_SYS(SSL_connect,       connectLambda);
     MOCK_SYS(SSL_get_error,     getErrorLambda);
 
-    auto action = [&](){
-        MockActionAddObject         checkSSLctx(MockConnectionSSocket::getActionSSLctxClient());
+    auto action = [](){
+        MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(MockConnectionSocket::getActionSocketBlocking());
-        MockActionAddObject         checkSSocket(MockConnectionSSocket::getActionSSocket(), {"SSL_get_error", "SSL_connect", "SSL_get_error", "SSL_connect", "SSL_get_error", "SSL_connect", "SSL_get1_peer_certificate", "X509_free"});
+        MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketBlocking());
+        MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket(), {"SSL_get_error", "SSL_connect", "SSL_get_error", "SSL_connect", "SSL_get_error", "SSL_connect", "SSL_get1_peer_certificate", "X509_free"});
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
     };
     ASSERT_NO_THROW(
@@ -69,13 +69,13 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 
 TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket         defaultMockedFunctions;
 
     // Override default behavior
-    MOCK_SYS(TLS_client_method, [&]()    {return nullptr;});
+    MOCK_SYS(TLS_client_method, []()    {return nullptr;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSSLctx(MockConnectionSSocket::getActionSSLctxClient());
+    auto action = [](){
+        MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
     };
 
@@ -87,13 +87,13 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 
 TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket         defaultMockedFunctions;
 
     // Override default behavior
-    MOCK_SYS(SSL_CTX_new,       [&](SSL_METHOD const*)    {return nullptr;});
+    MOCK_SYS(SSL_CTX_new,       [](SSL_METHOD const*)    {return nullptr;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSSLctx(MockConnectionSSocket::getActionSSLctxClient());
+    auto action = [](){
+        MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
     };
 
@@ -105,17 +105,17 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
     // Override default behavior
-    MOCK_SYS(SSL_new,                   [&](SSL_CTX*)                   {return nullptr;});
+    MOCK_SYS(SSL_new,                   [](SSL_CTX*)                   {return nullptr;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSSLctx(MockConnectionSSocket::getActionSSLctxClient());
+    auto action = [](){
+        MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(MockConnectionSocket::getActionSocketNonBlocking());
-        MockActionAddObject         checkSSocket(MockConnectionSSocket::getActionSSocket());
+        MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket());
         SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     };
 
@@ -127,17 +127,17 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
     // Override default behavior
-    MOCK_SYS(SSL_set_fd,                [&](SSL*,int)                   {return 0;});
+    MOCK_SYS(SSL_set_fd,                [](SSL*,int)                   {return 0;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSSLctx(MockConnectionSSocket::getActionSSLctxClient());
+    auto action = [](){
+        MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(MockConnectionSocket::getActionSocketNonBlocking());
-        MockActionAddObject         checkSSocket(MockConnectionSSocket::getActionSSocket(), {"SSL_free"});
+        MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket(), {"SSL_free"});
         SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     };
 
@@ -149,16 +149,16 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    MOCK_SYS(SSL_connect,               [&](SSL*)                       {return 0;});
+    MOCK_SYS(SSL_connect,               [](SSL*)                       {return 0;});
 
-    auto action = [&](){
-        MockActionAddObject         checkSSLctx(MockConnectionSSocket::getActionSSLctxClient());
+    auto action = [](){
+        MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
         SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
 
-        MockActionAddObject         checkSocket(MockConnectionSocket::getActionSocketNonBlocking());
-        MockActionAddObject         checkSSocket(MockConnectionSSocket::getActionSSocket(), {"SSL_get_error", "SSL_free"});
+        MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketNonBlocking());
+        MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket(), {"SSL_get_error", "SSL_free"});
         SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     };
 
@@ -170,7 +170,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 
 TEST(ConnectionSSocketTest, getSocketIdWorks)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
@@ -185,7 +185,7 @@ TEST(ConnectionSSocketTest, getSocketIdWorks)
 
 TEST(ConnectionSSocketTest, Close)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket     defaultMockedFunctions;
 
    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
@@ -202,7 +202,7 @@ TEST(ConnectionSSocketTest, Close)
 
 TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
@@ -217,7 +217,7 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
@@ -232,7 +232,7 @@ TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_WRITE)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -257,7 +257,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_WRITE)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CONNECT)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -282,7 +282,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CONNECT)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ACCEPT)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -307,7 +307,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ACCEPT)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_SYSCALL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -332,7 +332,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_SYSCALL)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_SSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -357,7 +357,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_SSL)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_ZERO_RETURN)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -382,7 +382,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_ZERO_RETURN)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_READ)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -407,7 +407,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_READ)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_X509_LOOKUP)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -432,7 +432,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_X509_LOOKUP)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CLIENT_HELLO_CB)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -457,7 +457,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CLIENT_HELLO_CB)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -482,7 +482,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC)
 
 TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC_JOB)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
@@ -507,7 +507,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC_JOB)
 
 TEST(ConnectionSSocketTest, Read_OK)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return 8;});
@@ -532,7 +532,7 @@ TEST(ConnectionSSocketTest, Read_OK)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_READ)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -556,7 +556,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_READ)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CONNECT)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -581,7 +581,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CONNECT)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ACCEPT)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -606,7 +606,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ACCEPT)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_SYSCALL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -631,7 +631,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_SYSCALL)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_SSL)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -656,7 +656,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_SSL)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_ZERO_RETURN)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -681,7 +681,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_ZERO_RETURN)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_WRITE)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -705,7 +705,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_WRITE)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -730,7 +730,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -754,7 +754,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -779,7 +779,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)
 
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
@@ -804,7 +804,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)
 
 TEST(ConnectionSSocketTest, Write_OK)
 {
-    MockConnectionSSocketUtil   defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
     // Override default behavior
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return 8;});

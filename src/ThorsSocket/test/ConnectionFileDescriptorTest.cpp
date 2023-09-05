@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include "ConnectionFile.h"
 #include "test/ConnectionTest.h"
+#include "test/MockDefaultThorsSocket.h"
 
-#include "ConnectionFileDescriptorTest.h"
 
 // FileDescriptor is virtual (not all virtual methods defined).
 //using ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor;
@@ -10,7 +10,7 @@ using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::File;
 
 TEST(ConnectionFileDescriptorTest, ReadEBADF)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EBADF;return -1;});
 
     auto action = [](){
@@ -28,7 +28,7 @@ TEST(ConnectionFileDescriptorTest, ReadEBADF)
 
 TEST(ConnectionFileDescriptorTest, ReadEFAULT)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EFAULT;return -1;});
 
     auto action = [](){
@@ -46,7 +46,7 @@ TEST(ConnectionFileDescriptorTest, ReadEFAULT)
 
 TEST(ConnectionFileDescriptorTest, ReadEINVAL)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EINVAL;return -1;});
 
     auto action = [](){
@@ -64,7 +64,7 @@ TEST(ConnectionFileDescriptorTest, ReadEINVAL)
 
 TEST(ConnectionFileDescriptorTest, ReadEISDIR)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EISDIR;return -1;});
 
     auto action = [](){
@@ -82,7 +82,7 @@ TEST(ConnectionFileDescriptorTest, ReadEISDIR)
 
 TEST(ConnectionFileDescriptorTest, ReadENOTCONN)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = ENOTCONN;return -1;});
 
     auto action = [](){
@@ -100,7 +100,7 @@ TEST(ConnectionFileDescriptorTest, ReadENOTCONN)
 
 TEST(ConnectionFileDescriptorTest, ReadEBADMSG)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EBADMSG;return -1;});
 
     auto action = [](){
@@ -118,7 +118,7 @@ TEST(ConnectionFileDescriptorTest, ReadEBADMSG)
 
 TEST(ConnectionFileDescriptorTest, ReadEOVERFLOW)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EOVERFLOW;return -1;});
 
     auto action = [](){
@@ -136,7 +136,7 @@ TEST(ConnectionFileDescriptorTest, ReadEOVERFLOW)
 
 TEST(ConnectionFileDescriptorTest, ReadENXIO)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = ENXIO;return -1;});
 
     auto action = [](){
@@ -154,7 +154,7 @@ TEST(ConnectionFileDescriptorTest, ReadENXIO)
 
 TEST(ConnectionFileDescriptorTest, ReadESPIPE)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = ESPIPE;return -1;});
 
     auto action = [](){
@@ -172,7 +172,7 @@ TEST(ConnectionFileDescriptorTest, ReadESPIPE)
 
 TEST(ConnectionFileDescriptorTest, ReadEINTR)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EINTR;return -1;});
 
     auto action = [](){
@@ -190,7 +190,7 @@ TEST(ConnectionFileDescriptorTest, ReadEINTR)
 
 TEST(ConnectionFileDescriptorTest, ReadECONNRESET)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = ECONNRESET;return -1;});
 
     auto action = [](){
@@ -208,7 +208,7 @@ TEST(ConnectionFileDescriptorTest, ReadECONNRESET)
 
 TEST(ConnectionFileDescriptorTest, ReadEAGAIN)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EAGAIN;return -1;});
 
     auto action = [](){
@@ -226,7 +226,7 @@ TEST(ConnectionFileDescriptorTest, ReadEAGAIN)
 
 TEST(ConnectionFileDescriptorTest, ReadEWOULDBLOCK)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EWOULDBLOCK;return -1;});
 
     auto action = [](){
@@ -249,7 +249,7 @@ TEST(ConnectionFileDescriptorTest, ReadUnknownError)
      * If we work out how to handle EIO then replace this
      * value with another unhandeled code
      */
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t)      {errno = EIO;return -1;});
 
     auto action = [](){
@@ -267,7 +267,7 @@ TEST(ConnectionFileDescriptorTest, ReadUnknownError)
 
 TEST(ConnectionFileDescriptorTest, ReadOK)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(read, [](int, void*, ssize_t size) {return size;});
 
     auto action = [](){
@@ -285,7 +285,7 @@ TEST(ConnectionFileDescriptorTest, ReadOK)
 
 TEST(ConnectionFileDescriptorTest, writeEBADF)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EBADF;return -1;});
     MOCK_SYS(close, [](int)                         {return 0;});
 
@@ -304,7 +304,7 @@ TEST(ConnectionFileDescriptorTest, writeEBADF)
 
 TEST(ConnectionFileDescriptorTest, writeEFAULT)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EFAULT;return -1;});
 
     auto action = [](){
@@ -322,7 +322,7 @@ TEST(ConnectionFileDescriptorTest, writeEFAULT)
 
 TEST(ConnectionFileDescriptorTest, writeEINVAL)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EINVAL;return -1;});
 
     auto action = [](){
@@ -340,7 +340,7 @@ TEST(ConnectionFileDescriptorTest, writeEINVAL)
 
 TEST(ConnectionFileDescriptorTest, writeENOTCONN)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ENOTCONN;return -1;});
 
     auto action = [](){
@@ -358,7 +358,7 @@ TEST(ConnectionFileDescriptorTest, writeENOTCONN)
 
 TEST(ConnectionFileDescriptorTest, writeENXIO)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ENXIO;return -1;});
 
     auto action = [](){
@@ -376,7 +376,7 @@ TEST(ConnectionFileDescriptorTest, writeENXIO)
 
 TEST(ConnectionFileDescriptorTest, writeESPIPE)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ESPIPE;return -1;});
 
     auto action = [](){
@@ -394,7 +394,7 @@ TEST(ConnectionFileDescriptorTest, writeESPIPE)
 
 TEST(ConnectionFileDescriptorTest, writeEDESTADDRREQ)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EDESTADDRREQ;return -1;});
 
     auto action = [](){
@@ -412,7 +412,7 @@ TEST(ConnectionFileDescriptorTest, writeEDESTADDRREQ)
 
 TEST(ConnectionFileDescriptorTest, writeERANGE)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ERANGE;return -1;});
 
     auto action = [](){
@@ -430,7 +430,7 @@ TEST(ConnectionFileDescriptorTest, writeERANGE)
 
 TEST(ConnectionFileDescriptorTest, writeEPIPE)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EPIPE;return -1;});
 
     auto action = [](){
@@ -448,7 +448,7 @@ TEST(ConnectionFileDescriptorTest, writeEPIPE)
 
 TEST(ConnectionFileDescriptorTest, writeEACCES)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EACCES;return -1;});
 
     auto action = [](){
@@ -466,7 +466,7 @@ TEST(ConnectionFileDescriptorTest, writeEACCES)
 
 TEST(ConnectionFileDescriptorTest, writeEINTR)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EINTR;return -1;});
 
     auto action = [](){
@@ -484,7 +484,7 @@ TEST(ConnectionFileDescriptorTest, writeEINTR)
 
 TEST(ConnectionFileDescriptorTest, writeECONNRESET)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = ECONNRESET;return -1;});
 
     auto action = [](){
@@ -502,7 +502,7 @@ TEST(ConnectionFileDescriptorTest, writeECONNRESET)
 
 TEST(ConnectionFileDescriptorTest, writeEAGAIN)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EAGAIN;return -1;});
 
     auto action = [](){
@@ -520,7 +520,7 @@ TEST(ConnectionFileDescriptorTest, writeEAGAIN)
 
 TEST(ConnectionFileDescriptorTest, writeEWOULDBLOCK)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EWOULDBLOCK;return -1;});
 
     auto action = [](){
@@ -543,7 +543,7 @@ TEST(ConnectionFileDescriptorTest, WriteUnknownError)
      * If we work out how to handle EIO then replace this
      * value with another unhandeled code
      */
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t)   {errno = EIO;return -1;});
 
     auto action = [](){
@@ -561,7 +561,7 @@ TEST(ConnectionFileDescriptorTest, WriteUnknownError)
 
 TEST(ConnectionFileDescriptorTest, WriteOK)
 {
-    MockConnectionFileDescriptor    defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     MOCK_SYS(write, [](int, const void*, ssize_t size)  {return size;});
 
     auto action = [](){

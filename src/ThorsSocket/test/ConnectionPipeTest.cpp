@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionPipe.h"
-#include "test/ConnectionPipeTest.h"
+#include "test/MockDefaultThorsSocket.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -17,10 +17,10 @@ using ThorsAnvil::BuildTools::Mock::MockAction;
 
 TEST(ConnectionPipeTest, Construct)
 {
-    MockConnectionPipe          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    auto action = [&](){
-        MockActionAddObject         checkPipe(MockConnectionPipe::getActionPipeNonBlocking());
+    auto action = [](){
+        MockActionAddObject         checkPipe(MockDefaultThorsSocket::getActionPipeNonBlocking());
         Pipe                        pipe(Blocking::No);
     };
     ASSERT_NO_THROW(
@@ -30,12 +30,12 @@ TEST(ConnectionPipeTest, Construct)
 
 TEST(ConnectionPipeTest, ConstructPipeFail)
 {
-    MockConnectionPipe          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     // Override default behavior
-    MOCK_SYS(pipe, [&](int[])            {return -1;});
+    MOCK_SYS(pipe, [](int[])            {return -1;});
 
-    auto action = [&](){
-        MockActionAddObject         checkPipe(MockConnectionPipe::getActionPipeNonBlocking());
+    auto action = [](){
+        MockActionAddObject         checkPipe(MockDefaultThorsSocket::getActionPipeNonBlocking());
         Pipe                        pipe(Blocking::No);
     };
     ASSERT_THROW(
@@ -46,12 +46,12 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
 
 TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
 {
-    MockConnectionPipe          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     // Override default behavior
-    MOCK_TSYS(FctlType, fcntl,  [&](int, int, int)     {return -1;});
+    MOCK_TSYS(FctlType, fcntl,  [](int, int, int)     {return -1;});
 
-    auto action = [&](){
-        MockActionAddObject         checkPipe(MockConnectionPipe::getActionPipeNonBlocking(), {"close"});
+    auto action = [](){
+        MockActionAddObject         checkPipe(MockDefaultThorsSocket::getActionPipeNonBlocking(), {"close"});
         Pipe                        pipe(Blocking::No);
     };
     ASSERT_THROW(
@@ -62,7 +62,7 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
 
 TEST(ConnectionPipeTest, notValidOnMinusOne)
 {
-    MockConnectionPipe          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     int                         fd[] = {-1, -1};
     Pipe                        pipe(fd);
 
@@ -76,7 +76,7 @@ TEST(ConnectionPipeTest, notValidOnMinusOne)
 
 TEST(ConnectionPipeTest, getSocketIdWorks)
 {
-    MockConnectionPipe          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     int                         fd[] = {12, 13};
     Pipe                        pipe(fd);
 
@@ -91,7 +91,7 @@ TEST(ConnectionPipeTest, getSocketIdWorks)
 
 TEST(ConnectionPipeTest, Close)
 {
-    MockConnectionPipe          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     Pipe                        pipe(Blocking::No);
 
     auto action = [&](){
@@ -107,7 +107,7 @@ TEST(ConnectionPipeTest, Close)
 
 TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
 {
-    MockConnectionPipe          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     int                         fd[] = {33, 34};
     Pipe                        pipe(fd);
 
@@ -121,7 +121,7 @@ TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
 {
-    MockConnectionPipe          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     int                         fd[] = {33, 34};
     Pipe                        pipe(fd);
 

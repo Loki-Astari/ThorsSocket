@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionFile.h"
-#include "test/ConnectionFileTest.h"
+#include "test/MockDefaultThorsSocket.h"
 
 
 #include <unistd.h>
@@ -18,10 +18,10 @@ using ThorsAnvil::BuildTools::Mock::MockAction;
 
 TEST(ConnectionFileTest, Construct)
 {
-    MockConnectionFile          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
     auto action = [&](){
-        MockActionAddObject         checkFile(MockConnectionFile::getActionFile());
+        MockActionAddObject         checkFile(MockDefaultThorsSocket::getActionFile());
         File                        file("TestFile", Open::Append, Blocking::No);
     };
     ASSERT_NO_THROW(
@@ -31,12 +31,12 @@ TEST(ConnectionFileTest, Construct)
 
 TEST(ConnectionFileTest, ConstructOpenFail)
 {
-    MockConnectionFile          defaultMockedFunctions;
+    MockDefaultThorsSocket          defaultMockedFunctions;
     // Override default behavior
     MOCK_TSYS(OpenType, open, [](const char*, int, unsigned short)    {return -1;});
 
-    auto action = [&](){
-        MockActionAddObject         checkFile(MockConnectionFile::getActionFile());
+    auto action = [](){
+        MockActionAddObject         checkFile(MockDefaultThorsSocket::getActionFile());
         File                        file("TestFile", Open::Append, Blocking::No);
     };
     ASSERT_THROW(
@@ -47,7 +47,7 @@ TEST(ConnectionFileTest, ConstructOpenFail)
 
 TEST(ConnectionFileTest, notValidOnMinusOne)
 {
-    MockConnectionFile          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file(-1);
 
     auto action = [&](){
@@ -60,7 +60,7 @@ TEST(ConnectionFileTest, notValidOnMinusOne)
 
 TEST(ConnectionFileTest, getSocketIdWorks)
 {
-    MockConnectionFile          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file(12);
 
     auto action = [&](){
@@ -74,7 +74,7 @@ TEST(ConnectionFileTest, getSocketIdWorks)
 
 TEST(ConnectionFileTest, Close)
 {
-    MockConnectionFile          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file("TestFile", Open::Append, Blocking::No);
 
     auto action = [&](){
@@ -89,7 +89,7 @@ TEST(ConnectionFileTest, Close)
 
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 {
-    MockConnectionFile          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file(33);
 
     auto action = [&](){
@@ -102,7 +102,7 @@ TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
 {
-    MockConnectionFile          defaultMockedFunctions;
+    MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file(34);
 
     auto action = [&](){
