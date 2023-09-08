@@ -77,7 +77,7 @@ class Mock2DefaultThorsSocket: public ThorsAnvil::BuildTools::Mock2::MockFunctio
     MOCK2_MEMBER(shutdown);
 
     public:
-        Mock2DefaultThorsSocket()
+        Mock2DefaultThorsSocket(ThorsAnvil::BuildTools::Mock2::TA_Test& parent)
             : MOCK2_PARAM(read)
             , MOCK2_PARAM(write)
             , MOCK2_PARAM(open)
