@@ -136,6 +136,7 @@ TA_Object   Socket_NonBlocking(
 TEST(TAConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
     using ThorsAnvil::BuildTools::Mock2::TA_TestNoThrow;
+    //using ThorsAnvil::BuildTools::Mock2::Mock;
 
     TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
         SSLctx                      ctx{SSLMethodType::Client};
@@ -169,35 +170,40 @@ TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 {
     using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
 
-    TA_TestThrow<Mock2DefaultThorsSocket, std::runtime_error>([](){
-        SSLctx                      ctx{SSLMethodType::Client};
+    TA_TestThrow<Mock2DefaultThorsSocket>([](){
+        SSLctx                ctx{SSLMethodType::Client};
     })
     .expectObjectTA(SSLctx_Client)
         .errorTA(TLS_client_method).toReturn(nullptr)
     .run();
 }
 
-#if 0
 TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 {
-    MockDefaultThorsSocket         defaultMockedFunctions;
+    using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
 
-    // Override default behavior
-    MOCK_SYS(SSL_CTX_new,       [](SSL_METHOD const*)    {return nullptr;});
-
-    auto action = [](){
-        MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
-        SSLctx                      ctx{SSLMethodType::Client};
-    };
-
-    ASSERT_THROW(
-        MockActionThrowDetext detect;action(),
-        std::runtime_error
-    );
+    TA_TestThrow<Mock2DefaultThorsSocket>([](){
+        SSLctx                ctx{SSLMethodType::Client};
+    })
+    .expectObjectTA(SSLctx_Client)
+        .errorTA(SSL_CTX_new).toReturn(nullptr)
+    .run();
 }
 
 TEST(TAConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 {
+    using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
+
+    TA_TestThrow<Mock2DefaultThorsSocket>([](){
+        SSLctx                ctx{SSLMethodType::Client};
+        SSocket               socket(ctx, "github.com", 443, Blocking::No);
+    })
+    .expectObjectTA(SSLctx_Client)
+    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(SSocket)
+        .errorTA(SSL_new).toReturn(nullptr)
+    .run();
+/*
     MockDefaultThorsSocket          defaultMockedFunctions;
 
     // Override default behavior
@@ -216,8 +222,10 @@ TEST(TAConnectionSSocketTest, CreateSSocket_SSL_newFailed)
         MockActionThrowDetext detect;action(),
         std::runtime_error
     );
+*/
 }
 
+#if 0
 TEST(TAConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 {
     MockDefaultThorsSocket          defaultMockedFunctions;

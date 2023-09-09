@@ -22,7 +22,9 @@ SSLUtil& SSLUtil::getInstance()
 
 SSLctx::~SSLctx()
 {
-    MOCK_FUNC(SSL_CTX_free)(ctx);
+    if (ctx) {
+        MOCK_FUNC(SSL_CTX_free)(ctx);
+    }
 }
 
 SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info)

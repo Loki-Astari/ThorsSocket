@@ -42,6 +42,11 @@ class SSLctx
 
         SSLctx(SSLctx const&)                   = delete;
         SSLctx& operator=(SSLctx const&)        = delete;
+
+        SSLctx(SSLctx&& move)
+            : ctx(std::exchange(move.ctx, nullptr))
+        {}
+        //SSLctx& operator=(SSLctx const&)        = delete;
 };
 
 template<typename... Args>
