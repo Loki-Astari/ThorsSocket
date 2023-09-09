@@ -33,8 +33,8 @@ struct ProtocolInfo
             , maxProtocol(maxProtocol)
         {}
 
-        void setProtocolInfo(SSL_CTX* ctx)   const;
-        void setProtocolInfo(SSL* ssl)       const;
+        void apply(SSL_CTX* ctx)   const;
+        void apply(SSL* ssl)       const;
 };
 
 struct CipherInfo
@@ -50,8 +50,8 @@ struct CipherInfo
     std::string         cipherSuite         =   "TLS_AES_256_GCM_SHA384"            ":"
                                                 "TLS_CHACHA20_POLY1305_SHA256"      ":"
                                                 "TLS_AES_128_GCM_SHA256";
-    void setCipherInfo(SSL_CTX* ctx)    const;
-    void setCipherInfo(SSL* ssl)        const;
+    void apply(SSL_CTX* ctx)    const;
+    void apply(SSL* ssl)        const;
 };
 
 struct CertificateInfo
@@ -69,8 +69,8 @@ struct CertificateInfo
         CertificateInfo();
         CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword = [](int){return "";});
 
-        void setCertificateInfo(SSL_CTX* ctx)   const;
-        void setCertificateInfo(SSL* ssl)       const;
+        void apply(SSL_CTX* ctx)   const;
+        void apply(SSL* ssl)       const;
 };
 
 enum AuthorityType { File, Dir, Store };
@@ -81,7 +81,7 @@ struct CertifcateAuthorityDataInfo
     bool                        loadDefault = false;
     std::vector<std::string>    items;
 
-    void setCertifcateAuthorityInfo(SSL_CTX* ctx)   const;
+    void apply(SSL_CTX* ctx)   const;
     int setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const;
     int setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const*) const;
     std::string type() const;
@@ -93,7 +93,7 @@ struct CertifcateAuthorityInfo
     CertifcateAuthorityDataInfo<Dir>    dir;
     CertifcateAuthorityDataInfo<Store>  store;
 
-    void setCertifcateAuthorityInfo(SSL_CTX* ctx)   const;
+    void apply(SSL_CTX* ctx)   const;
 };
 
 template<AuthorityType A>
@@ -112,8 +112,8 @@ struct ClientCAListInfo
     ClientCAListDataInfo<Store>         store;
 
     STACK_OF(X509_NAME)* buildCAToList()            const;
-    void setCertifcateAuthorityInfo(SSL_CTX* ctx)   const;
-    void setCertifcateAuthorityInfo(SSL* ssl)       const;
+    void apply(SSL_CTX* ctx)   const;
+    void apply(SSL* ssl)       const;
 };
 
 }

@@ -4,11 +4,6 @@
 
 using namespace ThorsAnvil::ThorsSocket;
 
-Socket SocketBuilder::build()
-{
-    return Socket(std::move(connection), std::move(readYield), std::move(writeYield));
-}
-
 Socket::Socket(std::unique_ptr<Connection>&& connectionP, std::function<void()>&& readYield, std::function<void()>&& writeYield)
     : connection(std::move(connectionP))
     , readYield(std::move(readYield))

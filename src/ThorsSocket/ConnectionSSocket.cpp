@@ -1,5 +1,4 @@
 #include "ConnectionSSocket.h"
-#include "ThorsLogging/ThorsLogging.h"
 
 #include <map>
 #include <openssl/err.h>
@@ -21,45 +20,6 @@ SSLUtil& SSLUtil::getInstance()
     return instance;
 }
 
-SSLctx::SSLctx(SSLMethodType methodType,
-               ProtocolInfo protocolRange,
-               CipherInfo const& cipherList,
-               CertificateInfo const& certificate,
-               CertifcateAuthorityInfo const& certifcateAuthority,
-               ClientCAListInfo const& clientCAList)
-    : ctx(nullptr)
-{
-    SSLUtil::getInstance();
-    SSL_METHOD const*  method;
-    if (methodType == SSLMethodType::Client) {
-        method = MOCK_FUNC(TLS_client_method)(); // SSLv23_client_method();
-    }
-    else {
-        method = MOCK_FUNC(TLS_server_method)();
-    }
-
-    if (method == nullptr)
-    {
-        ThorsLogAndThrow("ThorsAnvil::THorsSocket::SSLctx",
-                         "SSLctx",
-                         "TLS_client_method() failed: ", buildOpenSSLErrorMessage());
-    }
-
-    ctx = MOCK_FUNC(SSL_CTX_new)(method);
-    if (ctx == nullptr)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
-                         "SSLctx",
-                         "SSL_CTX_new() failed: ", buildOpenSSLErrorMessage());
-    }
-
-    protocolRange.setProtocolInfo(ctx);
-    cipherList.setCipherInfo(ctx);
-    certificate.setCertificateInfo(ctx);
-    certifcateAuthority.setCertifcateAuthorityInfo(ctx);
-    clientCAList.setCertifcateAuthorityInfo(ctx);
-}
-
 SSLctx::~SSLctx()
 {
     MOCK_FUNC(SSL_CTX_free)(ctx);
@@ -77,7 +37,7 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
                          "SSL_new() failed: ", buildOpenSSLErrorMessage());
     }
 
-    info.setCertificateInfo(ssl);
+    info.apply(ssl);
 
     int ret;
     int error;
@@ -142,7 +102,7 @@ SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
                          "SSL_new() failed: ", buildOpenSSLErrorMessage());
     }
 
-    info.setCertificateInfo(ssl);
+    info.apply(ssl);
 
     /* Bind the ssl object with the socket*/
     SSL_set_fd(ssl, fd);

@@ -33,7 +33,7 @@ int ProtocolInfo::convertProtocolToOpenSSL(Protocol protocol) const
     throw std::runtime_error("Fix");
 }
 
-void ProtocolInfo::setProtocolInfo(SSL_CTX* ctx) const
+void ProtocolInfo::apply(SSL_CTX* ctx) const
 {
     //if (SSL_CTX_set_min_proto_version(ctx, convertProtocolToOpenSSL(minProtocol)) != 1)
     if (MOCK_FUNC(SSL_CTX_ctrl)(ctx, SSL_CTRL_SET_MIN_PROTO_VERSION, convertProtocolToOpenSSL(minProtocol), nullptr) != 1)
@@ -51,7 +51,7 @@ void ProtocolInfo::setProtocolInfo(SSL_CTX* ctx) const
     }
 }
 
-void ProtocolInfo::setProtocolInfo(SSL* ssl) const
+void ProtocolInfo::apply(SSL* ssl) const
 {
     //if (SSL_set_min_proto_version(ssl, convertProtocolToOpenSSL(minProtocol)) != 1)
     if (MOCK_FUNC(SSL_ctrl)(ssl, SSL_CTRL_SET_MIN_PROTO_VERSION, convertProtocolToOpenSSL(minProtocol), nullptr) != 1)
@@ -69,7 +69,7 @@ void ProtocolInfo::setProtocolInfo(SSL* ssl) const
     }
 }
 
-void CipherInfo::setCipherInfo(SSL_CTX* ctx) const
+void CipherInfo::apply(SSL_CTX* ctx) const
 {
     /*Set the Cipher List*/
     if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, cipherList.c_str()) <= 0)
@@ -86,7 +86,7 @@ void CipherInfo::setCipherInfo(SSL_CTX* ctx) const
     }
 }
 
-void CipherInfo::setCipherInfo(SSL* ssl) const
+void CipherInfo::apply(SSL* ssl) const
 {
     /*Set the Cipher List*/
     if (MOCK_FUNC(SSL_set_cipher_list)(ssl, cipherList.c_str()) <= 0)
@@ -119,7 +119,7 @@ CertificateInfo::CertificateInfo(std::string const& certificateFileName, std::st
     }
 }
 
-void CertificateInfo::setCertificateInfo(SSL_CTX* ctx) const
+void CertificateInfo::apply(SSL_CTX* ctx) const
 {
     if (certificateFileName != "")
     {
@@ -153,7 +153,7 @@ void CertificateInfo::setCertificateInfo(SSL_CTX* ctx) const
     }
 }
 
-void CertificateInfo::setCertificateInfo(SSL* ssl) const
+void CertificateInfo::apply(SSL* ssl) const
 {
     if (certificateFileName != "")
     {
@@ -188,7 +188,7 @@ void CertificateInfo::setCertificateInfo(SSL* ssl) const
 }
 
 template<AuthorityType A>
-void CertifcateAuthorityDataInfo<A>::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
+void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx) const
 {
     if (loadDefault)
     {
@@ -227,11 +227,11 @@ template<> std::string CertifcateAuthorityDataInfo<File>::type()  const {return 
 template<> std::string CertifcateAuthorityDataInfo<Dir>::type()   const {return "CA Dir";}
 template<> std::string CertifcateAuthorityDataInfo<Store>::type() const {return "CA Store";}
 
-void CertifcateAuthorityInfo::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
+void CertifcateAuthorityInfo::apply(SSL_CTX* ctx) const
 {
-    file.setCertifcateAuthorityInfo(ctx);
-    dir.setCertifcateAuthorityInfo(ctx);
-    store.setCertifcateAuthorityInfo(ctx);
+    file.apply(ctx);
+    dir.apply(ctx);
+    store.apply(ctx);
 }
 
 template<> int ClientCAListDataInfo<File>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)   const {return MOCK_FUNC(SSL_add_file_cert_subjects_to_stack)(certs, item);}
@@ -286,7 +286,7 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
     return list;
 }
 
-void ClientCAListInfo::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
+void ClientCAListInfo::apply(SSL_CTX* ctx) const
 {
     if (verifyClientCA) {
         MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
@@ -297,7 +297,7 @@ void ClientCAListInfo::setCertifcateAuthorityInfo(SSL_CTX* ctx) const
     }
 };
 
-void ClientCAListInfo::setCertifcateAuthorityInfo(SSL* ssl) const
+void ClientCAListInfo::apply(SSL* ssl) const
 {
     if (verifyClientCA) {
         MOCK_FUNC(SSL_set_verify)(ssl, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);

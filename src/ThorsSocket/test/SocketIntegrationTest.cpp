@@ -9,7 +9,6 @@
 
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
-using ThorsAnvil::ThorsSocket::SocketBuilder;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
@@ -22,9 +21,7 @@ TEST(SocketIntegrationTest, ConnectToSocket)
     ServerStart     server;
     server.run<ConnectionType::Socket>(8080, [](Socket&){});
 
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)};
 
     ASSERT_NE(socket.socketId(Mode::Read), -1);
     ASSERT_NE(socket.socketId(Mode::Write), -1);
@@ -40,9 +37,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
     });
 
 
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)};
 
     std::string reply;
     reply.resize(message.size());
@@ -69,9 +64,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
     });
 
 
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)};
 
     std::string reply;
     reply.resize(message.size());
@@ -99,10 +92,8 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
 
     int yieldCount = 0;
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::No)
-                        .addReadYield([&yieldCount](){++yieldCount;sleep(2);})
-                        .build();
+    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::No),
+                        [&yieldCount](){++yieldCount;sleep(2);}};
 
     std::string reply;
     reply.resize(message.size());
@@ -125,9 +116,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
     });
 
 
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)};
 
     std::string reply;
     reply.resize(message.size());
@@ -171,16 +160,14 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     });
 
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::No)
-                        .addwriteYield([&mutex, &cond, &finished]()
+    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::No),
+                        [](){},
+                        [&mutex, &cond, &finished]()
                         {
                             std::unique_lock<std::mutex> lock(mutex);
                             finished = true;
                             cond.notify_all();
-                        }
-                        )
-                        .build();
+                        }};
 
     std::size_t readFromServer = 0;
 
@@ -221,9 +208,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     });
 
-    Socket  socket  = SocketBuilder{}
-                        .addConnection<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)
-                        .build();
+    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::Yes)};
 
     std::size_t readFromServer = 0;
 

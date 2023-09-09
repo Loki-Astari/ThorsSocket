@@ -46,7 +46,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 
     auto action = [&](){
         MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}});
-        protocol.setProtocolInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -61,7 +61,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 
     auto action = [&](){
         MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
-        protocol.setProtocolInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
 
     ASSERT_THROW(
@@ -78,7 +78,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 
     auto action = [&](){
         MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
-        protocol.setProtocolInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
 
     ASSERT_THROW(
@@ -97,7 +97,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 
     auto action = [&](){
         MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
-        protocol.setProtocolInfo(reinterpret_cast<SSL*>(0x08));
+        protocol.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -112,7 +112,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
 
     auto action = [&](){
         MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
-        protocol.setProtocolInfo(reinterpret_cast<SSL*>(0x08));
+        protocol.apply(reinterpret_cast<SSL*>(0x08));
     };
 
     ASSERT_THROW(
@@ -129,7 +129,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
 
     auto action = [&](){
         MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
-        protocol.setProtocolInfo(reinterpret_cast<SSL*>(0x08));
+        protocol.apply(reinterpret_cast<SSL*>(0x08));
     };
 
     ASSERT_THROW(
@@ -186,7 +186,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
 
     auto action = [&](){
         MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}});
-        cipherInfo.setCipherInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -204,7 +204,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
 
     auto action = [&](){
         MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}});
-        cipherInfo.setCipherInfo(reinterpret_cast<SSL*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -219,7 +219,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 
     auto action = [&]() {
         MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}}, {"ERR_get_error"});
-        cipherInfo.setCipherInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -235,7 +235,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 
     auto action = [&]() {
         MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}}, {"ERR_get_error"});
-        cipherInfo.setCipherInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -251,7 +251,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 
     auto action = [&]() {
         MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}}, {"ERR_get_error"});
-        cipherInfo.setCipherInfo(reinterpret_cast<SSL*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -267,7 +267,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 
     auto action = [&]() {
         MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}}, {"ERR_get_error"});
-        cipherInfo.setCipherInfo(reinterpret_cast<SSL*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -304,7 +304,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstructNoAction)
     CertificateInfo     ca;
 
     auto action = [&](){
-        ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -339,7 +339,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
 
     auto action = [&](){
         MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoCTX());
-        ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -358,7 +358,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
 
     auto action = [&](){
         MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoSSL());
-        ca.setCertificateInfo(reinterpret_cast<SSL*>(0x08));
+        ca.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -401,7 +401,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
 
     auto action = [&](){
         MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoCTX(), {"ERR_get_error"});
-        ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -422,7 +422,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
 
     auto action = [&](){
         MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoCTX(), {"ERR_get_error"});
-        ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -443,7 +443,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
 
     auto action = [&](){
         MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoCTX(), {"ERR_get_error"});
-        ca.setCertificateInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -463,7 +463,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
 
     auto action = [&](){
         MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoSSL(), {"ERR_get_error"});
-        ca.setCertificateInfo(reinterpret_cast<SSL*>(0x08));
+        ca.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -484,7 +484,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
 
     auto action = [&](){
         MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoSSL(), {"ERR_get_error"});
-        ca.setCertificateInfo(reinterpret_cast<SSL*>(0x08));
+        ca.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -505,7 +505,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 
     auto action = [&](){
         MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoSSL(), {"ERR_get_error"});
-        ca.setCertificateInfo(reinterpret_cast<SSL*>(0x08));
+        ca.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -519,7 +519,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
     CertifcateAuthorityInfo     ca;
 
     auto action = [&](){
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -534,7 +534,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_file"}, {}, {}, {}});
         ca.file.loadDefault = true;
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -549,7 +549,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_dir"}, {}, {}, {}});
         ca.dir.loadDefault = true;
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -564,7 +564,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_store"}, {}, {}, {}});
         ca.store.loadDefault = true;
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -581,7 +581,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_file"}, {}, {}, {}});
         ca.file.items.push_back(file);
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -598,7 +598,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_dir"}, {}, {}, {}});
         ca.dir.items.push_back(file);
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -615,7 +615,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_store"}, {}, {}, {}});
         ca.store.items.push_back(file);
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -631,7 +631,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_file"}, {}, {}, {}}, {"ERR_get_error"});
         ca.file.loadDefault = true;
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -648,7 +648,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_dir"}, {}, {}, {}}, {"ERR_get_error"});
         ca.dir.loadDefault = true;
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -665,7 +665,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_store"}, {}, {}, {}}, {"ERR_get_error"});
         ca.store.loadDefault = true;
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -684,7 +684,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_file"}, {}, {}, {}}, {"ERR_get_error"});
         ca.file.items.push_back(file);
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -703,7 +703,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_dir"}, {}, {}, {}}, {"ERR_get_error"});
         ca.dir.items.push_back(file);
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -722,7 +722,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_store"}, {}, {}, {}}, {"ERR_get_error"});
         ca.store.items.push_back(file);
-        ca.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -736,7 +736,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 
     auto action = [](){
         ClientCAListInfo  list;
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -751,7 +751,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"ClientCAList", {"SSL_CTX_set_verify"}, {}, {}, {}});
         list.verifyClientCA = true;
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -766,7 +766,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.file.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -781,7 +781,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.dir.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -796,7 +796,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.store.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -811,7 +811,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_verify"}, {}, {}, {}}, {"ERR_get_error"});
         list.verifyClientCA = true;
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -827,7 +827,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
         list.file.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -844,7 +844,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
         list.dir.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -861,7 +861,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
         list.store.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -875,7 +875,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 
     auto action = [](){
         ClientCAListInfo  list;
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -890,7 +890,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"ClientCAList", {"SSL_set_verify"}, {}, {}, {}});
         list.verifyClientCA = true;
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -905,7 +905,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.file.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -920,7 +920,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.dir.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -935,7 +935,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
         list.store.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -950,7 +950,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_set_verify"}, {}, {}, {}});
         list.verifyClientCA = true;
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_NO_THROW(
         MockActionThrowDetext detect;action()
@@ -966,7 +966,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
         list.file.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -983,7 +983,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
         list.dir.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),
@@ -1000,7 +1000,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
     auto action = [&](){
         MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
         list.store.items.push_back("File 1");
-        list.setCertifcateAuthorityInfo(reinterpret_cast<SSL*>(0x08));
+        list.apply(reinterpret_cast<SSL*>(0x08));
     };
     ASSERT_THROW(
         MockActionThrowDetext detect;action(),

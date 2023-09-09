@@ -11,7 +11,6 @@ namespace ThorsAnvil::ThorsSocket
 {
 
 class Connection;
-class SocketBuilder;
 
 class Socket
 {
@@ -19,11 +18,9 @@ class Socket
     std::function<void()>           readYield;
     std::function<void()>           writeYield;
 
-    private:
-        friend class SocketBuilder;
-        Socket(std::unique_ptr<Connection>&& connection, std::function<void()>&& readYield, std::function<void()>&& writeYield);
-
     public:
+        Socket(std::unique_ptr<Connection>&& connection, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
+
         Socket(Socket&& move)               noexcept;
         Socket& operator=(Socket&& move)    noexcept;
 
@@ -43,35 +40,6 @@ class Socket
         void close();
 };
 void swap(Socket& lhs, Socket& rhs);
-
-class SocketBuilder
-{
-    std::unique_ptr<Connection>     connection;
-    std::function<void()>           readYield   = [](){};
-    std::function<void()>           writeYield  = [](){};
-
-    public:
-        template<typename Connection, typename... Args>
-        SocketBuilder& addConnection(Args&&... args)
-        {
-            connection = std::make_unique<Connection>(std::forward<Args>(args)...);
-            return *this;
-        }
-        template<typename F>
-        SocketBuilder& addReadYield(F&& func)
-        {
-            readYield = std::forward<F>(func);
-            return *this;
-        }
-        template<typename F>
-        SocketBuilder& addwriteYield(F&& func)
-        {
-            writeYield = std::forward<F>(func);
-            return *this;
-        }
-
-        Socket build();
-};
 
 }
 

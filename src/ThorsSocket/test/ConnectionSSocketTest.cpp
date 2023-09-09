@@ -7,7 +7,6 @@
 
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSLctx;
-using ThorsAnvil::ThorsSocket::ConnectionType::SSLctxBuilder;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocket;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
@@ -23,7 +22,7 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 
     auto action = [](){
         MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
-        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSLctx                      ctx{SSLMethodType::Client};
 
         MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketBlocking());
         MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket());
@@ -54,7 +53,7 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 
     auto action = [](){
         MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
-        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSLctx                      ctx{SSLMethodType::Client};
 
         MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketBlocking());
         MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket(), {"SSL_get_error", "SSL_connect", "SSL_get_error", "SSL_connect", "SSL_get_error", "SSL_connect", "SSL_get1_peer_certificate", "X509_free"});
@@ -76,7 +75,7 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 
     auto action = [](){
         MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
-        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSLctx                      ctx{SSLMethodType::Client};
     };
 
     ASSERT_THROW(
@@ -94,7 +93,7 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 
     auto action = [](){
         MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
-        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSLctx                      ctx{SSLMethodType::Client};
     };
 
     ASSERT_THROW(
@@ -112,7 +111,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 
     auto action = [](){
         MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
-        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSLctx                      ctx{SSLMethodType::Client};
 
         MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketNonBlocking());
         MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket());
@@ -134,7 +133,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 
     auto action = [](){
         MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
-        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSLctx                      ctx{SSLMethodType::Client};
 
         MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketNonBlocking());
         MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket(), {"SSL_free"});
@@ -155,7 +154,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 
     auto action = [](){
         MockActionAddObject         checkSSLctx(MockDefaultThorsSocket::getActionSSLctxClient());
-        SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+        SSLctx                      ctx{SSLMethodType::Client};
 
         MockActionAddObject         checkSocket(MockDefaultThorsSocket::getActionSocketNonBlocking());
         MockActionAddObject         checkSSocket(MockDefaultThorsSocket::getActionSSocket(), {"SSL_get_error", "SSL_free"});
@@ -172,7 +171,7 @@ TEST(ConnectionSSocketTest, getSocketIdWorks)
 {
     MockDefaultThorsSocket      defaultMockedFunctions;
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -187,7 +186,7 @@ TEST(ConnectionSSocketTest, Close)
 {
     MockDefaultThorsSocket     defaultMockedFunctions;
 
-   SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+   SSLctx                      ctx{SSLMethodType::Client};
    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -204,7 +203,7 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 {
     MockDefaultThorsSocket      defaultMockedFunctions;
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -219,7 +218,7 @@ TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 {
     MockDefaultThorsSocket      defaultMockedFunctions;
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -238,7 +237,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_WRITE)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_WRITE;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -263,7 +262,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CONNECT)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CONNECT;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -288,7 +287,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ACCEPT)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ACCEPT;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -313,7 +312,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_SYSCALL)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SYSCALL;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -338,7 +337,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_SSL)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SSL;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -363,7 +362,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_ZERO_RETURN)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_ZERO_RETURN;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -388,7 +387,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_READ)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_READ;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -413,7 +412,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_X509_LOOKUP)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_X509_LOOKUP;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -438,7 +437,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_CLIENT_HELLO_CB)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CLIENT_HELLO_CB;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -463,7 +462,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -488,7 +487,7 @@ TEST(ConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC_JOB)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC_JOB;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -513,7 +512,7 @@ TEST(ConnectionSSocketTest, Read_OK)
     MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return 8;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_NONE;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -538,7 +537,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_READ)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_READ;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     auto action = [&](){
         MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
@@ -562,7 +561,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CONNECT)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CONNECT;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -587,7 +586,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ACCEPT)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ACCEPT;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -612,7 +611,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_SYSCALL)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SYSCALL;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -637,7 +636,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_SSL)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SSL;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -662,7 +661,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_ZERO_RETURN)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_ZERO_RETURN;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -687,7 +686,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_WRITE)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_WRITE;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     auto action = [&](){
         MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
@@ -711,7 +710,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_X509_LOOKUP;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -736,7 +735,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CLIENT_HELLO_CB;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
     auto action = [&](){
         MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
@@ -760,7 +759,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -785,7 +784,7 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC_JOB;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){
@@ -810,7 +809,7 @@ TEST(ConnectionSSocketTest, Write_OK)
     MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return 8;});
     MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_NONE;});
 
-    SSLctx                      ctx = SSLctxBuilder{SSLMethodType::Client}.build();
+    SSLctx                      ctx{SSLMethodType::Client};
     SSocket                     socket(ctx, "github.com", 443, Blocking::No);
 
     auto action = [&](){

@@ -4,6 +4,7 @@
 #include "ThorsSocketConfig.h"
 #include "ConnectionSSocketUtil.h"
 #include "ConnectionSocket.h"
+#include "ThorsLogging/ThorsLogging.h"
 
 #include <openssl/ssl.h>
 
@@ -12,7 +13,6 @@ namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
 class SSocket;
-class SSLctxBuilder;
 
 class SSLUtil
 {
@@ -26,55 +26,64 @@ class SSLUtil
 
 class SSLctx
 {
-    friend class SSocket;
-    friend class SSLctxBuilder;
     private:
+        friend class SSocket;
         SSL_CTX*            ctx;
-        SSLctx(SSLMethodType methodType,
-               ProtocolInfo protocol,
-               CipherInfo const& cipherList,
-               CertificateInfo const& certificateInfo,
-               CertifcateAuthorityInfo const& certifcateAuthority,
-               ClientCAListInfo const& clinetCAList);
-
     public:
+        template<typename... Args>
+        SSLctx(SSLMethodType methodType, Args&&... args);
+               // ProtocolInfo
+               // CipherInfo
+               // CertificateInfo
+               // CertifcateAuthorityInfo
+               // ClientCAListInfo
+
         ~SSLctx();
 
         SSLctx(SSLctx const&)                   = delete;
         SSLctx& operator=(SSLctx const&)        = delete;
 };
 
-class SSLctxBuilder
+template<typename... Args>
+SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
+               // ProtocolInfo protocolRange,
+               //CipherInfo const& cipherList,
+               //CertificateInfo const& certificate,
+               //CertifcateAuthorityInfo const& certifcateAuthority,
+               //ClientCAListInfo const& clientCAList)
+    : ctx(nullptr)
 {
-    SSLMethodType           method;
-    ProtocolInfo            protocolRange;
-    CipherInfo              cipherList;
-    CertificateInfo         certificate;
-    CertifcateAuthorityInfo certifcateAuthority;
-    ClientCAListInfo        clientCAList;
+    SSLUtil::getInstance();
+    SSL_METHOD const*  method;
+    if (methodType == SSLMethodType::Client) {
+        method = MOCK_FUNC(TLS_client_method)(); // SSLv23_client_method();
+    }
+    else {
+        method = MOCK_FUNC(TLS_server_method)();
+    }
 
-    public:
-        SSLctxBuilder(SSLMethodType method): method(method)                 {}
-        SSLctxBuilder& setProtocolInfo(ProtocolInfo info)                   {protocolRange = std::move(info);return *this;}
-        SSLctxBuilder& setCipherInfo(CipherInfo&& info)                     {cipherList = std::move(info);return *this;}
-        SSLctxBuilder& addCertificateInfo(CertificateInfo&& info)           {certificate = std::move(info);return *this;}
-        SSLctxBuilder& addDefaultCertifcateAuthorityFile()                  {certifcateAuthority.file.loadDefault = true;return *this;}
-        SSLctxBuilder& addDefaultCertifcateAuthorityDir()                   {certifcateAuthority.dir.loadDefault = true;return *this;}
-        SSLctxBuilder& addDefaultCertifcateAuthorityStore()                 {certifcateAuthority.store.loadDefault = true;return *this;}
-        SSLctxBuilder& addCertifcateAuthorityFile(std::string const& file)  {certifcateAuthority.file.items.push_back(file);return *this;}
-        SSLctxBuilder& addCertifcateAuthorityDir(std::string const& dir)    {certifcateAuthority.dir.items.push_back(dir);return *this;}
-        SSLctxBuilder& addCertifcateAuthorityStore(std::string const& store){certifcateAuthority.store.items.push_back(store);return *this;}
-        SSLctxBuilder& validateClientCA()                                   {clientCAList.verifyClientCA = true;return *this;}
-        SSLctxBuilder& addFileToClientCAList(std::string const& file)       {clientCAList.file.items.push_back(file);return *this;}
-        SSLctxBuilder& addDirToClientCAList(std::string const& dir)         {clientCAList.dir.items.push_back(dir);return *this;}
-        SSLctxBuilder& addStoreToClientCAList(std::string const& store)     {clientCAList.store.items.push_back(store);return *this;}
+    if (method == nullptr)
+    {
+        ThorsLogAndThrow("ThorsAnvil::THorsSocket::SSLctx",
+                         "SSLctx",
+                         "TLS_client_method() failed: ", buildOpenSSLErrorMessage());
+    }
 
-        SSLctx  build()
-        {
-            return SSLctx{method, protocolRange, cipherList, certificate, certifcateAuthority, clientCAList};
-        }
-};
+    ctx = MOCK_FUNC(SSL_CTX_new)(method);
+    if (ctx == nullptr)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
+                         "SSLctx",
+                         "SSL_CTX_new() failed: ", buildOpenSSLErrorMessage());
+    }
 
+    (args.apply(ctx),...);
+    //protocolRange.setProtocolInfo(ctx);
+    //cipherList.setCipherInfo(ctx);
+    //certificate.setCertificateInfo(ctx);
+    //certifcateAuthority.setCertifcateAuthorityInfo(ctx);
+    //clientCAList.setCertifcateAuthorityInfo(ctx);
+}
 class SSocket: public Socket
 {
     SSL*        ssl;
