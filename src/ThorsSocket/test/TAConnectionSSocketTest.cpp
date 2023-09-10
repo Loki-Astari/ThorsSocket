@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
-#include "../ConnectionSSocket.h"
+#include "ConnectionSSocket.h"
+#include "ConnectionSSocketUtil.h"
 #include "test/ConnectionTest.h"
 #include "test/MockHeaderInclude.h"
-#include "coverage/MockHeaders2.h"
 #include "test/MockDefaultThorsSocket.h"
 #include "test/Mock2DefaultThorsSocket.h"
+#include "coverage/MockHeaders2.h"
 
 #include <openssl/ssl.h>
 
@@ -20,348 +21,1015 @@ using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock2::TA_TestNoThrow;
 
 
-namespace ThorsAnvil::BuildTools::Mock2
+
+using ThorsAnvil::ThorsSocket::ConnectionType::Protocol;
+using ThorsAnvil::ThorsSocket::ConnectionType::ProtocolInfo;
+using ThorsAnvil::ThorsSocket::ConnectionType::CipherInfo;
+using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
+using ThorsAnvil::ThorsSocket::ConnectionType::CertifcateAuthorityInfo;
+using ThorsAnvil::ThorsSocket::ConnectionType::ClientCAListInfo;
+using ThorsAnvil::BuildTools::Mock::MockActionThrowDetext;
+using ThorsAnvil::BuildTools::Mock::MockActionAddObject;
+using ThorsAnvil::BuildTools::Mock::MockAction;
+
+TEST(TAConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 {
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
-TA_Object   SSLctx_Client(
-                build()
-                .expectInitTA(TLS_client_method).toReturn(reinterpret_cast<SSL_METHOD*>(0x08))
-                .expectInitTA(SSL_CTX_new).toReturn(reinterpret_cast<SSL_CTX*>(0x18))
-                .expectDestTA(SSL_CTX_free).toReturn(1)
-                .optionalTA(SSL_CTX_ctrl).toReturn(1)
-                .optionalTA(SSL_CTX_set_cipher_list).toReturn(1)
-                .optionalTA(SSL_CTX_set_ciphersuites).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-                .optionalTA(SSL_CTX_use_certificate_file).toReturn(1)
-                .optionalTA(SSL_CTX_use_PrivateKey_file).toReturn(1)
-                .optionalTA(SSL_CTX_check_private_key).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_verify_file).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_verify_dir).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_verify_store).toReturn(1)
-                .optionalTA(SSL_CTX_load_verify_file).toReturn(1)
-                .optionalTA(SSL_CTX_load_verify_dir).toReturn(1)
-                .optionalTA(SSL_CTX_load_verify_store).toReturn(1)
-                .optionalTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-                .optionalTA(sk_X509_NAME_free_wrapper)
-                .optionalTA(sk_X509_NAME_pop_free_wrapper)
-                .optionalTA(SSL_CTX_set_verify).toReturn(1)
-                .optionalTA(SSL_CTX_set_client_CA_list).toReturn(1)
-                .optionalTA(ERR_get_error).toReturn(0)
-                .optionalTA(SSL_get_error).toReturn(SSL_ERROR_SYSCALL)
-            );
-
-TA_Object   SSLctx_Server(
-                build()
-                .expectInitTA(TLS_server_method).toReturn(reinterpret_cast<SSL_METHOD*>(0x10))
-                .expectInitTA(SSL_CTX_new).toReturn(reinterpret_cast<SSL_CTX*>(0x18))
-                .expectDestTA(SSL_CTX_free).toReturn(1)
-                .optionalTA(SSL_CTX_ctrl).toReturn(1)
-                .optionalTA(SSL_CTX_set_cipher_list).toReturn(1)
-                .optionalTA(SSL_CTX_set_ciphersuites).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-                .optionalTA(SSL_CTX_use_certificate_file).toReturn(1)
-                .optionalTA(SSL_CTX_use_PrivateKey_file).toReturn(1)
-                .optionalTA(SSL_CTX_check_private_key).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_verify_file).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_verify_dir).toReturn(1)
-                .optionalTA(SSL_CTX_set_default_verify_store).toReturn(1)
-                .optionalTA(SSL_CTX_load_verify_file).toReturn(1)
-                .optionalTA(SSL_CTX_load_verify_dir).toReturn(1)
-                .optionalTA(SSL_CTX_load_verify_store).toReturn(1)
-                .optionalTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-                .optionalTA(sk_X509_NAME_free_wrapper)
-                .optionalTA(sk_X509_NAME_pop_free_wrapper)
-                .optionalTA(SSL_CTX_set_verify).toReturn(1)
-                .optionalTA(SSL_CTX_set_client_CA_list).toReturn(1)
-                .optionalTA(ERR_get_error).toReturn(0)
-                .optionalTA(SSL_get_error).toReturn(SSL_ERROR_SYSCALL)
-            );
-TA_Object   SSocket(
-                build()
-                .expectInitTA(SSL_new).toReturn(reinterpret_cast<SSL*>(0x20))
-                .expectInitTA(SSL_set_fd).toReturn(1)
-                .expectInitTA(SSL_connect).toReturn(1)
-                .expectInitTA(SSL_get1_peer_certificate).toReturn(reinterpret_cast<X509*>(0x08))
-                .expectInitTA(X509_free).toReturn(1)
-                .expectDestTA(SSL_shutdown).toReturn(1)
-                .expectDestTA(SSL_free).toReturn(1)
-                .optionalTA(SSL_ctrl).toReturn(1)
-                .optionalTA(SSL_set_cipher_list).toReturn(1)
-                .optionalTA(SSL_set_ciphersuites).toReturn(1)
-                .optionalTA(SSL_set_default_passwd_cb).toReturn(1)
-                .optionalTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-                .optionalTA(SSL_use_certificate_file).toReturn(1)
-                .optionalTA(SSL_use_PrivateKey_file).toReturn(1)
-                .optionalTA(SSL_check_private_key).toReturn(1)
-                .optionalTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
-                .optionalTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
-                .optionalTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
-                .optionalTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-                .optionalTA(sk_X509_NAME_free_wrapper)
-                .optionalTA(sk_X509_NAME_pop_free_wrapper)
-                .optionalTA(SSL_set_verify).toReturn(1)
-                .optionalTA(SSL_set_client_CA_list).toReturn(1)
-                .optionalTA(ERR_get_error).toReturn(0)
-                .optionalTA(SSL_get_error).toReturn(SSL_ERROR_SYSCALL)
-            );
-
-static char* addrList[] = {""};
-static ThorsAnvil::ThorsSocket::ConnectionType::HostEnt result {.h_length=1, .h_addr_list=addrList};
-
-TA_Object   Socket_Blocking(
-                build()
-                .expectInitTA(socket).toReturn(12)
-                .expectInitTA(gethostbyname).toReturn(&result)
-                .expectInitTA(connect)
-                .expectDestTA(close)
-            );
-TA_Object   Socket_NonBlocking(
-                build()
-                .expectInitTA(socket).toReturn(12)
-                .expectInitTA(gethostbyname).toReturn(&result)
-                .expectInitTA(connect)
-                .expectInitTA(fcntl)
-                .expectDestTA(close)
-            );
+    auto action = [](){
+        ProtocolInfo    protocol;
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
+TEST(TAConnectionSSocketUtilTest, ProtocolInfoBuild)
 {
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx              ctx{SSLMethodType::Client};
-        SSocket             socket(ctx, "github.com",443 , Blocking::Yes);
-    })
-    .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_Blocking)
-    .expectObjectTA(SSocket)
-    .run();
+    MockDefaultThorsSocket      defaultMockedFunctions;
+
+    auto action = [](){
+        ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
+TEST(TAConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 {
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx              ctx{SSLMethodType::Client};
-        SSocket             socket(ctx, "github.com",443 , Blocking::Yes);
-    })
-    .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_Blocking)
-    .expectObjectTA(SSocket)
-        .errorInitTA(SSL_connect).toReturn(-1).toReturn(-1).toReturn(-1).toReturn(1)
-        .errorTA(SSL_get_error).toReturn(SSL_ERROR_WANT_CONNECT).toReturn(SSL_ERROR_WANT_READ).toReturn(SSL_ERROR_WANT_WRITE)
-        .errorTA(SSL_get1_peer_certificate).toReturn(reinterpret_cast<X509*>(0x08))
-        .errorTA(X509_free).toReturn(1)
-    .run();
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, nullptr);
+    MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_1_VERSION, nullptr);
+
+    ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}});
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
+TEST(TAConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx              ctx{SSLMethodType::Client};
-    })
-    .expectObjectTA(SSLctx_Client)
-        .errorInitTA(TLS_client_method).toReturn(nullptr)
-    .run();
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_ctrl,  [](SSL_CTX*, int v, long m, void*)   {static int count = 0;++count;return count == 1 ? 1 : 0;});
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
+TEST(TAConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx              ctx{SSLMethodType::Client};
-    })
-    .expectObjectTA(SSLctx_Client)
-        .errorInitTA(SSL_CTX_new).toReturn(nullptr)
-    .run();
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_ctrl,  [](SSL_CTX*, int v, long m, void*)   {static int count = 0;++count;return count == 2 ? 1 : 0;});
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_CTX_ctrl", "SSL_CTX_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionSSocketTest, CreateSSocket_SSL_newFailed)
+TEST(TAConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx              ctx{SSLMethodType::Client};
-        SSocket             socket(ctx, "github.com", 443, Blocking::No);
-    })
-    .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_NonBlocking)
-    .expectObjectTA(SSocket)
-        .errorInitTA(SSL_new).toReturn(nullptr)
-    .run();
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_2_VERSION, nullptr);
+    MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_3_VERSION, nullptr);
+
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
+        protocol.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
+TEST(TAConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx              ctx{SSLMethodType::Client};
-        SSocket             socket(ctx, "github.com", 443, Blocking::No);
-    })
-    .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_NonBlocking)
-    .expectObjectTA(SSocket)
-        .errorInitTA(SSL_set_fd).toReturn(0)
-        .errorTA(SSL_free).toReturn(1)
-    .run();
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_ctrl,  [](SSL*, int v, long m, void*)   {static int count = 0;++count;return count == 1 ? 1 : 0;});
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
+        protocol.apply(reinterpret_cast<SSL*>(0x08));
+    };
+
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
+TEST(TAConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx              ctx{SSLMethodType::Client};
-        SSocket             socket(ctx, "github.com", 443, Blocking::No);
-    })
-    .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_NonBlocking)
-    .expectObjectTA(SSocket)
-        .errorInitTA(SSL_connect).toReturn(0)
-        .errorTA(SSL_free).toReturn(1)
-    .run();
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_ctrl,  [](SSL*, int v, long m, void*)   {static int count = 0;++count;return count == 2 ? 1 : 0;});
+    ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
+
+    auto action = [&](){
+        MockActionAddObject         checksetProtocolInfo({"Protocol", {"SSL_ctrl", "SSL_ctrl"}, {}, {}, {}}, {"ERR_get_error"});
+        protocol.apply(reinterpret_cast<SSL*>(0x08));
+    };
+
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionSSocketTest, getSocketIdWorks)
+TEST(TAConnectionSSocketUtilTest, CipherInfoConstruct)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    SSLctx                  ctx{SSLMethodType::Client};
-    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket      defaultMockedFunctions;
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
-        ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
-    })
-    .run();
+    auto action = [](){
+        CipherInfo      cipherInfo;
+        ASSERT_EQ(cipherInfo.cipherList, "ECDHE-ECDSA-AES128-GCM-SHA256"     ":"
+                                         "ECDHE-RSA-AES128-GCM-SHA256"       ":"
+                                         "ECDHE-ECDSA-AES256-GCM-SHA384"     ":"
+                                         "ECDHE-RSA-AES256-GCM-SHA384"       ":"
+                                         "ECDHE-ECDSA-CHACHA20-POLY1305"     ":"
+                                         "ECDHE-RSA-CHACHA20-POLY1305"       ":"
+                                         "DHE-RSA-AES128-GCM-SHA256"         ":"
+                                         "DHE-RSA-AES256-GCM-SHA384");
+        ASSERT_EQ(cipherInfo.cipherSuite,"TLS_AES_256_GCM_SHA384"            ":"
+                                         "TLS_CHACHA20_POLY1305_SHA256"      ":"
+                                         "TLS_AES_128_GCM_SHA256");
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionSSocketTest, Close)
+TEST(TAConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    SSLctx                  ctx{SSLMethodType::Client};
-    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    auto action = [](){
+        CipherInfo      cipherInfo{"Value1", "Value2"};;
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
-        socket.close();
-        ASSERT_FALSE(socket.isConnected());
-    })
-    .expectCodeTA(SSL_shutdown).toReturn(1)
-    .codeTA(SSL_free).toReturn(1)
-    .codeTA(close).toReturn(0)
-    .run();
+        ASSERT_EQ(cipherInfo.cipherList, "Value1");
+        ASSERT_EQ(cipherInfo.cipherSuite,"Value2");
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionSSocketTest, ReadFDSameAsSocketId)
+TEST(TAConnectionSSocketUtilTest, CipherInfoSetCTX)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    SSLctx                  ctx{SSLMethodType::Client};
-    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string input1 = "List1";
+    std::string input2 = "Suite2";
+    MOCK_INPUT(SSL_CTX_set_cipher_list, reinterpret_cast<SSL_CTX*>(0x08), input1);
+    MOCK_INPUT(SSL_CTX_set_ciphersuites, reinterpret_cast<SSL_CTX*>(0x08), input2);
+    CipherInfo      cipherInfo{input1, input2};
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
-        ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
-    })
-    .run();
+    auto action = [&](){
+        MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}});
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionSSocketTest, WriteFDSameAsSocketId)
+TEST(TAConnectionSSocketUtilTest, CipherInfoSetSSL)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    SSLctx                  ctx{SSLMethodType::Client};
-    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string const input1 = "List1";
+    std::string const input2 = "Suite2";
+    MOCK_INPUT(SSL_set_cipher_list, reinterpret_cast<SSL*>(0x08), input1);
+    MOCK_INPUT(SSL_set_ciphersuites, reinterpret_cast<SSL*>(0x08), input2);
+    CipherInfo      cipherInfo{input1, input2};
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
-        ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
-    })
-    .run();
+    auto action = [&](){
+        MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}});
+        cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-void testReadFailure(Result expected, int errorCode)
+TEST(TAConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    SSLctx                  ctx{SSLMethodType::Client};
-    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_cipher_list,   [](SSL_CTX*, char const* val)    {return 0;});
+    CipherInfo      cipherInfo{"List1", "Suite2"};
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    expected);
-    })
-    .expectCodeTA(SSL_read).toReturn(-1)
-    .codeTA(SSL_get_error).toReturn(std::move(errorCode))
-    .run();
+    auto action = [&]() {
+        MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}}, {"ERR_get_error"});
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-void testWriteFailure(Result expected, int errorCode)
+TEST(TAConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    SSLctx                  ctx{SSLMethodType::Client};
-    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_ciphersuites,  [](SSL_CTX*, char const* val)    {return 0;});
+    CipherInfo      cipherInfo{"List1", "Suite2"};
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    expected);
-    })
-    .expectCodeTA(SSL_write).toReturn(-1)
-    .codeTA(SSL_get_error).toReturn(std::move(errorCode))
-    .run();
+    auto action = [&]() {
+        MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites"}, {}, {}, {}}, {"ERR_get_error"});
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionSSocketTest, Read_OK)
+TEST(TAConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    SSLctx                  ctx{SSLMethodType::Client};
-    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_set_cipher_list,   [](SSL*, char const* val)    {return 0;});
+    CipherInfo      cipherInfo{"List1", "Suite2"};
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     12);
-        ASSERT_EQ(result.second,    Result::OK);
-    })
-    .expectCodeTA(SSL_read).toReturn(8)
-    .codeTA(SSL_get_error).toReturn(SSL_ERROR_NONE)
-    .run();
+    auto action = [&]() {
+        MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}}, {"ERR_get_error"});
+        cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionSSocketTest, Write_OK)
+TEST(TAConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    SSLctx                  ctx{SSLMethodType::Client};
-    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_set_ciphersuites,  [](SSL*, char const* val)    {return 0;});
+    CipherInfo      cipherInfo{"List1", "Suite2"};
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     12);
-        ASSERT_EQ(result.second,    Result::OK);
-    })
-    .expectCodeTA(SSL_write).toReturn(8)
-    .codeTA(SSL_get_error).toReturn(SSL_ERROR_NONE)
-    .run();
+    auto action = [&]() {
+        MockActionAddObject         checksetCipherInfo({"Cipher", {"SSL_set_cipher_list", "SSL_set_ciphersuites"}, {}, {}, {}}, {"ERR_get_error"});
+        cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_WRITE)                {testReadFailure(Result::CriticalBug, SSL_ERROR_WANT_WRITE);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_CONNECT)              {testReadFailure(Result::CriticalBug, SSL_ERROR_WANT_CONNECT);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ACCEPT)               {testReadFailure(Result::CriticalBug, SSL_ERROR_WANT_ACCEPT);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_SYSCALL)                   {testReadFailure(Result::CriticalBug, SSL_ERROR_SYSCALL);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_SSL)                       {testReadFailure(Result::CriticalBug, SSL_ERROR_SSL);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_ZERO_RETURN)               {testReadFailure(Result::ConnectionClosed, SSL_ERROR_ZERO_RETURN);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_READ)                 {testReadFailure(Result::WouldBlock, SSL_ERROR_WANT_READ);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_X509_LOOKUP)          {testReadFailure(Result::Unknown, SSL_ERROR_WANT_X509_LOOKUP);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_CLIENT_HELLO_CB)      {testReadFailure(Result::Unknown, SSL_ERROR_WANT_CLIENT_HELLO_CB);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC)                {testReadFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC);}
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC_JOB)            {testReadFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC_JOB);}
+TEST(TAConnectionSSocketUtilTest, CertificateInfoDefaultConstruct)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    auto action = [](){
+        CertificateInfo     ca;
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoConstruct)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    auto action = [](){
+        CertificateInfo     ca("File1", "File2", [](int){return "password";});;
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
 
 
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_READ)                {testWriteFailure(Result::CriticalBug, SSL_ERROR_WANT_READ);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_CONNECT)             {testWriteFailure(Result::CriticalBug, SSL_ERROR_WANT_CONNECT);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ACCEPT)              {testWriteFailure(Result::CriticalBug, SSL_ERROR_WANT_ACCEPT);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_SYSCALL)                  {testWriteFailure(Result::CriticalBug, SSL_ERROR_SYSCALL);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_SSL)                      {testWriteFailure(Result::CriticalBug, SSL_ERROR_SSL);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_ZERO_RETURN)              {testWriteFailure(Result::ConnectionClosed, SSL_ERROR_ZERO_RETURN);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_WRITE)               {testWriteFailure(Result::WouldBlock, SSL_ERROR_WANT_WRITE);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)         {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_X509_LOOKUP);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)     {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_CLIENT_HELLO_CB);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)               {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC);}
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)           {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC_JOB);}
+TEST(TAConnectionSSocketUtilTest, CertificateInfoDefaultConstructNoAction)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    CertificateInfo     ca;
+
+    auto action = [&](){
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+extern MockAction getsetCertificateInfoCTX();
+extern MockAction getsetCertificateInfoSSL();
+/*
+MockAction getsetCertificateInfoCTX()
+{
+    return {
+                "setCertificateInfo",
+                {"SSL_CTX_set_default_passwd_cb", "SSL_CTX_set_default_passwd_cb_userdata", "SSL_CTX_use_certificate_file", "SSL_CTX_use_PrivateKey_file", "SSL_CTX_check_private_key"},
+                {}, {}, {}
+            };
+}
+MockAction getsetCertificateInfoSSL()
+{
+    return {
+                "setCertificateInfo",
+                {"SSL_set_default_passwd_cb", "SSL_set_default_passwd_cb_userdata", "SSL_use_certificate_file", "SSL_use_PrivateKey_file", "SSL_check_private_key"},
+                {}, {}, {}
+            };
+}
+*/
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
+
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoCTX());
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
+
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoSSL());
+        ca.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    auto action = [](){
+        CertificateInfo     ca("File1", "");
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    auto action = [](){
+        CertificateInfo     ca("", "File2");
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_CTX_use_certificate_file,              [](SSL_CTX*, char const* v, int)   {return 0;});
+    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
+
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoCTX(), {"ERR_get_error"});
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_CTX_use_PrivateKey_file,               [](SSL_CTX*, char const* v, int)   {return 0;});
+    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
+
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoCTX(), {"ERR_get_error"});
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_CTX_check_private_key,                 [](SSL_CTX const*)                 {return 0;});
+    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
+
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoCTX(), {"ERR_get_error"});
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_use_certificate_file,              [](SSL*, char const* v, int)   {return 0;});
+    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
+
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoSSL(), {"ERR_get_error"});
+        ca.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_use_PrivateKey_file,               [](SSL*, char const* v, int)   {return 0;});
+    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
+
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoSSL(), {"ERR_get_error"});
+        ca.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string certFile = "certFile1";
+    std::string keyFile  = "keyFile2";
+    MOCK_SYS(SSL_check_private_key,                 [](SSL const*)                 {return 0;});
+    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
+    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
+
+    CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertificateInfo(getsetCertificateInfoSSL(), {"ERR_get_error"});
+        ca.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_file"}, {}, {}, {}});
+        ca.file.loadDefault = true;
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_dir"}, {}, {}, {}});
+        ca.dir.loadDefault = true;
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_store"}, {}, {}, {}});
+        ca.store.loadDefault = true;
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string  file = "Item 1";
+    MOCK_INPUT(SSL_CTX_load_verify_file, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_file"}, {}, {}, {}});
+        ca.file.items.push_back(file);
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string  file = "Item 1";
+    MOCK_INPUT(SSL_CTX_load_verify_dir, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_dir"}, {}, {}, {}});
+        ca.dir.items.push_back(file);
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string  file = "Item 1";
+    MOCK_INPUT(SSL_CTX_load_verify_store, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_store"}, {}, {}, {}});
+        ca.store.items.push_back(file);
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_default_verify_file,   [](SSL_CTX*)               {return 0;});
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_file"}, {}, {}, {}}, {"ERR_get_error"});
+        ca.file.loadDefault = true;
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_default_verify_dir,    [](SSL_CTX*)               {return 0;});
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_dir"}, {}, {}, {}}, {"ERR_get_error"});
+        ca.dir.loadDefault = true;
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_CTX_set_default_verify_store,    [](SSL_CTX*)             {return 0;});
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_default_verify_store"}, {}, {}, {}}, {"ERR_get_error"});
+        ca.store.loadDefault = true;
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string  file = "Item 1";
+    MOCK_SYS(SSL_CTX_load_verify_file,         [](SSL_CTX*, char const*)  {return 0;});
+    MOCK_INPUT(SSL_CTX_load_verify_file, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_file"}, {}, {}, {}}, {"ERR_get_error"});
+        ca.file.items.push_back(file);
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string  file = "Item 1";
+    MOCK_SYS(SSL_CTX_load_verify_dir,           [](SSL_CTX*, char const* v){return 0;});
+    MOCK_INPUT(SSL_CTX_load_verify_dir, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_dir"}, {}, {}, {}}, {"ERR_get_error"});
+        ca.dir.items.push_back(file);
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    std::string  file = "Item 1";
+    MOCK_SYS(SSL_CTX_load_verify_store,           [](SSL_CTX*, char const* v){return 0;});
+    MOCK_INPUT(SSL_CTX_load_verify_store, reinterpret_cast<SSL_CTX*>(0x08), file);
+    CertifcateAuthorityInfo     ca;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_load_verify_store"}, {}, {}, {}}, {"ERR_get_error"});
+        ca.store.items.push_back(file);
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+
+    auto action = [](){
+        ClientCAListInfo  list;
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"ClientCAList", {"SSL_CTX_set_verify"}, {}, {}, {}});
+        list.verifyClientCA = true;
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
+        list.file.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
+        list.dir.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack", "SSL_CTX_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
+        list.store.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_CTX_set_verify"}, {}, {}, {}}, {"ERR_get_error"});
+        list.verifyClientCA = true;
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
+        list.file.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
+        list.dir.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
+        list.store.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+
+    auto action = [](){
+        ClientCAListInfo  list;
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"ClientCAList", {"SSL_set_verify"}, {}, {}, {}});
+        list.verifyClientCA = true;
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
+        list.file.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
+        list.dir.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack", "SSL_set_client_CA_list"}, {}, {"sk_X509_NAME_new_null_wrapper"}, {}});
+        list.store.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_set_verify"}, {}, {}, {}});
+        list.verifyClientCA = true;
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_file_cert_subjects_to_stack,   [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_file_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
+        list.file.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_dir_cert_subjects_to_stack,    [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_dir_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
+        list.dir.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    MOCK_SYS(SSL_add_store_cert_subjects_to_stack,  [](STACK_OF(X509_NAME)*, char const*)   {return 0;});
+    ClientCAListInfo            list;
+
+    auto action = [&](){
+        MockActionAddObject         checksetCertifcateAuthorityInfo({"CertificateAuthroty", {"SSL_add_store_cert_subjects_to_stack"}, {}, {"sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_pop_free_wrapper"}, {}}, {"ERR_get_error"});
+        list.store.items.push_back("File 1");
+        list.apply(reinterpret_cast<SSL*>(0x08));
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
 
