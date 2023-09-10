@@ -20,17 +20,6 @@ using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock2::TA_TestNoThrow;
 
 
-#define expectObjectTA(name)        expectObject(ThorsAnvil::BuildTools::Mock2:: name)
-#define expectCodeTA(func)          expectCode(MOCK2_BUILD_MOCK_NAME(func))
-#define errorInitTA(func)           errorInit(MOCK2_BUILD_MOCK_NAME(func))
-#define codeTA(func)                code(MOCK2_BUILD_MOCK_NAME(func))
-#define errorTA(func)               error(MOCK2_BUILD_MOCK_NAME(func))
-
-#define expectInitTA(func)          expectInit(MOCK2_BUILD_MOCK_NAME(func))
-#define expectDestTA(func)          expectDest(MOCK2_BUILD_MOCK_NAME(func))
-#define optionalTA(func)            optional(MOCK2_BUILD_MOCK_NAME(func))
-
-
 namespace ThorsAnvil::BuildTools::Mock2
 {
 
@@ -140,11 +129,9 @@ TA_Object   Socket_NonBlocking(
 
 TEST(TAConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
-    //using ThorsAnvil::BuildTools::Mock2::Mock;
-
     TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx                      ctx{SSLMethodType::Client};
-        SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
+        SSLctx              ctx{SSLMethodType::Client};
+        SSocket             socket(ctx, "github.com",443 , Blocking::Yes);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_Blocking)
@@ -155,8 +142,8 @@ TEST(TAConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 TEST(TAConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 {
     TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx                      ctx{SSLMethodType::Client};
-        SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
+        SSLctx              ctx{SSLMethodType::Client};
+        SSocket             socket(ctx, "github.com",443 , Blocking::Yes);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_Blocking)
@@ -171,7 +158,7 @@ TEST(TAConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 {
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx                ctx{SSLMethodType::Client};
+        SSLctx              ctx{SSLMethodType::Client};
     })
     .expectObjectTA(SSLctx_Client)
         .errorInitTA(TLS_client_method).toReturn(nullptr)
@@ -181,7 +168,7 @@ TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 {
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx                ctx{SSLMethodType::Client};
+        SSLctx              ctx{SSLMethodType::Client};
     })
     .expectObjectTA(SSLctx_Client)
         .errorInitTA(SSL_CTX_new).toReturn(nullptr)
@@ -191,8 +178,8 @@ TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 TEST(TAConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 {
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx                ctx{SSLMethodType::Client};
-        SSocket               socket(ctx, "github.com", 443, Blocking::No);
+        SSLctx              ctx{SSLMethodType::Client};
+        SSocket             socket(ctx, "github.com", 443, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
@@ -204,8 +191,8 @@ TEST(TAConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 TEST(TAConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 {
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx                ctx{SSLMethodType::Client};
-        SSocket               socket(ctx, "github.com", 443, Blocking::No);
+        SSLctx              ctx{SSLMethodType::Client};
+        SSocket             socket(ctx, "github.com", 443, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
@@ -218,8 +205,8 @@ TEST(TAConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 TEST(TAConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 {
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
-        SSLctx                ctx{SSLMethodType::Client};
-        SSocket               socket(ctx, "github.com", 443, Blocking::No);
+        SSLctx              ctx{SSLMethodType::Client};
+        SSocket             socket(ctx, "github.com", 443, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
@@ -231,9 +218,9 @@ TEST(TAConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 
 TEST(TAConnectionSSocketTest, getSocketIdWorks)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
-    SSLctx                ctx{SSLMethodType::Client};
-    SSocket               socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket  defaultMockedFunctions;
+    SSLctx                  ctx{SSLMethodType::Client};
+    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
     TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
@@ -243,9 +230,9 @@ TEST(TAConnectionSSocketTest, getSocketIdWorks)
 
 TEST(TAConnectionSSocketTest, Close)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
-    SSLctx                ctx{SSLMethodType::Client};
-    SSocket               socket(ctx, "github.com", 443, Blocking::No);
+    MockDefaultThorsSocket  defaultMockedFunctions;
+    SSLctx                  ctx{SSLMethodType::Client};
+    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
     TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         socket.close();
@@ -256,649 +243,125 @@ TEST(TAConnectionSSocketTest, Close)
     .codeTA(close).toReturn(0)
     .run();
 }
-#if 0
-    MockDefaultThorsSocket     defaultMockedFunctions;
-
-   SSLctx                      ctx{SSLMethodType::Client};
-   SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddObject     checkClose(MockAction{"Close", {"SSL_shutdown", "SSL_free", "close"}, {}, {}, {}});
-        socket.close();
-        ASSERT_FALSE(socket.isConnected());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
 
 TEST(TAConnectionSSocketTest, ReadFDSameAsSocketId)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockDefaultThorsSocket  defaultMockedFunctions;
+    SSLctx                  ctx{SSLMethodType::Client};
+    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
+    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
 TEST(TAConnectionSSocketTest, WriteFDSameAsSocketId)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockDefaultThorsSocket  defaultMockedFunctions;
+    SSLctx                  ctx{SSLMethodType::Client};
+    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
+    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_WRITE)
+void testReadFailure(Result expected, int errorCode)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockDefaultThorsSocket  defaultMockedFunctions;
+    SSLctx                  ctx{SSLMethodType::Client};
+    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_WRITE;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
+    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         char    buffer[12];
         IOResult result = socket.read(buffer, 12, 4);
 
         ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+        ASSERT_EQ(result.second,    expected);
+    })
+    .expectCodeTA(SSL_read).toReturn(-1)
+    .codeTA(SSL_get_error).toReturn(std::move(errorCode))
+    .run();
 }
 
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_CONNECT)
+void testWriteFailure(Result expected, int errorCode)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockDefaultThorsSocket  defaultMockedFunctions;
+    SSLctx                  ctx{SSLMethodType::Client};
+    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CONNECT;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
+    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
+        IOResult result = socket.write(buffer, 12, 4);
 
         ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ACCEPT)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ACCEPT;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_SYSCALL)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SYSCALL;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_SSL)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SSL;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_ZERO_RETURN)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_ZERO_RETURN;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::ConnectionClosed);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_READ)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_READ;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::WouldBlock);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_X509_LOOKUP)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_X509_LOOKUP;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::Unknown);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_CLIENT_HELLO_CB)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CLIENT_HELLO_CB;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::Unknown);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::Unknown);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC_JOB)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC_JOB;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.read(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::Unknown);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+        ASSERT_EQ(result.second,    expected);
+    })
+    .expectCodeTA(SSL_write).toReturn(-1)
+    .codeTA(SSL_get_error).toReturn(std::move(errorCode))
+    .run();
 }
 
 TEST(TAConnectionSSocketTest, Read_OK)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockDefaultThorsSocket  defaultMockedFunctions;
+    SSLctx                  ctx{SSLMethodType::Client};
+    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    // Override default behavior
-    MOCK_SYS(SSL_read,      [](SSL*, void*, size_t) {return 8;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_NONE;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Read", {"SSL_read"}, {}, {}, {}}, {"SSL_get_error"} );
-
+    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         char    buffer[12];
         IOResult result = socket.read(buffer, 12, 4);
 
         ASSERT_EQ(result.first,     12);
         ASSERT_EQ(result.second,    Result::OK);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_READ)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_READ;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_CONNECT)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CONNECT;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ACCEPT)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ACCEPT;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_SYSCALL)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SYSCALL;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_SSL)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_SSL;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::CriticalBug);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_ZERO_RETURN)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_ZERO_RETURN;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::ConnectionClosed);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_WRITE)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_WRITE;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::WouldBlock);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_X509_LOOKUP;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::Unknown);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_CLIENT_HELLO_CB;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::Unknown);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::Unknown);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
-}
-
-TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)
-{
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return -1;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_WANT_ASYNC_JOB;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
-        char    buffer[12];
-        IOResult result = socket.write(buffer, 12, 4);
-
-        ASSERT_EQ(result.first,     4);
-        ASSERT_EQ(result.second,    Result::Unknown);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .expectCodeTA(SSL_read).toReturn(8)
+    .codeTA(SSL_get_error).toReturn(SSL_ERROR_NONE)
+    .run();
 }
 
 TEST(TAConnectionSSocketTest, Write_OK)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockDefaultThorsSocket  defaultMockedFunctions;
+    SSLctx                  ctx{SSLMethodType::Client};
+    SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    // Override default behavior
-    MOCK_SYS(SSL_write,     [](SSL*, void const*, size_t) {return 8;});
-    MOCK_SYS(SSL_get_error, [](SSL const*, int)     {return SSL_ERROR_NONE;});
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        MockActionAddCode   addCode(MockAction{"Write", {"SSL_write"}, {}, {}, {}}, {"SSL_get_error"} );
-
+    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         char    buffer[12];
         IOResult result = socket.write(buffer, 12, 4);
 
         ASSERT_EQ(result.first,     12);
         ASSERT_EQ(result.second,    Result::OK);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .expectCodeTA(SSL_write).toReturn(8)
+    .codeTA(SSL_get_error).toReturn(SSL_ERROR_NONE)
+    .run();
 }
-#endif
+
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_WRITE)                {testReadFailure(Result::CriticalBug, SSL_ERROR_WANT_WRITE);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_CONNECT)              {testReadFailure(Result::CriticalBug, SSL_ERROR_WANT_CONNECT);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ACCEPT)               {testReadFailure(Result::CriticalBug, SSL_ERROR_WANT_ACCEPT);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_SYSCALL)                   {testReadFailure(Result::CriticalBug, SSL_ERROR_SYSCALL);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_SSL)                       {testReadFailure(Result::CriticalBug, SSL_ERROR_SSL);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_ZERO_RETURN)               {testReadFailure(Result::ConnectionClosed, SSL_ERROR_ZERO_RETURN);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_READ)                 {testReadFailure(Result::WouldBlock, SSL_ERROR_WANT_READ);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_X509_LOOKUP)          {testReadFailure(Result::Unknown, SSL_ERROR_WANT_X509_LOOKUP);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_CLIENT_HELLO_CB)      {testReadFailure(Result::Unknown, SSL_ERROR_WANT_CLIENT_HELLO_CB);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC)                {testReadFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC);}
+TEST(TAConnectionSSocketTest, Read_SSL_ERROR_WANT_ASYNC_JOB)            {testReadFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC_JOB);}
 
 
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_READ)                {testWriteFailure(Result::CriticalBug, SSL_ERROR_WANT_READ);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_CONNECT)             {testWriteFailure(Result::CriticalBug, SSL_ERROR_WANT_CONNECT);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ACCEPT)              {testWriteFailure(Result::CriticalBug, SSL_ERROR_WANT_ACCEPT);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_SYSCALL)                  {testWriteFailure(Result::CriticalBug, SSL_ERROR_SYSCALL);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_SSL)                      {testWriteFailure(Result::CriticalBug, SSL_ERROR_SSL);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_ZERO_RETURN)              {testWriteFailure(Result::ConnectionClosed, SSL_ERROR_ZERO_RETURN);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_WRITE)               {testWriteFailure(Result::WouldBlock, SSL_ERROR_WANT_WRITE);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)         {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_X509_LOOKUP);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)     {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_CLIENT_HELLO_CB);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)               {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC);}
+TEST(TAConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)           {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC_JOB);}
 
