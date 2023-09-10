@@ -75,7 +75,7 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
         MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSocket",
                          "SSocket",
-                         "SSL_connect() failed: ", buildErrorMessage(error));
+                         "SSL_free() failed: ", buildErrorMessage(error));
     }
 
 
@@ -86,7 +86,7 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
         MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSocket",
                          "SSocket",
-                         "SSL_connect() failed: ", buildOpenSSLErrorMessage());
+                         "SSL_get1_peer_certificate() failed: ", buildOpenSSLErrorMessage());
     }
     MOCK_FUNC(X509_free)(cert);
 }
