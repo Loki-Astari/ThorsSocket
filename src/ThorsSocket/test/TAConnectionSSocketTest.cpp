@@ -16,14 +16,14 @@ using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocket;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
 using ThorsAnvil::ThorsSocket::ConnectionType::SocketAddr;
-// using ThorsAnvil::BuildTools::Mock::MockActionThrowDetext;
-// using ThorsAnvil::BuildTools::Mock::MockActionAddObject;
-// using ThorsAnvil::BuildTools::Mock::MockActionAddCode;
-// using ThorsAnvil::BuildTools::Mock::MockAction;
+using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
+using ThorsAnvil::BuildTools::Mock2::TA_TestNoThrow;
 
 
 #define expectObjectTA(name)        expectObject(ThorsAnvil::BuildTools::Mock2:: name)
+#define expectCodeTA(func)          expectCode(MOCK2_BUILD_MOCK_NAME(func))
 #define errorInitTA(func)           errorInit(MOCK2_BUILD_MOCK_NAME(func))
+#define codeTA(func)                code(MOCK2_BUILD_MOCK_NAME(func))
 #define errorTA(func)               error(MOCK2_BUILD_MOCK_NAME(func))
 
 #define expectInitTA(func)          expectInit(MOCK2_BUILD_MOCK_NAME(func))
@@ -140,7 +140,6 @@ TA_Object   Socket_NonBlocking(
 
 TEST(TAConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
-    using ThorsAnvil::BuildTools::Mock2::TA_TestNoThrow;
     //using ThorsAnvil::BuildTools::Mock2::Mock;
 
     TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
@@ -155,8 +154,6 @@ TEST(TAConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 
 TEST(TAConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 {
-    using ThorsAnvil::BuildTools::Mock2::TA_TestNoThrow;
-
     TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
         SSLctx                      ctx{SSLMethodType::Client};
         SSocket                     socket(ctx, "github.com",443 , Blocking::Yes);
@@ -173,8 +170,6 @@ TEST(TAConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 
 TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 {
-    using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
-
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
         SSLctx                ctx{SSLMethodType::Client};
     })
@@ -185,8 +180,6 @@ TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 
 TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 {
-    using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
-
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
         SSLctx                ctx{SSLMethodType::Client};
     })
@@ -197,8 +190,6 @@ TEST(TAConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 
 TEST(TAConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 {
-    using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
-
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
         SSLctx                ctx{SSLMethodType::Client};
         SSocket               socket(ctx, "github.com", 443, Blocking::No);
@@ -212,8 +203,6 @@ TEST(TAConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 
 TEST(TAConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 {
-    using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
-
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
         SSLctx                ctx{SSLMethodType::Client};
         SSocket               socket(ctx, "github.com", 443, Blocking::No);
@@ -228,8 +217,6 @@ TEST(TAConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 
 TEST(TAConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 {
-    using ThorsAnvil::BuildTools::Mock2::TA_TestThrow;
-
     TA_TestThrow<Mock2DefaultThorsSocket>([](){
         SSLctx                ctx{SSLMethodType::Client};
         SSocket               socket(ctx, "github.com", 443, Blocking::No);
@@ -248,28 +235,28 @@ TEST(TAConnectionSSocketTest, getSocketIdWorks)
     SSLctx                ctx{SSLMethodType::Client};
     SSocket               socket(ctx, "github.com", 443, Blocking::No);
 
-    using ThorsAnvil::BuildTools::Mock2::TA_TestNoThrow;
     TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
     })
     .run();
 }
-#if 0
-    MockDefaultThorsSocket      defaultMockedFunctions;
-
-    SSLctx                      ctx{SSLMethodType::Client};
-    SSocket                     socket(ctx, "github.com", 443, Blocking::No);
-
-    auto action = [&](){
-        ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action();
-    );
-}
 
 TEST(TAConnectionSSocketTest, Close)
 {
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    SSLctx                ctx{SSLMethodType::Client};
+    SSocket               socket(ctx, "github.com", 443, Blocking::No);
+
+    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+        socket.close();
+        ASSERT_FALSE(socket.isConnected());
+    })
+    .expectCodeTA(SSL_shutdown).toReturn(1)
+    .codeTA(SSL_free).toReturn(1)
+    .codeTA(close).toReturn(0)
+    .run();
+}
+#if 0
     MockDefaultThorsSocket     defaultMockedFunctions;
 
    SSLctx                      ctx{SSLMethodType::Client};
