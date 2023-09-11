@@ -1,117 +1,114 @@
 #include <gtest/gtest.h>
 #include "ConnectionFile.h"
-#include "test/ConnectionTest.h"
 #include "test/MockDefaultThorsSocket.h"
 
 
-// FileDescriptor is virtual (not all virtual methods defined).
-//using ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor;
-using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::File;
-using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
-using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
+#include <unistd.h>
+#include <stdlib.h>
 
+using ThorsAnvil::ThorsSocket::ConnectionType::File;
+using ThorsAnvil::ThorsSocket::Open;
+using ThorsAnvil::ThorsSocket::Mode;
+using ThorsAnvil::ThorsSocket::Blocking;
+using ThorsAnvil::ThorsSocket::IOResult;
+using ThorsAnvil::ThorsSocket::Result;
+using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
+using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
+using ThorsAnvil::BuildTools::Mock1::MockAction;
 
-void testSocketReadFailure(int error, Result expected)
+TEST(TAConnectionFileTest, Construct)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    FileDescriptorProxy     file(12);
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    TA_TestNoThrow([&](){
-        char buffer[12];
-        errno = error;  // TODO needs to be set in read
-        IOResult result = file.read(buffer, 12, 0);
-
-        ASSERT_EQ(result.second, expected);
-    })
-    .expectCodeTA(read).toReturn(-1)
-    .run();
+    auto action = [&](){
+        MockActionAddObject         checkFile(MockDefaultThorsSocket::getActionFile());
+        File                        file("TestFile", Open::Append, Blocking::No);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-void testSocketWriteFailure(int error, Result expected)
+TEST(TAConnectionFileTest, ConstructOpenFail)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    FileDescriptorProxy     file(12);
+    MockDefaultThorsSocket          defaultMockedFunctions;
+    // Override default behavior
+    MOCK_TSYS(OpenType, open, [](const char*, int, unsigned short)    {return -1;});
 
-    TA_TestNoThrow([&](){
-        char buffer[12];
-        errno = error;  // TODO needs to be set in read
-        IOResult result = file.write(buffer, 12, 0);
-
-        ASSERT_EQ(result.second, expected);
-    })
-    .expectCodeTA(write).toReturn(-1)
-    .run();
+    auto action = [](){
+        MockActionAddObject         checkFile(MockDefaultThorsSocket::getActionFile());
+        File                        file("TestFile", Open::Append, Blocking::No);
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionFileDescriptorTest, ReadOK)
+TEST(TAConnectionFileTest, notValidOnMinusOne)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    FileDescriptorProxy     file(12);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    File                        file(-1);
 
-    TA_TestNoThrow([&](){
-        char buffer[12];
-        IOResult result = file.read(buffer, 12, 0);
-        ASSERT_EQ(result.second, Result::OK);
-    })
-    .expectCodeTA(read).toReturn(12)
-    .run();
+    auto action = [&](){
+        ASSERT_FALSE(file.isConnected());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionFileDescriptorTest, WriteOK)
+TEST(TAConnectionFileTest, getSocketIdWorks)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
-    FileDescriptorProxy     file(12);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    File                        file(12);
 
-    TA_TestNoThrow([&](){
-        char buffer[12];
-        IOResult result = file.write(buffer, 12, 0);
-        ASSERT_EQ(result.second, Result::OK);
-    })
-    .expectCodeTA(write).toReturn(12)
-    .run();
+    auto action = [&](){
+        ASSERT_EQ(file.socketId(Mode::Read), 12);
+        ASSERT_EQ(file.socketId(Mode::Write), 12);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-
-TEST(TAConnectionFileDescriptorTest, ReadEBADF)             {testSocketReadFailure(EBADF, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadEFAULT)            {testSocketReadFailure(EFAULT, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadEINVAL)            {testSocketReadFailure(EINVAL, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadEISDIR)            {testSocketReadFailure(EISDIR, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadENOTCONN)          {testSocketReadFailure(ENOTCONN, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadEBADMSG)           {testSocketReadFailure(EBADMSG, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadEOVERFLOW)         {testSocketReadFailure(EOVERFLOW, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadENXIO)             {testSocketReadFailure(ENXIO, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadESPIPE)            {testSocketReadFailure(ESPIPE, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, ReadEINTR)             {testSocketReadFailure(EINTR, Result::Interupt);}
-TEST(TAConnectionFileDescriptorTest, ReadECONNRESET)        {testSocketReadFailure(ECONNRESET, Result::ConnectionClosed);}
-TEST(TAConnectionFileDescriptorTest, ReadEAGAIN)            {testSocketReadFailure(EAGAIN, Result::WouldBlock);}
-TEST(TAConnectionFileDescriptorTest, ReadEWOULDBLOCK)       {testSocketReadFailure(EWOULDBLOCK, Result::WouldBlock);}
-TEST(TAConnectionFileDescriptorTest, ReadUnknownError)      {testSocketReadFailure(EIO, Result::Unknown);}
-
-
-TEST(TAConnectionFileDescriptorTest, writeEBADF)            {testSocketWriteFailure(EBADF, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeEFAULT)           {testSocketWriteFailure(EFAULT, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeEINVAL)           {testSocketWriteFailure(EINVAL, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeENOTCONN)         {testSocketWriteFailure(ENOTCONN, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeENXIO)            {testSocketWriteFailure(ENXIO, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeESPIPE)           {testSocketWriteFailure(ESPIPE, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeEDESTADDRREQ)     {testSocketWriteFailure(EDESTADDRREQ, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeERANGE)           {testSocketWriteFailure(ERANGE, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeEPIPE)            {testSocketWriteFailure(EPIPE, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeEACCES)           {testSocketWriteFailure(EACCES, Result::CriticalBug);}
-TEST(TAConnectionFileDescriptorTest, writeEINTR)            {testSocketWriteFailure(EINTR, Result::Interupt);}
-TEST(TAConnectionFileDescriptorTest, writeECONNRESET)       {testSocketWriteFailure(ECONNRESET, Result::ConnectionClosed);}
-TEST(TAConnectionFileDescriptorTest, writeEAGAIN)           {testSocketWriteFailure(EAGAIN, Result::WouldBlock);}
-TEST(TAConnectionFileDescriptorTest, writeEWOULDBLOCK)      {testSocketWriteFailure(EWOULDBLOCK, Result::WouldBlock);}
-TEST(TAConnectionFileDescriptorTest, WriteUnknownError)     {testSocketWriteFailure(EIO, Result::Unknown);}
-
-TEST(TAConnectionFileDescriptorTest, CheckErrorMsg)
+TEST(TAConnectionFileTest, Close)
 {
-    FileDescriptorProxy         file(12);
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    File                        file("TestFile", Open::Append, Blocking::No);
 
-    errno = EBADF;
-    std::string message = file.errorMessage(-1);
-
-    ASSERT_NE(std::string::npos, message.find("EBADF"));
-    ASSERT_NE(std::string::npos, message.find("ConnectionType::FileDescriptor"));
+    auto action = [&](){
+        MockActionAddObject         checkClose(MockAction{"Close", {"close"}, {}, {}, {}});
+        file.close();
+        ASSERT_FALSE(file.isConnected());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
+TEST(TAConnectionFileTest, ReadFDSameAsSocketId)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    File                        file(33);
+
+    auto action = [&](){
+        ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionFileTest, WriteFDSameAsSocketId)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    File                        file(34);
+
+    auto action = [&](){
+        ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
