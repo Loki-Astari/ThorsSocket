@@ -15,47 +15,45 @@ using ThorsAnvil::ThorsSocket::Result;
 using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
 using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
 using ThorsAnvil::BuildTools::Mock1::MockAction;
+using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
+using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
+
+namespace ThorsAnvil::BuildTools::Mock1
+{
+
+TA_Object   File(
+                build()
+                .expectInitTA(open).toReturn(0)
+                .expectDestTA(close)
+            );
+}
 
 TEST(ConnectionFileTest, Construct)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
-
-    auto action = [&](){
-        MockActionAddObject         checkFile(MockDefaultThorsSocket::getActionFile());
+    TA_TestNoThrow([](){
         File                        file("TestFile", Open::Append, Blocking::No);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .expectObjectTA(File)
+    .run();
 }
 
 TEST(ConnectionFileTest, ConstructOpenFail)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
-    // Override default behavior
-    MOCK_TSYS(OpenType, open, [](const char*, int, unsigned short)    {return -1;});
-
-    auto action = [](){
-        MockActionAddObject         checkFile(MockDefaultThorsSocket::getActionFile());
+    TA_TestThrow([](){
         File                        file("TestFile", Open::Append, Blocking::No);
-    };
-    ASSERT_THROW(
-        MockActionThrowDetext detect;action(),
-        std::runtime_error
-    );
+    })
+    .expectObjectTA(File)
+        .errorInitTA(open).toReturn(-1)
+    .run();
 }
 
 TEST(ConnectionFileTest, notValidOnMinusOne)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
-    File                        file(-1);
-
-    auto action = [&](){
+    TA_TestNoThrow([](){
+        File                        file(-1);
         ASSERT_FALSE(file.isConnected());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
 TEST(ConnectionFileTest, getSocketIdWorks)
@@ -63,13 +61,11 @@ TEST(ConnectionFileTest, getSocketIdWorks)
     MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file(12);
 
-    auto action = [&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(file.socketId(Mode::Read), 12);
         ASSERT_EQ(file.socketId(Mode::Write), 12);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
 TEST(ConnectionFileTest, Close)
@@ -77,14 +73,12 @@ TEST(ConnectionFileTest, Close)
     MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file("TestFile", Open::Append, Blocking::No);
 
-    auto action = [&](){
-        MockActionAddObject         checkClose(MockAction{"Close", {"close"}, {}, {}, {}});
+    TA_TestNoThrow([&](){
         file.close();
         ASSERT_FALSE(file.isConnected());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .expectCodeTA(close)
+    .run();
 }
 
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
@@ -92,12 +86,10 @@ TEST(ConnectionFileTest, ReadFDSameAsSocketId)
     MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file(33);
 
-    auto action = [&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
@@ -105,10 +97,8 @@ TEST(ConnectionFileTest, WriteFDSameAsSocketId)
     MockDefaultThorsSocket      defaultMockedFunctions;
     File                        file(34);
 
-    auto action = [&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }

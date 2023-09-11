@@ -1,12 +1,11 @@
 #include <gtest/gtest.h>
-#include "ConnectionFile.h"
+#include "ConnectionPipe.h"
 #include "test/MockDefaultThorsSocket.h"
-
 
 #include <unistd.h>
 #include <stdlib.h>
 
-using ThorsAnvil::ThorsSocket::ConnectionType::File;
+using ThorsAnvil::ThorsSocket::ConnectionType::Pipe;
 using ThorsAnvil::ThorsSocket::Open;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
@@ -15,90 +14,121 @@ using ThorsAnvil::ThorsSocket::Result;
 using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
 using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
 using ThorsAnvil::BuildTools::Mock1::MockAction;
-using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
-using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
 
-namespace ThorsAnvil::BuildTools::Mock1
+TEST(TAConnectionPipeTest, Construct)
 {
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-TA_Object   File(
-                build()
-                .expectInitTA(open).toReturn(0)
-                .expectDestTA(close)
-            );
+    auto action = [](){
+        MockActionAddObject         checkPipe(MockDefaultThorsSocket::getActionPipeNonBlocking());
+        Pipe                        pipe(Blocking::No);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionFileTest, Construct)
+TEST(TAConnectionPipeTest, ConstructPipeFail)
 {
-    TA_TestNoThrow([](){
-        File                        file("TestFile", Open::Append, Blocking::No);
-    })
-    .expectObjectTA(File)
-    .run();
+    MockDefaultThorsSocket          defaultMockedFunctions;
+    // Override default behavior
+    MOCK_SYS(pipe, [](int[])            {return -1;});
+
+    auto action = [](){
+        MockActionAddObject         checkPipe(MockDefaultThorsSocket::getActionPipeNonBlocking());
+        Pipe                        pipe(Blocking::No);
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionFileTest, ConstructOpenFail)
+TEST(TAConnectionPipeTest, ConstructPipeNonBlockingFail)
 {
-    TA_TestThrow([](){
-        File                        file("TestFile", Open::Append, Blocking::No);
-    })
-    .expectObjectTA(File)
-        .errorInitTA(open).toReturn(-1)
-    .run();
+    MockDefaultThorsSocket          defaultMockedFunctions;
+    // Override default behavior
+    MOCK_TSYS(FctlType, fcntl,  [](int, int, int)     {return -1;});
+
+    auto action = [](){
+        MockActionAddObject         checkPipe(MockDefaultThorsSocket::getActionPipeNonBlocking(), {"close"});
+        Pipe                        pipe(Blocking::No);
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionFileTest, notValidOnMinusOne)
-{
-    TA_TestNoThrow([](){
-        File                        file(-1);
-        ASSERT_FALSE(file.isConnected());
-    })
-    .run();
-}
-
-TEST(TAConnectionFileTest, getSocketIdWorks)
+TEST(TAConnectionPipeTest, notValidOnMinusOne)
 {
     MockDefaultThorsSocket      defaultMockedFunctions;
-    File                        file(12);
+    int                         fd[] = {-1, -1};
+    Pipe                        pipe(fd);
 
-    TA_TestNoThrow([&](){
-        ASSERT_EQ(file.socketId(Mode::Read), 12);
-        ASSERT_EQ(file.socketId(Mode::Write), 12);
-    })
-    .run();
+    auto action = [&](){
+        ASSERT_FALSE(pipe.isConnected());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionFileTest, Close)
+TEST(TAConnectionPipeTest, getSocketIdWorks)
 {
     MockDefaultThorsSocket      defaultMockedFunctions;
-    File                        file("TestFile", Open::Append, Blocking::No);
+    int                         fd[] = {12, 13};
+    Pipe                        pipe(fd);
 
-    TA_TestNoThrow([&](){
-        file.close();
-        ASSERT_FALSE(file.isConnected());
-    })
-    .expectCodeTA(close)
-    .run();
+    auto action = [&](){
+        ASSERT_EQ(pipe.socketId(Mode::Read), 12);
+        ASSERT_EQ(pipe.socketId(Mode::Write), 13);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionFileTest, ReadFDSameAsSocketId)
+TEST(TAConnectionPipeTest, Close)
 {
     MockDefaultThorsSocket      defaultMockedFunctions;
-    File                        file(33);
+    Pipe                        pipe(Blocking::No);
 
-    TA_TestNoThrow([&](){
-        ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
-    })
-    .run();
+    auto action = [&](){
+        MockActionAddObject         checkClose(MockAction{"Close", {"close", "close"}, {}, {}, {}});
+        pipe.close();
+
+        ASSERT_FALSE(pipe.isConnected());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionFileTest, WriteFDSameAsSocketId)
+TEST(TAConnectionPipeTest, ReadFDSameAsSocketId)
 {
     MockDefaultThorsSocket      defaultMockedFunctions;
-    File                        file(34);
+    int                         fd[] = {33, 34};
+    Pipe                        pipe(fd);
 
-    TA_TestNoThrow([&](){
-        ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());
-    })
-    .run();
+    auto action = [&](){
+        ASSERT_EQ(pipe.socketId(Mode::Read), pipe.getReadFD());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionPipeTest, WriteFDSameAsSocketId)
+{
+    MockDefaultThorsSocket      defaultMockedFunctions;
+    int                         fd[] = {33, 34};
+    Pipe                        pipe(fd);
+
+    auto action = [&](){
+        ASSERT_EQ(pipe.socketId(Mode::Write), pipe.getWriteFD());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
