@@ -9,7 +9,7 @@
 typedef int (*CB)(char*, int, int, void*);
 typedef int (*VCB)(int, X509_STORE_CTX*);
 
-class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
+class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock1::MockOverride
 {
     std::function<ThorsAnvil::ThorsSocket::ConnectionType::HostEnt*(const char*)> getHostByNameMock =[]  (char const*) {
         static char* addrList[] = {""};
@@ -135,7 +135,7 @@ class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
             , MOCK_PARAM(connect,                               [ ](int, ThorsAnvil::ThorsSocket::ConnectionType::SocketAddr const*, unsigned int) {return 0;})
             , MOCK_PARAM(shutdown,                              [ ](int, int)                           {return 0;})
         {}
-        static ThorsAnvil::BuildTools::Mock::MockAction getActionFile()
+        static ThorsAnvil::BuildTools::Mock1::MockAction getActionFile()
         {
             return {
                         "File",
@@ -145,7 +145,7 @@ class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
                         {}
                    };
         }
-        static ThorsAnvil::BuildTools::Mock::MockAction getActionPipeBlocking()
+        static ThorsAnvil::BuildTools::Mock1::MockAction getActionPipeBlocking()
         {
             return {
                         "Pipe",
@@ -155,7 +155,7 @@ class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
                         {}
                    };
         }
-        static ThorsAnvil::BuildTools::Mock::MockAction getActionPipeNonBlocking()
+        static ThorsAnvil::BuildTools::Mock1::MockAction getActionPipeNonBlocking()
         {
             return {
                         "Pipe",
@@ -165,7 +165,7 @@ class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
                         {}
                    };
         }
-        static ThorsAnvil::BuildTools::Mock::MockAction getActionSSLctxClient()
+        static ThorsAnvil::BuildTools::Mock1::MockAction getActionSSLctxClient()
         {
             return  {
                         "SSLctx",
@@ -174,7 +174,7 @@ class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
                         {"SSL_CTX_ctrl", "SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites", "SSL_CTX_set_default_passwd_cb", "SSL_CTX_set_default_passwd_cb_userdata", "SSL_CTX_use_certificate_file", "SSL_CTX_use_PrivateKey_file", "SSL_CTX_check_private_key", "SSL_CTX_set_default_verify_file", "SSL_CTX_set_default_verify_dir", "SSL_CTX_set_default_verify_store", "SSL_CTX_load_verify_file", "SSL_CTX_load_verify_dir", "SSL_CTX_load_verify_store", "sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_free_wrapper", "sk_X509_NAME_pop_free_wrapper", "SSL_CTX_set_verify", "SSL_CTX_set_client_CA_list", "ERR_get_error"}
                     };
         }
-        static ThorsAnvil::BuildTools::Mock::MockAction getActionSSLctxServer()
+        static ThorsAnvil::BuildTools::Mock1::MockAction getActionSSLctxServer()
         {
             return  {
                         "SSLctx",
@@ -183,7 +183,7 @@ class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
                         {"SSL_CTX_ctrl", "SSL_CTX_set_cipher_list", "SSL_CTX_set_ciphersuites", "SSL_CTX_set_default_passwd_cb", "SSL_CTX_set_default_passwd_cb_userdata", "SSL_CTX_use_certificate_file", "SSL_CTX_use_PrivateKey_file", "SSL_CTX_check_private_key", "SSL_CTX_set_default_verify_file", "SSL_CTX_set_default_verify_dir", "SSL_CTX_set_default_verify_store", "SSL_CTX_load_verify_file", "SSL_CTX_load_verify_dir", "SSL_CTX_load_verify_store", "sk_X509_NAME_new_null_wrapper", "sk_X509_NAME_free_wrapper", "sk_X509_NAME_pop_free_wrapper", "SSL_CTX_set_verify", "SSL_CTX_set_client_CA_list", "ERR_get_error"}
                     };
         }
-        static ThorsAnvil::BuildTools::Mock::MockAction getActionSSocket()
+        static ThorsAnvil::BuildTools::Mock1::MockAction getActionSSocket()
         {
             return {
                         "SSocket",
@@ -193,7 +193,7 @@ class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
                    };
         }
 
-        static ThorsAnvil::BuildTools::Mock::MockAction getActionSocketBlocking()
+        static ThorsAnvil::BuildTools::Mock1::MockAction getActionSocketBlocking()
         {
             return {
                         "Socket",
@@ -202,7 +202,7 @@ class MockDefaultThorsSocket: public ThorsAnvil::BuildTools::Mock::MockOverride
                         {}
                    };
         }
-        static ThorsAnvil::BuildTools::Mock::MockAction getActionSocketNonBlocking()
+        static ThorsAnvil::BuildTools::Mock1::MockAction getActionSocketNonBlocking()
         {
             return {
                         "Socket",

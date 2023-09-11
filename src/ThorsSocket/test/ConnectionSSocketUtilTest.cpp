@@ -8,9 +8,9 @@ using ThorsAnvil::ThorsSocket::ConnectionType::CipherInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::CertifcateAuthorityInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::ClientCAListInfo;
-using ThorsAnvil::BuildTools::Mock::MockActionThrowDetext;
-using ThorsAnvil::BuildTools::Mock::MockActionAddObject;
-using ThorsAnvil::BuildTools::Mock::MockAction;
+using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
+using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
+using ThorsAnvil::BuildTools::Mock1::MockAction;
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 {

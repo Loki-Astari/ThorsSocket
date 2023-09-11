@@ -7,10 +7,10 @@ using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
 using ThorsAnvil::ThorsSocket::ConnectionType::SocketAddr;
-using ThorsAnvil::BuildTools::Mock::MockActionThrowDetext;
-using ThorsAnvil::BuildTools::Mock::MockActionAddObject;
-using ThorsAnvil::BuildTools::Mock::MockActionAddCode;
-using ThorsAnvil::BuildTools::Mock::MockAction;
+using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
+using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
+using ThorsAnvil::BuildTools::Mock1::MockActionAddCode;
+using ThorsAnvil::BuildTools::Mock1::MockAction;
 
 TEST(ConnectionSocketTest, Construct)
 {
