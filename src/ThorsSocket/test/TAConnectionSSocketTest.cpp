@@ -4,7 +4,6 @@
 #include "test/ConnectionTest.h"
 #include "test/MockHeaderInclude.h"
 #include "test/MockDefaultThorsSocket.h"
-#include "test/Mock2DefaultThorsSocket.h"
 #include "coverage/MockHeaders2.h"
 
 #include <openssl/ssl.h>

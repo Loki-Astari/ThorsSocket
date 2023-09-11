@@ -6,6 +6,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "OpenSSLMacroWrappers.h"
+#include "ThorsSocketConfig.h"
 
 // # Version 1
 using OpenType = int(const char*, int, unsigned short);

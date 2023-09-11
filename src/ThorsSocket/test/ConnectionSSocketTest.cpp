@@ -3,7 +3,6 @@
 #include "test/ConnectionTest.h"
 #include "test/MockHeaderInclude.h"
 #include "test/MockDefaultThorsSocket.h"
-#include "test/Mock2DefaultThorsSocket.h"
 #include "coverage/MockHeaders2.h"
 
 #include <openssl/ssl.h>
@@ -129,7 +128,7 @@ TA_Object   Socket_NonBlocking(
 
 TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
+    TA_TestNoThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocket             socket(ctx, "github.com",443 , Blocking::Yes);
     })
@@ -141,7 +140,7 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 
 TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 {
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([](){
+    TA_TestNoThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocket             socket(ctx, "github.com",443 , Blocking::Yes);
     })
@@ -157,7 +156,7 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 
 TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
+    TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
     })
     .expectObjectTA(SSLctx_Client)
@@ -167,7 +166,7 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 
 TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
+    TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
     })
     .expectObjectTA(SSLctx_Client)
@@ -177,7 +176,7 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
+    TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocket             socket(ctx, "github.com", 443, Blocking::No);
     })
@@ -190,7 +189,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
+    TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocket             socket(ctx, "github.com", 443, Blocking::No);
     })
@@ -204,7 +203,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 {
-    TA_TestThrow<Mock2DefaultThorsSocket>([](){
+    TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocket             socket(ctx, "github.com", 443, Blocking::No);
     })
@@ -222,7 +221,7 @@ TEST(ConnectionSSocketTest, getSocketIdWorks)
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
     })
     .run();
@@ -234,7 +233,7 @@ TEST(ConnectionSSocketTest, Close)
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+    TA_TestNoThrow([&](){
         socket.close();
         ASSERT_FALSE(socket.isConnected());
     })
@@ -250,7 +249,7 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
     })
     .run();
@@ -262,7 +261,7 @@ TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
     })
     .run();
@@ -274,7 +273,7 @@ void testReadFailure(Result expected, int errorCode)
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+    TA_TestNoThrow([&](){
         char    buffer[12];
         IOResult result = socket.read(buffer, 12, 4);
 
@@ -292,7 +291,7 @@ void testWriteFailure(Result expected, int errorCode)
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+    TA_TestNoThrow([&](){
         char    buffer[12];
         IOResult result = socket.write(buffer, 12, 4);
 
@@ -310,7 +309,7 @@ TEST(ConnectionSSocketTest, Read_OK)
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+    TA_TestNoThrow([&](){
         char    buffer[12];
         IOResult result = socket.read(buffer, 12, 4);
 
@@ -328,7 +327,7 @@ TEST(ConnectionSSocketTest, Write_OK)
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
-    TA_TestNoThrow<Mock2DefaultThorsSocket>([&](){
+    TA_TestNoThrow([&](){
         char    buffer[12];
         IOResult result = socket.write(buffer, 12, 4);
 
