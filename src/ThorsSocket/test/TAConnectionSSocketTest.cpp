@@ -1,124 +1,229 @@
 #include <gtest/gtest.h>
-#include "ConnectionPipe.h"
+#include "ConnectionSocket.h"
+#include "test/ConnectionTest.h"
 #include "test/MockDefaultThorsSocket.h"
 
-#include <unistd.h>
-#include <stdlib.h>
-
-using ThorsAnvil::ThorsSocket::ConnectionType::Pipe;
-using ThorsAnvil::ThorsSocket::Open;
 using ThorsAnvil::ThorsSocket::Mode;
-using ThorsAnvil::ThorsSocket::Blocking;
-using ThorsAnvil::ThorsSocket::IOResult;
-using ThorsAnvil::ThorsSocket::Result;
+using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
+using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
+using ThorsAnvil::ThorsSocket::ConnectionType::SocketAddr;
 using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
 using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
+using ThorsAnvil::BuildTools::Mock1::MockActionAddCode;
 using ThorsAnvil::BuildTools::Mock1::MockAction;
-using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
-using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
 
-namespace ThorsAnvil::BuildTools::Mock1
+TEST(TAConnectionSocketTest, Construct)
 {
-TA_Object   Pipe(
-                build()
-                .expectInitTA(pipe).toReturn(0)
-                .optionalTA(fcntl).toReturn(0)
-                .expectDestTA(close)
-                .expectDestTA(close)
-            );
+    MockDefaultThorsSocket          defaultMockedFunctions;
+
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
+        Socket                      socket("github.com",80 , Blocking::No);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionPipeTest, Construct)
+TEST(TAConnectionSocketTest, SocketCallFails)
 {
-    TA_TestNoThrow([](){
-        Pipe                        pipe(Blocking::No);
-    })
-    .expectObjectTA(Pipe)
-    .run();
+    MockDefaultThorsSocket          defaultMockedFunctions;
+
+    // Override default behavior
+    MOCK_SYS(socket, [](int, int, int)    {return -1;});
+
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
+        Socket                      socket("github.com", 80, Blocking::No);
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionPipeTest, ConstructPipeFail)
+TEST(TAConnectionSocketTest, GetHostCallFails)
 {
-    TA_TestThrow([](){
-        Pipe                        pipe(Blocking::No);
-    })
-    .expectObjectTA(Pipe)
-        .errorInitTA(pipe).toReturn(-1)
-    .run();
+    MockDefaultThorsSocket          defaultMockedFunctions;
+    h_errno = NO_DATA;
+
+    // Override default behavior
+    MOCK_SYS(gethostbyname, [](char const*)     {h_errno = HOST_NOT_FOUND;return nullptr;});
+
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
+        Socket                      socket("github.com", 80, Blocking::No);
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+    ASSERT_EQ(h_errno, HOST_NOT_FOUND);
 }
 
-TEST(TAConnectionPipeTest, ConstructPipeNonBlockingFail)
+TEST(TAConnectionSocketTest, GetHostCallFailsTryAgain)
 {
-    TA_TestThrow([](){
-        Pipe                        pipe(Blocking::No);
-    })
-    .expectObjectTA(Pipe)
-        .errorInitTA(fcntl).toReturn(-1)
-        .errorTA(fcntl).toReturn(0)
-        .errorTA(close).toReturn(0)
-        .errorTA(close).toReturn(0)
-    .run();
+    MockDefaultThorsSocket          defaultMockedFunctions;
+    h_errno = NO_DATA;
+
+    // Override default behavior
+    MOCK_SYS(gethostbyname, [](char const*)     {static int call =0; ++call; h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND; return nullptr;});
+
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"gethostbyname", "close"});
+        Socket                      socket("github.com", 80, Blocking::No);
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+    ASSERT_EQ(h_errno, HOST_NOT_FOUND);
 }
 
-TEST(TAConnectionPipeTest, notValidOnMinusOne)
+TEST(TAConnectionSocketTest, ConnectCallFailes)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
-    int                         fd[] = {-1, -1};
-    Pipe                        pipe(fd);
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    TA_TestNoThrow([&](){
-        ASSERT_FALSE(pipe.isConnected());
-    })
-    .run();
+    // Override default behavior
+    MOCK_SYS(connect,   [](int, SocketAddr const*, unsigned int) {return -1;});
+
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
+        Socket                      socket("github.com", 80, Blocking::No);
+    };
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
 
-TEST(TAConnectionPipeTest, getSocketIdWorks)
+TEST(TAConnectionSocketTest, CreateNonBlocking)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
-    int                         fd[] = {12, 13};
-    Pipe                        pipe(fd);
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    TA_TestNoThrow([&](){
-        ASSERT_EQ(pipe.socketId(Mode::Read), 12);
-        ASSERT_EQ(pipe.socketId(Mode::Write), 13);
-    })
-    .run();
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketBlocking());
+        Socket                      socket("github.com", 80, Blocking::Yes);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionPipeTest, Close)
+TEST(TAConnectionSocketTest, CreateBlocking)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
-    Pipe                        pipe(Blocking::No);
+    MockDefaultThorsSocket          defaultMockedFunctions;
 
-    TA_TestNoThrow([&](){
-        pipe.close();
-        ASSERT_FALSE(pipe.isConnected());
-    })
-    .expectCodeTA(close)
-    .codeTA(close)
-    .run();
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
+        Socket                      socket("github.com", 80, Blocking::No);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionPipeTest, ReadFDSameAsSocketId)
+TEST(TAConnectionSocketTest, notValidOnMinusOne)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
-    int                         fd[] = {33, 34};
-    Pipe                        pipe(fd);
+    MockDefaultThorsSocket        defaultMockedFunctions;
+    Socket                        socket(-1);
 
-    TA_TestNoThrow([&](){
-        ASSERT_EQ(pipe.socketId(Mode::Read), pipe.getReadFD());
-    })
-    .run();
+    auto action = [&]() {
+        ASSERT_FALSE(socket.isConnected());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
 }
 
-TEST(TAConnectionPipeTest, WriteFDSameAsSocketId)
+TEST(TAConnectionSocketTest, getSocketIdWorks)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
-    int                         fd[] = {33, 34};
-    Pipe                        pipe(fd);
+    MockDefaultThorsSocket        defaultMockedFunctions;
+    Socket                        socket(12);
 
-    TA_TestNoThrow([&](){
-        ASSERT_EQ(pipe.socketId(Mode::Write), pipe.getWriteFD());
-    })
-    .run();
+    auto action = [&](){
+        ASSERT_EQ(socket.socketId(Mode::Read), 12);
+        ASSERT_EQ(socket.socketId(Mode::Write), 12);
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSocketTest, Close)
+{
+    MockDefaultThorsSocket        defaultMockedFunctions;
+    Socket                      socket("github.com",80 , Blocking::No);
+
+    auto action = [&](){
+        MockActionAddObject     checkClose(MockAction{"Close", {"close"}, {}, {}, {}});
+        socket.close();
+        ASSERT_FALSE(socket.isConnected());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSocketTest, ReadFDSameAsSocketId)
+{
+    MockDefaultThorsSocket        defaultMockedFunctions;
+    Socket                        socket(33);
+
+    auto action = [&](){
+        ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSocketTest, WriteFDSameAsSocketId)
+{
+    MockDefaultThorsSocket        defaultMockedFunctions;
+    Socket                        socket(34);
+
+    auto action = [&](){
+        ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
+    };
+    ASSERT_NO_THROW(
+        MockActionThrowDetext detect;action()
+    );
+}
+
+TEST(TAConnectionSocketTest, SetNonBlockingFails)
+{
+    MockDefaultThorsSocket        defaultMockedFunctions;
+    // Override default behavior
+    MOCK_TSYS(FctlType, fcntl,  [](int, int, int){return -1;});
+
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
+        Socket                      socket("google.com", 80, Blocking::No);
+    };
+
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
+}
+
+TEST(TAConnectionSocketTest, ShutdownFails)
+{
+    MockDefaultThorsSocket        defaultMockedFunctions;
+    // Override default behavior
+    MOCK_SYS(shutdown,  [](int, int)    {return -1;});
+
+    auto action = [](){
+        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
+        Socket                      socket("google.com", 80, Blocking::No);
+
+        MockActionAddCode           checkShutdown(MockAction{"shutdown", {"shutdown"}, {}, {}, {}});
+        socket.tryFlushBuffer();
+    };
+
+    ASSERT_THROW(
+        MockActionThrowDetext detect;action(),
+        std::runtime_error
+    );
 }
