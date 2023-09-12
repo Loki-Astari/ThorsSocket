@@ -11,116 +11,96 @@ using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
 using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
 using ThorsAnvil::BuildTools::Mock1::MockActionAddCode;
 using ThorsAnvil::BuildTools::Mock1::MockAction;
+using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
+using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
+
+namespace ThorsAnvil::BuildTools::Mock1
+{
+extern TA_Object Socket_Blocking;
+extern TA_Object Socket_NonBlocking;
+}
 
 TEST(ConnectionSocketTest, Construct)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
+    TA_TestNoThrow([](){
         Socket                      socket("github.com",80 , Blocking::No);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .expectObjectTA(Socket_NonBlocking)
+    .run();
 }
 
 TEST(ConnectionSocketTest, SocketCallFails)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(socket, [](int, int, int)    {return -1;});
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
-        Socket                      socket("github.com", 80, Blocking::No);
-    };
-    ASSERT_THROW(
-        MockActionThrowDetext detect;action(),
-        std::runtime_error
-    );
+    TA_TestThrow([](){
+        Socket                      socket("github.com",80 , Blocking::No);
+    })
+    .expectObjectTA(Socket_NonBlocking)
+        .errorInitTA(socket).toReturn(-1)
+    .run();
 }
 
 TEST(ConnectionSocketTest, GetHostCallFails)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
     h_errno = NO_DATA;
-
-    // Override default behavior
-    MOCK_SYS(gethostbyname, [](char const*)     {h_errno = HOST_NOT_FOUND;return nullptr;});
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
-        Socket                      socket("github.com", 80, Blocking::No);
-    };
-    ASSERT_THROW(
-        MockActionThrowDetext detect;action(),
-        std::runtime_error
-    );
-    ASSERT_EQ(h_errno, HOST_NOT_FOUND);
+    TA_TestThrow([](){
+        h_errno = HOST_NOT_FOUND; // TODO put inside function
+        Socket                      socket("github.com",80 , Blocking::No);
+    })
+    .expectObjectTA(Socket_NonBlocking)
+        .errorInitTA(gethostbyname).toReturn(nullptr)
+        .errorTA(close)
+    .run();
 }
 
 TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
     h_errno = NO_DATA;
-
-    // Override default behavior
-    MOCK_SYS(gethostbyname, [](char const*)     {static int call =0; ++call; h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND; return nullptr;});
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"gethostbyname", "close"});
-        Socket                      socket("github.com", 80, Blocking::No);
-    };
-    ASSERT_THROW(
-        MockActionThrowDetext detect;action(),
-        std::runtime_error
-    );
-    ASSERT_EQ(h_errno, HOST_NOT_FOUND);
+    TA_TestThrow([](){
+        // TODO support setting h_errno depending on the call.
+        MOCK_SYS(gethostbyname, [](char const*)
+        {
+            static int call =0;
+            ++call;
+            h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND;
+            return nullptr;
+        });
+        Socket                      socket("github.com",80 , Blocking::No);
+    })
+    .expectObjectTA(Socket_NonBlocking)
+        // This removes the gethostbyname from the init section.
+        // We never enter the error section of the code.
+        // The above MOCK_SYS catches the gethostbyname 
+        .errorInitTA(gethostbyname)
+    .run();
 }
 
 TEST(ConnectionSocketTest, ConnectCallFailes)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
-
-    // Override default behavior
-    MOCK_SYS(connect,   [](int, SocketAddr const*, unsigned int) {return -1;});
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
-        Socket                      socket("github.com", 80, Blocking::No);
-    };
-    ASSERT_THROW(
-        MockActionThrowDetext detect;action(),
-        std::runtime_error
-    );
+    TA_TestThrow([](){
+        Socket                      socket("github.com",80 , Blocking::No);
+    })
+    .expectObjectTA(Socket_NonBlocking)
+        .errorInitTA(connect).toReturn(-1)
+        .errorTA(close).toReturn(0)
+    .run();
 }
 
 TEST(ConnectionSocketTest, CreateNonBlocking)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketBlocking());
-        Socket                      socket("github.com", 80, Blocking::Yes);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    TA_TestNoThrow([](){
+        Socket                      socket("github.com",80 , Blocking::Yes);
+    })
+    .expectObjectTA(Socket_Blocking)
+    .run();
 }
 
 TEST(ConnectionSocketTest, CreateBlocking)
 {
-    MockDefaultThorsSocket          defaultMockedFunctions;
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
-        Socket                      socket("github.com", 80, Blocking::No);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    TA_TestNoThrow([](){
+        Socket                      socket("github.com",80 , Blocking::No);
+    })
+    .expectObjectTA(Socket_NonBlocking)
+    .run();
 }
 
 TEST(ConnectionSocketTest, notValidOnMinusOne)
@@ -128,12 +108,10 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
     MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                        socket(-1);
 
-    auto action = [&]() {
+    TA_TestNoThrow([&](){
         ASSERT_FALSE(socket.isConnected());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
 TEST(ConnectionSocketTest, getSocketIdWorks)
@@ -141,13 +119,11 @@ TEST(ConnectionSocketTest, getSocketIdWorks)
     MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                        socket(12);
 
-    auto action = [&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), 12);
         ASSERT_EQ(socket.socketId(Mode::Write), 12);
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
 TEST(ConnectionSocketTest, Close)
@@ -155,14 +131,12 @@ TEST(ConnectionSocketTest, Close)
     MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                      socket("github.com",80 , Blocking::No);
 
-    auto action = [&](){
-        MockActionAddObject     checkClose(MockAction{"Close", {"close"}, {}, {}, {}});
+    TA_TestNoThrow([&](){
         socket.close();
         ASSERT_FALSE(socket.isConnected());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .expectCodeTA(close).toReturn(0)
+    .run();
 }
 
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
@@ -170,12 +144,10 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
     MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                        socket(33);
 
-    auto action = [&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
@@ -183,47 +155,29 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
     MockDefaultThorsSocket        defaultMockedFunctions;
     Socket                        socket(34);
 
-    auto action = [&](){
+    TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
-    };
-    ASSERT_NO_THROW(
-        MockActionThrowDetext detect;action()
-    );
+    })
+    .run();
 }
 
 TEST(ConnectionSocketTest, SetNonBlockingFails)
 {
-    MockDefaultThorsSocket        defaultMockedFunctions;
-    // Override default behavior
-    MOCK_TSYS(FctlType, fcntl,  [](int, int, int){return -1;});
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking(), {"close"});
-        Socket                      socket("google.com", 80, Blocking::No);
-    };
-
-    ASSERT_THROW(
-        MockActionThrowDetext detect;action(),
-        std::runtime_error
-    );
+    TA_TestThrow([](){
+        Socket                      socket("github.com",80 , Blocking::No);
+    })
+    .expectObjectTA(Socket_NonBlocking)
+        .errorInitTA(fcntl).toReturn(-1)
+    .run();
 }
 
 TEST(ConnectionSocketTest, ShutdownFails)
 {
-    MockDefaultThorsSocket        defaultMockedFunctions;
-    // Override default behavior
-    MOCK_SYS(shutdown,  [](int, int)    {return -1;});
-
-    auto action = [](){
-        MockActionAddObject         checkSokcet(MockDefaultThorsSocket::getActionSocketNonBlocking());
-        Socket                      socket("google.com", 80, Blocking::No);
-
-        MockActionAddCode           checkShutdown(MockAction{"shutdown", {"shutdown"}, {}, {}, {}});
+    TA_TestNoThrow([](){
+        Socket                      socket("github.com",80 , Blocking::No);
         socket.tryFlushBuffer();
-    };
-
-    ASSERT_THROW(
-        MockActionThrowDetext detect;action(),
-        std::runtime_error
-    );
+    })
+    .expectObjectTA(Socket_NonBlocking)
+        .expectCodeTA(shutdown).toReturn(0)
+    .run();
 }
