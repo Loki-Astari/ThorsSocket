@@ -6,14 +6,8 @@
 #include <stdlib.h>
 
 using ThorsAnvil::ThorsSocket::ConnectionType::Pipe;
-using ThorsAnvil::ThorsSocket::Open;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
-using ThorsAnvil::ThorsSocket::IOResult;
-using ThorsAnvil::ThorsSocket::Result;
-using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
-using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
-using ThorsAnvil::BuildTools::Mock1::MockAction;
 using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
 

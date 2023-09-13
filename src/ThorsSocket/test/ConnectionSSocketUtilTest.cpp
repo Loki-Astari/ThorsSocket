@@ -1,25 +1,9 @@
 #include <gtest/gtest.h>
-#include "ConnectionSSocket.h"
 #include "ConnectionSSocketUtil.h"
 #include "test/ConnectionTest.h"
-#include "test/MockHeaderInclude.h"
 #include "test/MockDefaultThorsSocket.h"
-#include "coverage/MockHeaders.h"
 
 #include <openssl/ssl.h>
-
-
-using ThorsAnvil::ThorsSocket::Mode;
-using ThorsAnvil::ThorsSocket::ConnectionType::SSLctx;
-using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
-using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
-using ThorsAnvil::ThorsSocket::ConnectionType::SSocket;
-using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
-using ThorsAnvil::ThorsSocket::ConnectionType::SocketAddr;
-using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
-using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
-
-
 
 using ThorsAnvil::ThorsSocket::ConnectionType::Protocol;
 using ThorsAnvil::ThorsSocket::ConnectionType::ProtocolInfo;
@@ -27,12 +11,8 @@ using ThorsAnvil::ThorsSocket::ConnectionType::CipherInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::CertifcateAuthorityInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::ClientCAListInfo;
-using ThorsAnvil::BuildTools::Mock1::MockActionThrowDetext;
-using ThorsAnvil::BuildTools::Mock1::MockActionAddObject;
-using ThorsAnvil::BuildTools::Mock1::MockAction;
-
-extern MockAction getsetCertificateInfoCTX();
-extern MockAction getsetCertificateInfoSSL();
+using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
+using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 {

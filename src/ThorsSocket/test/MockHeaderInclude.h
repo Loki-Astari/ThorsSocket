@@ -8,11 +8,6 @@
 #include "OpenSSLMacroWrappers.h"
 #include "ThorsSocketConfig.h"
 
-// # Version 1
-using OpenType = int(const char*, int, unsigned short);
-using FctlType = int(int, int, int);
-
-// # Version 2
 using FuncType_open     = int(const char*, int, unsigned short);
 using FuncType_fcntl    = int(int, int, int);
 
