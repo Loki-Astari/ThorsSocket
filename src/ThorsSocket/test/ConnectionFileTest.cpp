@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include "ConnectionFile.h"
-#include "test/MockDefaultThorsSocket.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -11,6 +10,7 @@ using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 
 namespace ThorsAnvil::BuildTools::Mock
 {
@@ -52,7 +52,7 @@ TEST(ConnectionFileTest, notValidOnMinusOne)
 
 TEST(ConnectionFileTest, getSocketIdWorks)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     File                        file(12);
 
     TA_TestNoThrow([&](){
@@ -64,7 +64,7 @@ TEST(ConnectionFileTest, getSocketIdWorks)
 
 TEST(ConnectionFileTest, Close)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     File                        file("TestFile", Open::Append, Blocking::No);
 
     TA_TestNoThrow([&](){
@@ -77,7 +77,7 @@ TEST(ConnectionFileTest, Close)
 
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     File                        file(33);
 
     TA_TestNoThrow([&](){
@@ -88,7 +88,7 @@ TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     File                        file(34);
 
     TA_TestNoThrow([&](){

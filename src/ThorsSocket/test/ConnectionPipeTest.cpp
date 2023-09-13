@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include "ConnectionPipe.h"
-#include "test/MockDefaultThorsSocket.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -10,6 +9,7 @@ using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 
 namespace ThorsAnvil::BuildTools::Mock
 {
@@ -56,7 +56,7 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
 
 TEST(ConnectionPipeTest, notValidOnMinusOne)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     int                         fd[] = {-1, -1};
     Pipe                        pipe(fd);
 
@@ -68,7 +68,7 @@ TEST(ConnectionPipeTest, notValidOnMinusOne)
 
 TEST(ConnectionPipeTest, getSocketIdWorks)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     int                         fd[] = {12, 13};
     Pipe                        pipe(fd);
 
@@ -81,7 +81,7 @@ TEST(ConnectionPipeTest, getSocketIdWorks)
 
 TEST(ConnectionPipeTest, Close)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     Pipe                        pipe(Blocking::No);
 
     TA_TestNoThrow([&](){
@@ -95,7 +95,7 @@ TEST(ConnectionPipeTest, Close)
 
 TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     int                         fd[] = {33, 34};
     Pipe                        pipe(fd);
 
@@ -107,7 +107,7 @@ TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
 {
-    MockDefaultThorsSocket      defaultMockedFunctions;
+    MockAllDefaultFunctions     defaultMockedFunctions;
     int                         fd[] = {33, 34};
     Pipe                        pipe(fd);
 

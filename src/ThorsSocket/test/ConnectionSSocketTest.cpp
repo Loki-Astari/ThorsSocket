@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionSSocket.h"
 #include "test/ConnectionTest.h"
-#include "test/MockDefaultThorsSocket.h"
 
 #include <openssl/ssl.h>
 
@@ -13,6 +12,7 @@ using ThorsAnvil::ThorsSocket::ConnectionType::SSocket;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 
 
 namespace ThorsAnvil::BuildTools::Mock
@@ -213,7 +213,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 
 TEST(ConnectionSSocketTest, getSocketIdWorks)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
@@ -225,7 +225,7 @@ TEST(ConnectionSSocketTest, getSocketIdWorks)
 
 TEST(ConnectionSSocketTest, Close)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
@@ -241,7 +241,7 @@ TEST(ConnectionSSocketTest, Close)
 
 TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
@@ -253,7 +253,7 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
@@ -265,7 +265,7 @@ TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 
 void testReadFailure(Result expected, int errorCode)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
@@ -283,7 +283,7 @@ void testReadFailure(Result expected, int errorCode)
 
 void testWriteFailure(Result expected, int errorCode)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
@@ -301,7 +301,7 @@ void testWriteFailure(Result expected, int errorCode)
 
 TEST(ConnectionSSocketTest, Read_OK)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 
@@ -319,7 +319,7 @@ TEST(ConnectionSSocketTest, Read_OK)
 
 TEST(ConnectionSSocketTest, Write_OK)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
 

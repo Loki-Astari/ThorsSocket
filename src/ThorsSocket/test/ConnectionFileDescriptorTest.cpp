@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionFile.h"
 #include "test/ConnectionTest.h"
-#include "test/MockDefaultThorsSocket.h"
 
 
 // FileDescriptor is virtual (not all virtual methods defined).
@@ -9,11 +8,12 @@
 using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::File;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 
 
 void testSocketReadFailure(int error, Result expected)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
     TA_TestNoThrow([&](){
@@ -29,7 +29,7 @@ void testSocketReadFailure(int error, Result expected)
 
 void testSocketWriteFailure(int error, Result expected)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
     TA_TestNoThrow([&](){
@@ -45,7 +45,7 @@ void testSocketWriteFailure(int error, Result expected)
 
 TEST(ConnectionFileDescriptorTest, ReadOK)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
     TA_TestNoThrow([&](){
@@ -59,7 +59,7 @@ TEST(ConnectionFileDescriptorTest, ReadOK)
 
 TEST(ConnectionFileDescriptorTest, WriteOK)
 {
-    MockDefaultThorsSocket  defaultMockedFunctions;
+    MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
     TA_TestNoThrow([&](){

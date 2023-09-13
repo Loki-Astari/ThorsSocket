@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionSSocketUtil.h"
 #include "test/ConnectionTest.h"
-#include "test/MockDefaultThorsSocket.h"
-
 #include <openssl/ssl.h>
 
 using ThorsAnvil::ThorsSocket::ConnectionType::Protocol;

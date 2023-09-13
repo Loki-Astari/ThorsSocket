@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 #include "ConnectionSocket.h"
 #include "test/ConnectionTest.h"
-#include "test/MockDefaultThorsSocket.h"
 
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 
 namespace ThorsAnvil::BuildTools::Mock
 {
@@ -99,7 +99,7 @@ TEST(ConnectionSocketTest, CreateBlocking)
 
 TEST(ConnectionSocketTest, notValidOnMinusOne)
 {
-    MockDefaultThorsSocket        defaultMockedFunctions;
+    MockAllDefaultFunctions       defaultMockedFunctions;
     Socket                        socket(-1);
 
     TA_TestNoThrow([&](){
@@ -110,7 +110,7 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
 
 TEST(ConnectionSocketTest, getSocketIdWorks)
 {
-    MockDefaultThorsSocket        defaultMockedFunctions;
+    MockAllDefaultFunctions       defaultMockedFunctions;
     Socket                        socket(12);
 
     TA_TestNoThrow([&](){
@@ -122,7 +122,7 @@ TEST(ConnectionSocketTest, getSocketIdWorks)
 
 TEST(ConnectionSocketTest, Close)
 {
-    MockDefaultThorsSocket        defaultMockedFunctions;
+    MockAllDefaultFunctions       defaultMockedFunctions;
     Socket                      socket("github.com",80 , Blocking::No);
 
     TA_TestNoThrow([&](){
@@ -135,7 +135,7 @@ TEST(ConnectionSocketTest, Close)
 
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 {
-    MockDefaultThorsSocket        defaultMockedFunctions;
+    MockAllDefaultFunctions       defaultMockedFunctions;
     Socket                        socket(33);
 
     TA_TestNoThrow([&](){
@@ -146,7 +146,7 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 {
-    MockDefaultThorsSocket        defaultMockedFunctions;
+    MockAllDefaultFunctions       defaultMockedFunctions;
     Socket                        socket(34);
 
     TA_TestNoThrow([&](){
