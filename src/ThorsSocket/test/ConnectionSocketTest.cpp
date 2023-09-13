@@ -5,10 +5,10 @@
 
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
-using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
-using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
+using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 
-namespace ThorsAnvil::BuildTools::Mock1
+namespace ThorsAnvil::BuildTools::Mock
 {
 extern TA_Object Socket_Blocking;
 extern TA_Object Socket_NonBlocking;

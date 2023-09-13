@@ -7,8 +7,8 @@
 // FileDescriptor is virtual (not all virtual methods defined).
 //using ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor;
 using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::File;
-using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
-using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
+using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 
 
 void testSocketReadFailure(int error, Result expected)

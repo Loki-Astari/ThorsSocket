@@ -11,8 +11,8 @@ using ThorsAnvil::ThorsSocket::ConnectionType::CipherInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::CertifcateAuthorityInfo;
 using ThorsAnvil::ThorsSocket::ConnectionType::ClientCAListInfo;
-using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
-using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
+using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 {

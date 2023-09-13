@@ -11,11 +11,11 @@ using ThorsAnvil::ThorsSocket::ConnectionType::SSLctx;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocket;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
-using ThorsAnvil::BuildTools::Mock1::TA_TestThrow;
-using ThorsAnvil::BuildTools::Mock1::TA_TestNoThrow;
+using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
+using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 
 
-namespace ThorsAnvil::BuildTools::Mock1
+namespace ThorsAnvil::BuildTools::Mock
 {
 
 TA_Object   SSLctx_Client(
