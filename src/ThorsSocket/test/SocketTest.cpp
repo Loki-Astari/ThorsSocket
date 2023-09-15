@@ -5,7 +5,6 @@
 
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
-using ThorsAnvil::ThorsSocket::SocketBuilder;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
@@ -64,36 +63,9 @@ class TestConnection: public Connection
         virtual std::string errorMessage(ssize_t)                   {return "Testing: 123";}
 };
 
-TEST(SocketTest, CreateSocketBuilder)
-{
-    SocketBuilder               builder;
-}
-
-TEST(SocketTest, SocketBuilderUseAllMethods)
-{
-    SocketBuilder               builder;
-    builder.addReadYield([](){});
-    builder.addwriteYield([](){});
-    builder.addConnection<TestConnection>();
-}
-
 TEST(SocketTest, SocketBuilderBuild)
 {
-    SocketBuilder               builder;
-    builder.addReadYield([](){});
-    builder.addwriteYield([](){});
-    builder.addConnection<TestConnection>();
-
-    Socket                      socket = builder.build();
-}
-
-TEST(SocketTest, SocketBuilderTemoraryBuild)
-{
-    SocketBuilder{}
-        .addReadYield([](){})
-        .addwriteYield([](){})
-        .addConnection<TestConnection>()
-        .build();
+    Socket                      socket{std::make_unique<TestConnection>(), [](){}, [](){}};
 }
 
 TEST(SocketTest, SocketConstruct)
@@ -101,13 +73,11 @@ TEST(SocketTest, SocketConstruct)
     int yieldRCount = 0;
     int yieldWCount = 0;
 
-    Socket socket   = SocketBuilder{}
-                        .addReadYield([&yieldRCount](){++yieldRCount;})
-                        .addwriteYield([&yieldWCount](){++yieldWCount;})
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-                        .addConnection<TestConnection>(true, 11, Result::WouldBlock, Result::WouldBlock)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 11, Result::WouldBlock, Result::WouldBlock),
+                        [&yieldRCount](){++yieldRCount;},
+                        [&yieldWCount](){++yieldWCount;}};
     ASSERT_TRUE(socket.isConnected());
     ASSERT_EQ(socket.socketId(Mode::Read), 11);
     ASSERT_EQ(socket.socketId(Mode::Write), 11);
@@ -123,9 +93,7 @@ TEST(SocketTest, SocketConstruct)
 TEST(SocketTest, SocketConstructFaild)
 {
     ASSERT_NO_THROW(
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(false)
-                        .build()
+        Socket socket{std::make_unique<TestConnection>(false)};
     );
 }
 TEST(SocketTest, SocketConstructMove)
@@ -133,13 +101,11 @@ TEST(SocketTest, SocketConstructMove)
     int yieldRCount = 0;
     int yieldWCount = 0;
 
-    Socket socket   = SocketBuilder{}
-                        .addReadYield([&yieldRCount](){++yieldRCount;})
-                        .addwriteYield([&yieldWCount](){++yieldWCount;})
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-                        .addConnection<TestConnection>(true, 13, Result::WouldBlock, Result::WouldBlock)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::WouldBlock, Result::WouldBlock),
+                        [&yieldRCount](){++yieldRCount;},
+                        [&yieldWCount](){++yieldWCount;}};
 
     Socket move = std::move(socket);
 
@@ -166,16 +132,12 @@ TEST(SocketTest, SocketAssignMove)
     int yieldRCount = 0;
     int yieldWCount = 0;
 
-    Socket socket   = SocketBuilder{}
-                        .addReadYield([&yieldRCount](){++yieldRCount;})
-                        .addwriteYield([&yieldWCount](){++yieldWCount;})
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-                        .addConnection<TestConnection>(true, 21, Result::WouldBlock, Result::WouldBlock)
-                        .build();
-    Socket move   = SocketBuilder{}
-                        .addConnection<TestConnection>()
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 21, Result::WouldBlock, Result::WouldBlock),
+                        [&yieldRCount](){++yieldRCount;},
+                        [&yieldWCount](){++yieldWCount;}};
+    Socket move{std::make_unique<TestConnection>()};
 
     move = std::move(socket);
 
@@ -194,12 +156,8 @@ TEST(SocketTest, SocketAssignMove)
 }
 TEST(SocketTest, SocketSwap)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 21)
-                        .build();
-    Socket move     = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 22)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 21)};
+    Socket move{std::make_unique<TestConnection>(true, 22)};
 
     move.swap(socket);
 
@@ -211,12 +169,8 @@ TEST(SocketTest, SocketSwap)
 }
 TEST(SocketTest, SocketSwapUsingFunction)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 21)
-                        .build();
-    Socket move     = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 22)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 21)};
+    Socket move{std::make_unique<TestConnection>(true, 22)};
 
     swap(socket, move);
 
@@ -228,9 +182,8 @@ TEST(SocketTest, SocketSwapUsingFunction)
 }
 TEST(SocketTest, SocketCheckIdThrowsWhenNotConnected)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13)};
+
     ASSERT_EQ(socket.socketId(Mode::Read), 13);
 
     Socket move = std::move(socket);
@@ -244,9 +197,7 @@ TEST(SocketTest, SocketCheckIdThrowsWhenNotConnected)
 
 TEST(SocketTest, SocketReadOK)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13)};
 
     char buffer[12];
     IOData result = socket.getMessageData(buffer, 12);
@@ -256,9 +207,7 @@ TEST(SocketTest, SocketReadOK)
 }
 TEST(SocketTest, SocketReadCriticalBug)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13, Result::CriticalBug)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::CriticalBug)};
 
     auto action = [&socket]() {
         char buffer[12];
@@ -273,9 +222,7 @@ TEST(SocketTest, SocketReadCriticalBug)
 TEST(SocketTest, SocketReadInterupt)
 {
     int readCount   = 0;
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13, Result::Interupt, Result::OK, &readCount)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::Interupt, Result::OK, &readCount)};
 
     char buffer[12];
     IOData result = socket.getMessageData(buffer, 12);
@@ -287,9 +234,7 @@ TEST(SocketTest, SocketReadInterupt)
 TEST(SocketTest, SocketReadConnectionClosed)
 {
     int readCount   = 0;
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13, Result::ConnectionClosed, Result::OK, &readCount)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::ConnectionClosed, Result::OK, &readCount)};
 
     char buffer[12];
     IOData result = socket.getMessageData(buffer, 12);
@@ -301,9 +246,7 @@ TEST(SocketTest, SocketReadConnectionClosed)
 TEST(SocketTest, SocketReadUnknown)
 {
     int readCount   = 0;
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13, Result::Unknown, Result::OK, &readCount)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::Unknown, Result::OK, &readCount)};
 
     auto action = [&socket](){
         char buffer[12];
@@ -318,9 +261,7 @@ TEST(SocketTest, SocketReadUnknown)
 
 TEST(SocketTest, SocketWriteOK)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13)};
 
     char buffer[12];
     IOData result = socket.putMessageData(buffer, 12);
@@ -330,9 +271,7 @@ TEST(SocketTest, SocketWriteOK)
 }
 TEST(SocketTest, SocketWriteCriticalBug)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13, Result::OK, Result::CriticalBug)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::OK, Result::CriticalBug)};
 
     auto action = [&socket]() {
         char buffer[12];
@@ -347,9 +286,7 @@ TEST(SocketTest, SocketWriteCriticalBug)
 TEST(SocketTest, SocketWriteInterupt)
 {
     int writeCount   = 0;
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13, Result::OK, Result::Interupt, nullptr, &writeCount)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::OK, Result::Interupt, nullptr, &writeCount)};
 
     char buffer[12];
     IOData result = socket.putMessageData(buffer, 12);
@@ -361,9 +298,7 @@ TEST(SocketTest, SocketWriteInterupt)
 TEST(SocketTest, SocketWriteConnectionClosed)
 {
     int writeCount   = 0;
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13, Result::OK, Result::ConnectionClosed, nullptr, &writeCount)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::OK, Result::ConnectionClosed, nullptr, &writeCount)};
 
     char buffer[12];
     IOData result = socket.putMessageData(buffer, 12);
@@ -375,9 +310,7 @@ TEST(SocketTest, SocketWriteConnectionClosed)
 TEST(SocketTest, SocketWriteUnknown)
 {
     int writeCount   = 0;
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>(true, 13, Result::OK, Result::Unknown, nullptr, &writeCount)
-                        .build();
+    Socket socket{std::make_unique<TestConnection>(true, 13, Result::OK, Result::Unknown, nullptr, &writeCount)};
 
     auto action = [&socket](){
         char buffer[12];
@@ -392,18 +325,13 @@ TEST(SocketTest, SocketWriteUnknown)
 
 TEST(SocketTest, CloseNormalSocket)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>()
-                        .build();
-
+    Socket socket{std::make_unique<TestConnection>()};
 
     socket.close();
 }
 TEST(SocketTest, CloseNotConnectedSocket)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>()
-                        .build();
+    Socket socket{std::make_unique<TestConnection>()};
     Socket move = std::move(socket);
 
     auto action = [&socket](){
@@ -417,18 +345,13 @@ TEST(SocketTest, CloseNotConnectedSocket)
 }
 TEST(SocketTest, TryFlushNormal)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>()
-                        .build();
-
+    Socket socket{std::make_unique<TestConnection>()};
 
     socket.tryFlushBuffer();
 }
 TEST(SocketTest, TryFlushNotConnectedSocket)
 {
-    Socket socket   = SocketBuilder{}
-                        .addConnection<TestConnection>()
-                        .build();
+    Socket socket{std::make_unique<TestConnection>()};
     Socket move = std::move(socket);
 
     auto action = [&socket](){

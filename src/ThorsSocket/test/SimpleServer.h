@@ -5,7 +5,6 @@
 
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;
-using ThorsAnvil::ThorsSocket::SocketBuilder;
 
 class Server
 {
@@ -92,9 +91,7 @@ class Server
             {
                 throw std::runtime_error("Server:  -> Failed t Accept: ::accept");
             }
-            return SocketBuilder{}
-                    .addConnection<T>(newSocket, std::get<Index>(args)...)
-                    .build();
+            return {std::make_unique<T>(newSocket, std::get<Index>(args)...)};
         }
 };
 

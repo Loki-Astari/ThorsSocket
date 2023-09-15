@@ -8,7 +8,6 @@
 
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
-using ThorsAnvil::ThorsSocket::SocketBuilder;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::IOResult;
 using ThorsAnvil::ThorsSocket::Result;
@@ -33,10 +32,7 @@ class PipeServerStart
 
 TEST(PipeIntegrationTest, ConnectToPipe)
 {
-    Socket  pipe  = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::Yes)
-                        .build();
-
+    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
     PipeServerStart     server([](){});
 
     ASSERT_NE(pipe.socketId(Mode::Read), -1);
@@ -45,11 +41,8 @@ TEST(PipeIntegrationTest, ConnectToPipe)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 {
-    Socket  pipe  = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::Yes)
-                        .build();
-
-    std::string const message = "This is a line of text\n";
+    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
         pipe.putMessageData(message.c_str(), message.size());
@@ -67,11 +60,8 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 {
-    Socket  pipe  = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::Yes)
-                        .build();
-
-    std::string const message = "This is a line of text\n";
+    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
         std::size_t sent = 0;
@@ -95,12 +85,9 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 {
     int yieldCount = 0;
-    Socket  pipe  = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::No)
-                        .addReadYield([&yieldCount](){++yieldCount;sleep(2);})
-                        .build();
-
-    std::string const message = "This is a line of text\n";
+    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::No),
+                                [&yieldCount](){++yieldCount;sleep(2);}};
+    std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
         std::size_t sent = 0;
@@ -125,11 +112,8 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 {
-    Socket  pipe  = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::Yes)
-                        .build();
-
-    std::string const message = "This is a line of text\n";
+    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
         pipe.putMessageData(message.c_str(), message.size() - 4);
@@ -153,19 +137,16 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
     std::condition_variable cond;
     bool                    finished        = false;
 
-    Socket  pipe1 = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::No)
-                        .addwriteYield([&mutex, &cond, &finished]()
+    Socket  pipe1{std::make_unique<ConnectionType::Pipe>(Blocking::No),
+                        [](){},
+                        [&mutex, &cond, &finished]()
                         {
                             std::unique_lock<std::mutex> lock(mutex);
                             finished = true;
                             cond.notify_all();
                         }
-                        )
-                        .build();
-    Socket  pipe2 = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::Yes)
-                        .build();
+                 };
+    Socket  pipe2{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
 
     std::string const message = "This is a line of text\n";
 
@@ -211,12 +192,8 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
 {
-    Socket  pipe1 = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::Yes)
-                        .build();
-    Socket  pipe2 = SocketBuilder{}
-                        .addConnection<ConnectionType::Pipe>(Blocking::Yes)
-                        .build();
+    Socket  pipe1{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    Socket  pipe2{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
 
     std::string const message = "This is a line of text\n";
 
