@@ -1,8 +1,8 @@
 #ifndef THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 #define THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 
-// PART-1
 // Please add includes for all mocked libraries here.
+// PART-1-Start
 #include <functional>
 #include <fcntl.h>
 #include <netdb.h>
@@ -11,18 +11,19 @@
 #include "OpenSSLMacroWrappers.h"
 #include "ThorsSocketConfig.h"
 
+// PART-1-End
 namespace ThorsAnvil::BuildTools::Mock
 {
 
-// PART-2
 // Please define all FuncType_<XXX> here
 // There should be one for each MOCK_TFUNC you use in the code.
 // The make files will provide the declaration but these need to be filled in by
 // the developer and committed to source control
+// PART-2-Start
 using FuncType_open     = int(const char*, int, unsigned short);
 using FuncType_fcntl    = int(int, int, int);
 
-// PART-3
+// PART-2-End
 // This default implementation of overridden functions
 // Please provide a lambda for the implementation
 // When you add/remove a MOCK_FUNC or MOCK_TFUNC to the source
@@ -38,6 +39,8 @@ namespace ThorsAnvil::BuildTools::Mock
 {
 class MockAllDefaultFunctions
 {
+    int version;
+// PART-3-Start
     std::function<hostent*(const char*)> getHostByNameMock =[]  (char const*) {
         static char* addrList[] = {""};
         static hostent result {.h_length=1, .h_addr_list=addrList};
@@ -102,9 +105,13 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(connect);
     MOCK_MEMBER(shutdown);
 
+// PART-3-End
+
     public:
         MockAllDefaultFunctions()
-            : MOCK_PARAM(read,                                  [ ](int, void*, ssize_t size)           {return size;})
+            : version(2)
+// PART-4-Start
+            , MOCK_PARAM(read,                                  [ ](int, void*, ssize_t size)           {return size;})
             , MOCK_PARAM(write,                                 [ ](int, void const*, ssize_t size)     {return size;})
             , MOCK_PARAM(open,                                  [ ](char const*, int, int)              {return 12;})
             , MOCK_PARAM(close,                                 [ ](int)                                {return 0;})
@@ -161,10 +168,10 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(gethostbyname,                         std::move(getHostByNameMock))
             , MOCK_PARAM(connect,                               [ ](int, sockaddr const*, unsigned int) {return 0;})
             , MOCK_PARAM(shutdown,                              [ ](int, int)                           {return 0;})
+// PART-4-End
         {}
 };
 
-// PART-4 The end
 
 }
 
