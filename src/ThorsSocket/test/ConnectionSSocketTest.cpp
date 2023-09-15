@@ -143,10 +143,10 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_Blocking)
     .expectObjectTA(SSocket)
-        .errorInitTA(SSL_connect).toReturn(-1).toReturn(-1).toReturn(-1).toReturn(1)
-        .errorTA(SSL_get_error).toReturn(SSL_ERROR_WANT_CONNECT).toReturn(SSL_ERROR_WANT_READ).toReturn(SSL_ERROR_WANT_WRITE)
-        .errorTA(SSL_get1_peer_certificate).toReturn(reinterpret_cast<X509*>(0x08))
-        .errorTA(X509_free).toReturn(1)
+        .expectCallTA(SSL_connect).inject().anyOrder().toReturn(-1).toReturn(-1).toReturn(-1).toReturn(1)
+        .expectCallTA(SSL_get_error).anyOrder().toReturn(SSL_ERROR_WANT_CONNECT).toReturn(SSL_ERROR_WANT_READ).toReturn(SSL_ERROR_WANT_WRITE)
+        .expectCallTA(SSL_get1_peer_certificate).anyOrder().toReturn(reinterpret_cast<X509*>(0x08))
+        .expectCallTA(X509_free).anyOrder().toReturn(1)
     .run();
 }
 
@@ -156,7 +156,7 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
         SSLctx              ctx{SSLMethodType::Client};
     })
     .expectObjectTA(SSLctx_Client)
-        .errorInitTA(TLS_client_method).toReturn(nullptr)
+        .expectCallTA(TLS_client_method).inject().toReturn(nullptr)
     .run();
 }
 
@@ -166,7 +166,7 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
         SSLctx              ctx{SSLMethodType::Client};
     })
     .expectObjectTA(SSLctx_Client)
-        .errorInitTA(SSL_CTX_new).toReturn(nullptr)
+        .expectCallTA(SSL_CTX_new).inject().toReturn(nullptr)
     .run();
 }
 
@@ -179,7 +179,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
     .expectObjectTA(SSocket)
-        .errorInitTA(SSL_new).toReturn(nullptr)
+        .expectCallTA(SSL_new).inject().toReturn(nullptr)
     .run();
 }
 
@@ -192,8 +192,8 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
     .expectObjectTA(SSocket)
-        .errorInitTA(SSL_set_fd).toReturn(0)
-        .errorTA(SSL_free).toReturn(1)
+        .expectCallTA(SSL_set_fd).inject().toReturn(0)
+        .expectCallTA(SSL_free).toReturn(1)
     .run();
 }
 
@@ -206,8 +206,8 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
     .expectObjectTA(SSocket)
-        .errorInitTA(SSL_connect).toReturn(0)
-        .errorTA(SSL_free).toReturn(1)
+        .expectCallTA(SSL_connect).inject().toReturn(0)
+        .expectCallTA(SSL_free).toReturn(1)
     .run();
 }
 
@@ -233,9 +233,9 @@ TEST(ConnectionSSocketTest, Close)
         socket.close();
         ASSERT_FALSE(socket.isConnected());
     })
-    .expectCodeTA(SSL_shutdown).toReturn(1)
-    .codeTA(SSL_free).toReturn(1)
-    .codeTA(close).toReturn(0)
+    .expectCallTA(SSL_shutdown).toReturn(1)
+    .expectCallTA(SSL_free).toReturn(1)
+    .expectCallTA(close).toReturn(0)
     .run();
 }
 
@@ -276,8 +276,8 @@ void testReadFailure(Result expected, int errorCode)
         ASSERT_EQ(result.first,     4);
         ASSERT_EQ(result.second,    expected);
     })
-    .expectCodeTA(SSL_read).toReturn(-1)
-    .codeTA(SSL_get_error).toReturn(std::move(errorCode))
+    .expectCallTA(SSL_read).toReturn(-1)
+    .expectCallTA(SSL_get_error).toReturn(std::move(errorCode))
     .run();
 }
 
@@ -294,8 +294,8 @@ void testWriteFailure(Result expected, int errorCode)
         ASSERT_EQ(result.first,     4);
         ASSERT_EQ(result.second,    expected);
     })
-    .expectCodeTA(SSL_write).toReturn(-1)
-    .codeTA(SSL_get_error).toReturn(std::move(errorCode))
+    .expectCallTA(SSL_write).toReturn(-1)
+    .expectCallTA(SSL_get_error).toReturn(std::move(errorCode))
     .run();
 }
 
@@ -312,8 +312,8 @@ TEST(ConnectionSSocketTest, Read_OK)
         ASSERT_EQ(result.first,     12);
         ASSERT_EQ(result.second,    Result::OK);
     })
-    .expectCodeTA(SSL_read).toReturn(8)
-    .codeTA(SSL_get_error).toReturn(SSL_ERROR_NONE)
+    .expectCallTA(SSL_read).toReturn(8)
+    .expectCallTA(SSL_get_error).toReturn(SSL_ERROR_NONE)
     .run();
 }
 
@@ -330,8 +330,8 @@ TEST(ConnectionSSocketTest, Write_OK)
         ASSERT_EQ(result.first,     12);
         ASSERT_EQ(result.second,    Result::OK);
     })
-    .expectCodeTA(SSL_write).toReturn(8)
-    .codeTA(SSL_get_error).toReturn(SSL_ERROR_NONE)
+    .expectCallTA(SSL_write).toReturn(8)
+    .expectCallTA(SSL_get_error).toReturn(SSL_ERROR_NONE)
     .run();
 }
 

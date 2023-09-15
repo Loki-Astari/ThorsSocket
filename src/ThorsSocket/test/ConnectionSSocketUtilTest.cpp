@@ -34,7 +34,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_ctrl).toReturn(1).toReturn(1)
+    .expectCallTA(SSL_CTX_ctrl).toReturn(1).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, nullptr);
@@ -48,8 +48,8 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_ctrl).toReturn(-1)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_ctrl).toReturn(-1)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -59,8 +59,8 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_ctrl).toReturn(1).toReturn(-1)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_ctrl).toReturn(1).toReturn(-1)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -70,7 +70,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_ctrl).toReturn(1).toReturn(1)
+    .expectCallTA(SSL_ctrl).toReturn(1).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_2_VERSION, nullptr);
@@ -84,8 +84,8 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_ctrl).toReturn(-1)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_ctrl).toReturn(-1)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -95,8 +95,8 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_ctrl).toReturn(1).toReturn(-1)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_ctrl).toReturn(1).toReturn(-1)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -139,8 +139,8 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
         CipherInfo      cipherInfo{input1, input2};
         cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_cipher_list).toReturn(1)
-    .codeTA(SSL_CTX_set_ciphersuites).toReturn(1)
+    .expectCallTA(SSL_CTX_set_cipher_list).toReturn(1)
+    .expectCallTA(SSL_CTX_set_ciphersuites).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_set_cipher_list, reinterpret_cast<SSL_CTX*>(0x08), input1);
@@ -157,8 +157,8 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
         CipherInfo      cipherInfo{input1, input2};
         cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_cipher_list).toReturn(1)
-    .codeTA(SSL_set_ciphersuites).toReturn(1)
+    .expectCallTA(SSL_set_cipher_list).toReturn(1)
+    .expectCallTA(SSL_set_ciphersuites).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_set_cipher_list, reinterpret_cast<SSL*>(0x08), input1);
@@ -172,8 +172,8 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_cipher_list).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_set_cipher_list).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -183,9 +183,9 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_cipher_list).toReturn(1)
-    .codeTA(SSL_CTX_set_ciphersuites).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_set_cipher_list).toReturn(1)
+    .expectCallTA(SSL_CTX_set_ciphersuites).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -195,8 +195,8 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_cipher_list).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_set_cipher_list).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -206,9 +206,9 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_cipher_list).toReturn(1)
-    .codeTA(SSL_set_ciphersuites).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_set_cipher_list).toReturn(1)
+    .expectCallTA(SSL_set_ciphersuites).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -246,11 +246,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
-    .codeTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-    .codeTA(SSL_CTX_use_certificate_file).toReturn(1)
-    .codeTA(SSL_CTX_use_PrivateKey_file).toReturn(1)
-    .codeTA(SSL_CTX_check_private_key).toReturn(1)
+    .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
+    .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
+    .expectCallTA(SSL_CTX_use_certificate_file).toReturn(1)
+    .expectCallTA(SSL_CTX_use_PrivateKey_file).toReturn(1)
+    .expectCallTA(SSL_CTX_check_private_key).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -267,11 +267,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
         ca.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_default_passwd_cb).toReturn(1)
-    .codeTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-    .codeTA(SSL_use_certificate_file).toReturn(1)
-    .codeTA(SSL_use_PrivateKey_file).toReturn(1)
-    .codeTA(SSL_check_private_key).toReturn(1)
+    .expectCallTA(SSL_set_default_passwd_cb).toReturn(1)
+    .expectCallTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
+    .expectCallTA(SSL_use_certificate_file).toReturn(1)
+    .expectCallTA(SSL_use_PrivateKey_file).toReturn(1)
+    .expectCallTA(SSL_check_private_key).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -304,10 +304,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
-    .codeTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-    .codeTA(SSL_CTX_use_certificate_file).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
+    .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
+    .expectCallTA(SSL_CTX_use_certificate_file).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -323,11 +323,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
-    .codeTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-    .codeTA(SSL_CTX_use_certificate_file).toReturn(1)
-    .codeTA(SSL_CTX_use_PrivateKey_file).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
+    .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
+    .expectCallTA(SSL_CTX_use_certificate_file).toReturn(1)
+    .expectCallTA(SSL_CTX_use_PrivateKey_file).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -344,12 +344,12 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
-    .codeTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-    .codeTA(SSL_CTX_use_certificate_file).toReturn(1)
-    .codeTA(SSL_CTX_use_PrivateKey_file).toReturn(1)
-    .codeTA(SSL_CTX_check_private_key).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
+    .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
+    .expectCallTA(SSL_CTX_use_certificate_file).toReturn(1)
+    .expectCallTA(SSL_CTX_use_PrivateKey_file).toReturn(1)
+    .expectCallTA(SSL_CTX_check_private_key).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -366,10 +366,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
         ca.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_default_passwd_cb).toReturn(1)
-    .codeTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-    .codeTA(SSL_use_certificate_file).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_set_default_passwd_cb).toReturn(1)
+    .expectCallTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
+    .expectCallTA(SSL_use_certificate_file).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 #if 0
     MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -385,11 +385,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
         ca.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_default_passwd_cb).toReturn(1)
-    .codeTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-    .codeTA(SSL_use_certificate_file).toReturn(1)
-    .codeTA(SSL_use_PrivateKey_file).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_set_default_passwd_cb).toReturn(1)
+    .expectCallTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
+    .expectCallTA(SSL_use_certificate_file).toReturn(1)
+    .expectCallTA(SSL_use_PrivateKey_file).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 #if 0
     MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -406,12 +406,12 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
         ca.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_default_passwd_cb).toReturn(1)
-    .codeTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-    .codeTA(SSL_use_certificate_file).toReturn(1)
-    .codeTA(SSL_use_PrivateKey_file).toReturn(1)
-    .codeTA(SSL_check_private_key).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_set_default_passwd_cb).toReturn(1)
+    .expectCallTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
+    .expectCallTA(SSL_use_certificate_file).toReturn(1)
+    .expectCallTA(SSL_use_PrivateKey_file).toReturn(1)
+    .expectCallTA(SSL_check_private_key).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 #if 0
     MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
@@ -435,7 +435,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
         ca.file.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_verify_file).toReturn(1)
+    .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(1)
     .run();
 }
 
@@ -446,7 +446,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
         ca.dir.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_verify_dir).toReturn(1)
+    .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(1)
     .run();
 }
 
@@ -457,7 +457,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
         ca.store.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_verify_store).toReturn(1)
+    .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(1)
     .run();
 }
 
@@ -470,7 +470,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
         ca.file.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_load_verify_file).toReturn(1)
+    .expectCallTA(SSL_CTX_load_verify_file).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_load_verify_file, reinterpret_cast<SSL_CTX*>(0x08), file);
@@ -486,7 +486,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
         ca.dir.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_load_verify_dir).toReturn(1)
+    .expectCallTA(SSL_CTX_load_verify_dir).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_load_verify_dir, reinterpret_cast<SSL_CTX*>(0x08), file);
@@ -502,7 +502,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
         ca.store.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_load_verify_store).toReturn(1)
+    .expectCallTA(SSL_CTX_load_verify_store).toReturn(1)
     .run();
 #if 0
     MOCK_INPUT(SSL_CTX_load_verify_store, reinterpret_cast<SSL_CTX*>(0x08), file);
@@ -517,8 +517,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
         ca.file.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_verify_file).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -529,8 +529,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
         ca.dir.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_verify_dir).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -541,8 +541,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
         ca.store.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_default_verify_store).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -555,8 +555,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
         ca.file.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_load_verify_file).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_load_verify_file).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -569,8 +569,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
         ca.dir.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_load_verify_dir).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_load_verify_dir).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -583,8 +583,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
         ca.store.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_load_verify_store).toReturn(0)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(SSL_CTX_load_verify_store).toReturn(0)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -604,7 +604,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
         list.verifyClientCA = true;
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_verify).toReturn(1)
+    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .run();
 }
 
@@ -615,9 +615,9 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
         list.file.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
-    .codeTA(SSL_CTX_set_client_CA_list).toReturn(1)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
+    .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
     .run();
 }
 
@@ -628,9 +628,9 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
         list.dir.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
-    .codeTA(SSL_CTX_set_client_CA_list).toReturn(1)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
+    .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
     .run();
 }
 
@@ -641,9 +641,9 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
         list.store.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
-    .codeTA(SSL_CTX_set_client_CA_list).toReturn(1)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
+    .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
     .run();
 }
 
@@ -654,7 +654,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
         list.verifyClientCA = true;
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(SSL_CTX_set_verify).toReturn(0)
+    .expectCallTA(SSL_CTX_set_verify).toReturn(0)
     .run();
 }
 
@@ -665,10 +665,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
         list.file.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
-    .codeTA(sk_X509_NAME_pop_free_wrapper)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -679,10 +679,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
         list.dir.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
-    .codeTA(sk_X509_NAME_pop_free_wrapper)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -693,10 +693,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
         list.store.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
-    .codeTA(sk_X509_NAME_pop_free_wrapper)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -716,7 +716,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
         list.verifyClientCA = true;
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_verify).toReturn(1)
+    .expectCallTA(SSL_set_verify).toReturn(1)
     .run();
 }
 
@@ -727,9 +727,9 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
         list.file.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
-    .codeTA(SSL_set_client_CA_list).toReturn(1)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
+    .expectCallTA(SSL_set_client_CA_list).toReturn(1)
     .run();
 }
 
@@ -740,9 +740,9 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
         list.dir.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
-    .codeTA(SSL_set_client_CA_list).toReturn(1)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
+    .expectCallTA(SSL_set_client_CA_list).toReturn(1)
     .run();
 }
 
@@ -753,9 +753,9 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
         list.store.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
-    .codeTA(SSL_set_client_CA_list).toReturn(1)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
+    .expectCallTA(SSL_set_client_CA_list).toReturn(1)
     .run();
 }
 
@@ -766,7 +766,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
         list.verifyClientCA = true;
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(SSL_set_verify).toReturn(0)
+    .expectCallTA(SSL_set_verify).toReturn(0)
     .run();
 }
 
@@ -777,10 +777,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
         list.file.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
-    .codeTA(sk_X509_NAME_pop_free_wrapper)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -791,10 +791,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
         list.dir.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
-    .codeTA(sk_X509_NAME_pop_free_wrapper)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 
@@ -805,10 +805,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
         list.store.items.push_back("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCodeTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
-    .codeTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
-    .codeTA(sk_X509_NAME_pop_free_wrapper)
-    .codeTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
+    .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
+    .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
 

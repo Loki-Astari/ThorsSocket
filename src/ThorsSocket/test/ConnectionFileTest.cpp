@@ -37,7 +37,7 @@ TEST(ConnectionFileTest, ConstructOpenFail)
         File                        file("TestFile", Open::Append, Blocking::No);
     })
     .expectObjectTA(File)
-        .errorInitTA(open).toReturn(-1)
+        .expectCallTA(open).inject().toReturn(-1)
     .run();
 }
 
@@ -71,7 +71,7 @@ TEST(ConnectionFileTest, Close)
         file.close();
         ASSERT_FALSE(file.isConnected());
     })
-    .expectCodeTA(close)
+    .expectCallTA(close)
     .run();
 }
 

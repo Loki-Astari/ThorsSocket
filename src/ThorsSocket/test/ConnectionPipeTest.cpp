@@ -37,7 +37,7 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
         Pipe                        pipe(Blocking::No);
     })
     .expectObjectTA(Pipe)
-        .errorInitTA(pipe).toReturn(-1)
+        .expectCallTA(pipe).inject().toReturn(-1)
     .run();
 }
 
@@ -47,10 +47,10 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
         Pipe                        pipe(Blocking::No);
     })
     .expectObjectTA(Pipe)
-        .errorInitTA(fcntl).toReturn(-1)
-        .errorTA(fcntl).toReturn(0)
-        .errorTA(close).toReturn(0)
-        .errorTA(close).toReturn(0)
+        .expectCallTA(fcntl).inject().toReturn(-1)
+        .expectCallTA(fcntl).toReturn(0)
+        .expectCallTA(close).toReturn(0)
+        .expectCallTA(close).toReturn(0)
     .run();
 }
 
@@ -88,8 +88,8 @@ TEST(ConnectionPipeTest, Close)
         pipe.close();
         ASSERT_FALSE(pipe.isConnected());
     })
-    .expectCodeTA(close)
-    .codeTA(close)
+    .expectCallTA(close)
+    .expectCallTA(close)
     .run();
 }
 

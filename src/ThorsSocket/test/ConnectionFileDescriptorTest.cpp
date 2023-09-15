@@ -23,7 +23,7 @@ void testSocketReadFailure(int error, Result expected)
 
         ASSERT_EQ(result.second, expected);
     })
-    .expectCodeTA(read).toReturn(-1)
+    .expectCallTA(read).toReturn(-1)
     .run();
 }
 
@@ -39,7 +39,7 @@ void testSocketWriteFailure(int error, Result expected)
 
         ASSERT_EQ(result.second, expected);
     })
-    .expectCodeTA(write).toReturn(-1)
+    .expectCallTA(write).toReturn(-1)
     .run();
 }
 
@@ -53,7 +53,7 @@ TEST(ConnectionFileDescriptorTest, ReadOK)
         IOResult result = file.read(buffer, 12, 0);
         ASSERT_EQ(result.second, Result::OK);
     })
-    .expectCodeTA(read).toReturn(12)
+    .expectCallTA(read).toReturn(12)
     .run();
 }
 
@@ -67,7 +67,7 @@ TEST(ConnectionFileDescriptorTest, WriteOK)
         IOResult result = file.write(buffer, 12, 0);
         ASSERT_EQ(result.second, Result::OK);
     })
-    .expectCodeTA(write).toReturn(12)
+    .expectCallTA(write).toReturn(12)
     .run();
 }
 

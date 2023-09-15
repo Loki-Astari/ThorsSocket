@@ -29,7 +29,7 @@ TEST(ConnectionSocketTest, SocketCallFails)
         Socket                      socket("github.com",80 , Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
-        .errorInitTA(socket).toReturn(-1)
+        .expectCallTA(socket).inject().toReturn(-1)
     .run();
 }
 
@@ -41,8 +41,8 @@ TEST(ConnectionSocketTest, GetHostCallFails)
         Socket                      socket("github.com",80 , Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
-        .errorInitTA(gethostbyname).toReturn(nullptr)
-        .errorTA(close)
+        .expectCallTA(gethostbyname).inject().toReturn(nullptr)
+        .expectCallTA(close)
     .run();
 }
 
@@ -64,7 +64,7 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
         // This removes the gethostbyname from the init section.
         // We never enter the error section of the code.
         // The above MOCK_SYS catches the gethostbyname 
-        .errorInitTA(gethostbyname)
+        .expectCallTA(gethostbyname).inject()
     .run();
 }
 
@@ -74,8 +74,8 @@ TEST(ConnectionSocketTest, ConnectCallFailes)
         Socket                      socket("github.com",80 , Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
-        .errorInitTA(connect).toReturn(-1)
-        .errorTA(close).toReturn(0)
+        .expectCallTA(connect).inject().toReturn(-1)
+        .expectCallTA(close).toReturn(0)
     .run();
 }
 
@@ -129,7 +129,7 @@ TEST(ConnectionSocketTest, Close)
         socket.close();
         ASSERT_FALSE(socket.isConnected());
     })
-    .expectCodeTA(close).toReturn(0)
+    .expectCallTA(close).toReturn(0)
     .run();
 }
 
@@ -161,7 +161,7 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
         Socket                      socket("github.com",80 , Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
-        .errorInitTA(fcntl).toReturn(-1)
+        .expectCallTA(fcntl).inject().toReturn(-1)
     .run();
 }
 
@@ -172,6 +172,6 @@ TEST(ConnectionSocketTest, ShutdownFails)
         socket.tryFlushBuffer();
     })
     .expectObjectTA(Socket_NonBlocking)
-        .expectCodeTA(shutdown).toReturn(0)
+        .expectCallTA(shutdown).toReturn(0)
     .run();
 }
