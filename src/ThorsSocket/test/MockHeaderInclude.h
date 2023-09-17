@@ -1,6 +1,8 @@
 #ifndef THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 #define THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 
+#include <functional>
+
 // Please add includes for all mocked libraries here.
 // PART-1-Start
 #include <functional>
@@ -23,14 +25,15 @@ namespace ThorsAnvil::BuildTools::Mock
 using FuncType_open     = int(const char*, int, unsigned short);
 using FuncType_fcntl    = int(int, int, int);
 
+typedef int (*CB)(char*, int, int, void*);
+typedef int (*VCB)(int, X509_STORE_CTX*);
+
 // PART-2-End
 // This default implementation of overridden functions
 // Please provide a lambda for the implementation
 // When you add/remove a MOCK_FUNC or MOCK_TFUNC to the source
 // This list will be updated.
 
-typedef int (*CB)(char*, int, int, void*);
-typedef int (*VCB)(int, X509_STORE_CTX*);
 }
 
 #include "coverage/MockHeaders.h"
@@ -176,3 +179,4 @@ class MockAllDefaultFunctions
 }
 
 #endif
+

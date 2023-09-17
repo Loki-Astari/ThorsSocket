@@ -34,12 +34,9 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCallTA(SSL_CTX_ctrl).toReturn(1).toReturn(1)
+    .expectCallTA(SSL_CTX_ctrl).checkInput(reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, nullptr).toReturn(1)
+    .expectCallTA(SSL_CTX_ctrl).checkInput(reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_1_VERSION, nullptr).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, nullptr);
-    MOCK_INPUT(SSL_CTX_ctrl, reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_1_VERSION, nullptr);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
@@ -70,12 +67,9 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_ctrl).toReturn(1).toReturn(1)
+    .expectCallTA(SSL_ctrl).checkInput(reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_2_VERSION, nullptr).toReturn(1)
+    .expectCallTA(SSL_ctrl).checkInput(reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_3_VERSION, nullptr).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_2_VERSION, nullptr);
-    MOCK_INPUT(SSL_ctrl, reinterpret_cast<SSL*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_3_VERSION, nullptr);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
@@ -139,13 +133,9 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
         CipherInfo      cipherInfo{input1, input2};
         cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCallTA(SSL_CTX_set_cipher_list).toReturn(1)
-    .expectCallTA(SSL_CTX_set_ciphersuites).toReturn(1)
+    .expectCallTA(SSL_CTX_set_cipher_list).checkInput(reinterpret_cast<SSL_CTX*>(0x08), input1).toReturn(1)
+    .expectCallTA(SSL_CTX_set_ciphersuites).checkInput( reinterpret_cast<SSL_CTX*>(0x08), input2).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_set_cipher_list, reinterpret_cast<SSL_CTX*>(0x08), input1);
-    MOCK_INPUT(SSL_CTX_set_ciphersuites, reinterpret_cast<SSL_CTX*>(0x08), input2);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
@@ -157,13 +147,9 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
         CipherInfo      cipherInfo{input1, input2};
         cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_set_cipher_list).toReturn(1)
-    .expectCallTA(SSL_set_ciphersuites).toReturn(1)
+    .expectCallTA(SSL_set_cipher_list).checkInput(reinterpret_cast<SSL*>(0x08), input1).toReturn(1)
+    .expectCallTA(SSL_set_ciphersuites).checkInput(reinterpret_cast<SSL*>(0x08), input2).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_set_cipher_list, reinterpret_cast<SSL*>(0x08), input1);
-    MOCK_INPUT(SSL_set_ciphersuites, reinterpret_cast<SSL*>(0x08), input2);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
@@ -248,14 +234,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
     })
     .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-    .expectCallTA(SSL_CTX_use_certificate_file).toReturn(1)
-    .expectCallTA(SSL_CTX_use_PrivateKey_file).toReturn(1)
+    .expectCallTA(SSL_CTX_use_certificate_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM).toReturn(1)
+    .expectCallTA(SSL_CTX_use_PrivateKey_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM).toReturn(1)
     .expectCallTA(SSL_CTX_check_private_key).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
-    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
@@ -269,14 +251,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
     })
     .expectCallTA(SSL_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-    .expectCallTA(SSL_use_certificate_file).toReturn(1)
-    .expectCallTA(SSL_use_PrivateKey_file).toReturn(1)
+    .expectCallTA(SSL_use_certificate_file).checkInput(reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM).toReturn(1)
+    .expectCallTA(SSL_use_PrivateKey_file).checkInput(reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM).toReturn(1)
     .expectCallTA(SSL_check_private_key).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
-    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
@@ -306,12 +284,9 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
     })
     .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-    .expectCallTA(SSL_CTX_use_certificate_file).toReturn(0)
+    .expectCallTA(SSL_CTX_use_certificate_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
@@ -325,14 +300,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
     })
     .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-    .expectCallTA(SSL_CTX_use_certificate_file).toReturn(1)
-    .expectCallTA(SSL_CTX_use_PrivateKey_file).toReturn(0)
+    .expectCallTA(SSL_CTX_use_certificate_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM).toReturn(1)
+    .expectCallTA(SSL_CTX_use_PrivateKey_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
-    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
@@ -346,15 +317,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
     })
     .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
-    .expectCallTA(SSL_CTX_use_certificate_file).toReturn(1)
-    .expectCallTA(SSL_CTX_use_PrivateKey_file).toReturn(1)
+    .expectCallTA(SSL_CTX_use_certificate_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM).toReturn(1)
+    .expectCallTA(SSL_CTX_use_PrivateKey_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM).toReturn(1)
     .expectCallTA(SSL_CTX_check_private_key).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_use_certificate_file, reinterpret_cast<SSL_CTX*>(0x08), certFile, SSL_FILETYPE_PEM);
-    MOCK_INPUT(SSL_CTX_use_PrivateKey_file, reinterpret_cast<SSL_CTX*>(0x08), keyFile, SSL_FILETYPE_PEM);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
@@ -368,12 +335,9 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
     })
     .expectCallTA(SSL_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-    .expectCallTA(SSL_use_certificate_file).toReturn(0)
+    .expectCallTA(SSL_use_certificate_file).checkInput(reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
-#if 0
-    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
@@ -387,14 +351,10 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
     })
     .expectCallTA(SSL_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-    .expectCallTA(SSL_use_certificate_file).toReturn(1)
-    .expectCallTA(SSL_use_PrivateKey_file).toReturn(0)
+    .expectCallTA(SSL_use_certificate_file).checkInput(reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM).toReturn(1)
+    .expectCallTA(SSL_use_PrivateKey_file).checkInput(reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
-#if 0
-    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
-    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
@@ -408,15 +368,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
     })
     .expectCallTA(SSL_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_set_default_passwd_cb_userdata).toReturn(1)
-    .expectCallTA(SSL_use_certificate_file).toReturn(1)
-    .expectCallTA(SSL_use_PrivateKey_file).toReturn(1)
+    .expectCallTA(SSL_use_certificate_file).checkInput(reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM).toReturn(1)
+    .expectCallTA(SSL_use_PrivateKey_file).checkInput(reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM).toReturn(1)
     .expectCallTA(SSL_check_private_key).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
-#if 0
-    MOCK_INPUT(SSL_use_certificate_file, reinterpret_cast<SSL*>(0x08), certFile, SSL_FILETYPE_PEM);
-    MOCK_INPUT(SSL_use_PrivateKey_file, reinterpret_cast<SSL*>(0x08), keyFile, SSL_FILETYPE_PEM);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
@@ -470,11 +426,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
         ca.file.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCallTA(SSL_CTX_load_verify_file).toReturn(1)
+    .expectCallTA(SSL_CTX_load_verify_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_load_verify_file, reinterpret_cast<SSL_CTX*>(0x08), file);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
@@ -486,11 +439,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
         ca.dir.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCallTA(SSL_CTX_load_verify_dir).toReturn(1)
+    .expectCallTA(SSL_CTX_load_verify_dir).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_load_verify_dir, reinterpret_cast<SSL_CTX*>(0x08), file);
-#endif
 }
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
@@ -502,11 +452,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
         ca.store.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-    .expectCallTA(SSL_CTX_load_verify_store).toReturn(1)
+    .expectCallTA(SSL_CTX_load_verify_store).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
     .run();
-#if 0
-    MOCK_INPUT(SSL_CTX_load_verify_store, reinterpret_cast<SSL_CTX*>(0x08), file);
-#endif
 }
 
 
