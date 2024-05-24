@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <utility>
+#include <sys/types.h>
 
 namespace ThorsAnvil::ThorsSocket
 {

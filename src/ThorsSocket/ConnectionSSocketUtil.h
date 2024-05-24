@@ -5,6 +5,7 @@
 #include "OpenSSLMacroWrappers.h"
 #include <openssl/ssl.h>
 #include <string>
+#include <functional>
 
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
