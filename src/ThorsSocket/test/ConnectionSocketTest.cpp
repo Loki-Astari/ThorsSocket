@@ -35,9 +35,13 @@ TEST(ConnectionSocketTest, SocketCallFails)
 
 TEST(ConnectionSocketTest, GetHostCallFails)
 {
+#ifndef __WINNT__
     h_errno = NO_DATA;
+#endif
     TA_TestThrow([](){
+#ifndef __WINNT__
         h_errno = HOST_NOT_FOUND; // TODO put inside function
+#endif
         Socket                      socket("github.com",80 , Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
@@ -48,6 +52,9 @@ TEST(ConnectionSocketTest, GetHostCallFails)
 
 TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 {
+#ifdef  __WINNT__
+    GTEST_SKIP();
+#else
     h_errno = NO_DATA;
     TA_TestThrow([](){
         // TODO support setting h_errno depending on the call.
@@ -66,6 +73,7 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
         // The above MOCK_SYS catches the gethostbyname 
         .expectCallTA(gethostbyname).inject()
     .run();
+#endif
 }
 
 TEST(ConnectionSocketTest, ConnectCallFailes)
@@ -135,6 +143,9 @@ TEST(ConnectionSocketTest, Close)
 
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 {
+#ifdef __WINNT__
+    GTEST_SKIP();
+#else
     MockAllDefaultFunctions       defaultMockedFunctions;
     Socket                        socket(33);
 
@@ -142,10 +153,14 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
     })
     .run();
+#endif
 }
 
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 {
+#ifdef __WINNT__
+    GTEST_SKIP();
+#else
     MockAllDefaultFunctions       defaultMockedFunctions;
     Socket                        socket(34);
 
@@ -153,6 +168,7 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
     })
     .run();
+#endif
 }
 
 TEST(ConnectionSocketTest, SetNonBlockingFails)

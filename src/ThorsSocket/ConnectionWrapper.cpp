@@ -1,6 +1,7 @@
 #include "ConnectionWrapper.h"
 
 #ifdef __WINNT__
+#include <process.h>
 
 int pipe(int fildes[2])
 {
