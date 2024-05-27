@@ -4,11 +4,18 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#ifdef  __WINNT__
+#define NONBLOCKING_FLAG        0
+#else
+#define NONBLOCKING_FLAG        O_NONBLOCK
+#endif
+
+
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 File::File(std::string const& fileName, Open open, Blocking blocking)
     : fd(MOCK_TFUNC(open)(fileName.c_str(),
-                       (open == Open::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? O_NONBLOCK : 0),
+                       (open == Open::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? NONBLOCKING_FLAG : 0),
                        O_RDWR))
 {
     if (fd == -1) {

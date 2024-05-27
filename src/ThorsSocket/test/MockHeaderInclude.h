@@ -1,13 +1,19 @@
 #ifndef THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 #define THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 
+#include "ConnectionWrapper.h"
 #include <functional>
 
 // Please add includes for all mocked libraries here.
 // PART-1-Start
+#ifdef __WINNT__
+#include <winsock2.h>
+#include <windows.h>
+#else
+#include <netdb.h>
+#endif
 #include <functional>
 #include <fcntl.h>
-#include <netdb.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "OpenSSLMacroWrappers.h"
@@ -45,8 +51,10 @@ class MockAllDefaultFunctions
     int version;
 // PART-3-Start
     std::function<hostent*(const char*)> getHostByNameMock =[]  (char const*) {
-        static char* addrList[] = {""};
-        static hostent result {.h_length=1, .h_addr_list=addrList};
+        static char const* addrList[] = {""};
+        static hostent result;
+        result.h_length=1;
+        result.h_addr_list = const_cast<char**>(addrList);
         return &result;
     };
 
@@ -54,7 +62,9 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(write);
     MOCK_TMEMBER(open);
     MOCK_MEMBER(close);
+#ifndef __WINNT__
     MOCK_TMEMBER(fcntl);
+#endif
     MOCK_MEMBER(pipe);
     MOCK_MEMBER(TLS_client_method);
     MOCK_MEMBER(TLS_server_method);
@@ -118,7 +128,9 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(write,                                 [ ](int, void const*, ssize_t size)     {return size;})
             , MOCK_PARAM(open,                                  [ ](char const*, int, int)              {return 12;})
             , MOCK_PARAM(close,                                 [ ](int)                                {return 0;})
+#ifndef __WINNT__
             , MOCK_PARAM(fcntl,                                 [ ](int, int, int)                      {return 0;})
+#endif
             , MOCK_PARAM(pipe,                                  [ ](int* p)                             {p[0] = 12; p[1] =13;return 0;})
             , MOCK_PARAM(TLS_client_method,                     [ ]()                                   {return (SSL_METHOD*)1;})
             , MOCK_PARAM(TLS_server_method,                     [ ]()                                   {return (SSL_METHOD*)2;})

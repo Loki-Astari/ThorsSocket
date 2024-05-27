@@ -4,8 +4,12 @@
 #include <map>
 #include <sstream>
 
-#include <sys/types.h>
+#ifdef  __WINNT__
+#else
 #include <sys/uio.h>
+#endif
+
+#include <sys/types.h>
 #include <unistd.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
@@ -111,7 +115,9 @@ IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
             case ENOBUFS:       [[fallthrough]];
             case ENETUNREACH:   [[fallthrough]];
             case ENETDOWN:      [[fallthrough]];
+#ifndef __WINNT__
             case EDQUOT:        [[fallthrough]];
+#endif
             case EFBIG:         [[fallthrough]];
             case ENOSPC:        [[fallthrough]];
             case EPERM:         [[fallthrough]];
@@ -142,7 +148,10 @@ char const* FileDescriptor::getErrNoStr(int error)
         {ECONNRESET, "ECONNRESET"},     {EAGAIN, "EAGAIN"},     {EISDIR, "EISDIR"},     {EEXIST, "EEXIST"},
         {ENOTCONN, "ENOTCONN"},         {ENOBUFS, "ENOBUFS"},   {EIO, "EIO"},           {ENOMEM, "ENOMEM"},
         {ETIMEDOUT, "ETIMEDOUT"},       {ENOSPC, "ENOSPC"},     {EPERM, "EPERM"},       {EPIPE, "EPIPE"},
-        {EDESTADDRREQ, "EDESTADDRREQ"}, {EDQUOT, "EDQUOT"},     {EFBIG, "EFBIG"},       {ERANGE, "ERANGE"},
+        {EDESTADDRREQ, "EDESTADDRREQ"}, {EFBIG, "EFBIG"},       {ERANGE, "ERANGE"},
+#ifndef __WINNT__
+        {EDQUOT, "EDQUOT"},
+#endif
         {ENETUNREACH, "ENETUNREACH"},   {ENETDOWN, "ENETDOWN"}, {EACCES, "EACCES"},     {EBUSY, "EBUSY"},
         {ENAMETOOLONG, "ENAMETOOLONG"}, {ELOOP, "ELOOP"},       {EMFILE, "EMFILE"},     {ENFILE, "ENFILE"},
         {EOPNOTSUPP, "EOPNOTSUPP"},     {ENODEV, "ENODEV"},     {ENOENT, "ENOENT"},     {ENOTDIR, "ENOTDIR"},
