@@ -102,8 +102,8 @@ TA_Object   SSocket(
                 .optionalTA(SSL_get_error).toReturn(SSL_ERROR_SYSCALL)
             );
 
-static char* addrList[] = {""};
-static ThorsAnvil::ThorsSocket::ConnectionType::HostEnt result {.h_length=1, .h_addr_list=addrList};
+static char const* addrList[] = {""};
+static ThorsAnvil::ThorsSocket::ConnectionType::HostEnt result {.h_length=1, .h_addr_list=const_cast<char**>(addrList)};
 
 TA_Object   Socket_Blocking(
                 build()

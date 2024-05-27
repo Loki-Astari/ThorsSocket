@@ -96,7 +96,7 @@ TEST(ConnectionPipeTest, Close)
 #ifdef __WINNT__
     // Windows does not support non blocking pipes
     // So this test will fail.
-    .. see ConnectionWrapper.cpp
+    // see ConnectionWrapper.cpp
     GTEST_SKIP();
 #endif
     MockAllDefaultFunctions     defaultMockedFunctions;
