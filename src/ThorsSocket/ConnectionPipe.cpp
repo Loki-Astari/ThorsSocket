@@ -1,4 +1,5 @@
 #include "ConnectionPipe.h"
+#include "ConnectionWrapper.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 #include <fcntl.h>
@@ -23,9 +24,9 @@ Pipe::Pipe(Blocking blocking)
     }
     if (blocking == Blocking::No)
     {
-        int result = MOCK_TFUNC(fcntl)(fd[0], F_SETFL, O_NONBLOCK);
+        int result = MOCK_TFUNC(fcntl)(fd[0], SETBLOCKING_CMD, NONBLOCKING_FLAG);
         if (result == 0) {
-            result = MOCK_TFUNC(fcntl)(fd[1], F_SETFL, O_NONBLOCK);
+            result = MOCK_TFUNC(fcntl)(fd[1], SETBLOCKING_CMD, NONBLOCKING_FLAG);
         }
         if (result != 0)
         {

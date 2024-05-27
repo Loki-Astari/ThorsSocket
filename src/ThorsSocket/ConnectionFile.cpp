@@ -1,14 +1,9 @@
 #include "ConnectionFile.h"
+#include "ConnectionWrapper.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 #include <fcntl.h>
 #include <unistd.h>
-
-#ifdef  __WINNT__
-#define NONBLOCKING_FLAG        0
-#else
-#define NONBLOCKING_FLAG        O_NONBLOCK
-#endif
 
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
