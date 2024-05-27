@@ -12,4 +12,8 @@ int fcntl(int /*fd*/, int /*cmd*/, int /*flag*/)
     return -1;
 }
 
+#else
+
+int ioctlsocket(int, long, unsigned long*)  {return -1;}
+
 #endif

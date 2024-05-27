@@ -16,6 +16,9 @@ int fcntl(int /*fd*/, int /*cmd*/, int /*flag*/);
 #define SETBLOCKING_CMD         F_SETFL
 #define NONBLOCKING_FLAG        O_NONBLOCK
 #define PAUSE_AND_WAIT(n)       sleep(n)
+
+
+int ioctlsocket(int, long, unsigned long*);
 #endif
 
 #endif
