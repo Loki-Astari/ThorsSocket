@@ -6,6 +6,7 @@
 
 #define NONBLOCKING_FLAG        0
 #define SETBLOCKING_CMD         0
+#define PAUSE_AND_WAIT(n)       Sleep(n * 1000)
 
 int pipe(int fildes[2]);
 int fcntl(int /*fd*/, int /*cmd*/, int /*flag*/);
@@ -14,6 +15,7 @@ int fcntl(int /*fd*/, int /*cmd*/, int /*flag*/);
 
 #define SETBLOCKING_CMD         F_SETFL
 #define NONBLOCKING_FLAG        O_NONBLOCK
+#define PAUSE_AND_WAIT(n)       sleep(n)
 #endif
 
 #endif

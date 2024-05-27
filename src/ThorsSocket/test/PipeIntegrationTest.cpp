@@ -66,7 +66,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
             pipe.putMessageData(message.c_str() + loop, std::min(std::size_t{5}, message.size() - sent));
-            sleep(1);
+            PAUSE_AND_WAIT(1);
             sent += 5;
         }
     });
@@ -84,16 +84,22 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 {
+#ifdef __WINNT__
+    // Windows does not support non blocking pipes
+    // So this test will fail.
+    .. see ConnectionWrapper.cpp
+    GTEST_SKIP();
+#endif
     int yieldCount = 0;
     Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::No),
-                                [&yieldCount](){++yieldCount;sleep(2);}};
+                                [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);}};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
             pipe.putMessageData(message.c_str() + loop, std::min(std::size_t{5}, message.size() - sent));
-            sleep(1);
+            PAUSE_AND_WAIT(1);
             sent += 5;
         }
     });
@@ -135,6 +141,12 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 {
+#ifdef __WINNT__
+    // Windows does not support non blocking pipes
+    // So this test will fail.
+    .. see ConnectionWrapper.cpp
+    GTEST_SKIP();
+#endif
     std::mutex              mutex;
     std::condition_variable cond;
     bool                    finished        = false;
@@ -165,7 +177,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 
         IOData  r = pipe1.getMessageData(&buffer[0], std::min((totalWritten - totalRead), std::size_t{1000}));
         totalRead += r.dataSize;
-        sleep(1);
+        PAUSE_AND_WAIT(1);
 
         while (totalRead != totalWritten)
         {
