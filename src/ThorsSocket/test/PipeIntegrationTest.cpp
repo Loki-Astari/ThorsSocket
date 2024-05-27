@@ -1,4 +1,3 @@
-#if 0
 #include <gtest/gtest.h>
 #include "Socket.h"
 #include "Connection.h"
@@ -10,8 +9,6 @@
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
-using ThorsAnvil::ThorsSocket::IOResult;
-using ThorsAnvil::ThorsSocket::Result;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;
 namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
@@ -54,8 +51,9 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
     reply.resize(message.size());
     IOData result = pipe.getMessageData(reply.data(), message.size());
 
-    ASSERT_TRUE(result.first);
-    ASSERT_EQ(result.second, message.size());
+    ASSERT_TRUE(result.stillOpen);
+    ASSERT_FALSE(result.blocked);
+    ASSERT_EQ(result.dataSize, message.size());
     ASSERT_EQ(message, reply);
 }
 
@@ -78,8 +76,9 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
     reply.resize(message.size());
     IOData result = pipe.getMessageData(reply.data(), message.size());
 
-    ASSERT_TRUE(result.first);
-    ASSERT_EQ(result.second, message.size());
+    ASSERT_TRUE(result.stillOpen);
+    ASSERT_FALSE(result.blocked);
+    ASSERT_EQ(result.dataSize, message.size());
     ASSERT_EQ(message, reply);
 }
 
@@ -106,8 +105,9 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
     IOData result = pipe.getMessageData(reply.data(), message.size());
 
     ASSERT_GE(yieldCount, 0);
-    ASSERT_TRUE(result.first);
-    ASSERT_EQ(result.second, message.size());
+    ASSERT_TRUE(result.stillOpen);
+    ASSERT_FALSE(result.blocked);
+    ASSERT_EQ(result.dataSize, message.size());
     ASSERT_EQ(message, reply);
 }
 
@@ -125,10 +125,11 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
     std::string reply;
     reply.resize(message.size());
     IOData result = pipe.getMessageData(reply.data(), message.size());
-    reply.resize(result.second);
+    reply.resize(result.dataSize);
 
-    ASSERT_FALSE(result.first);
-    ASSERT_EQ(result.second, message.size() - 4);
+    ASSERT_FALSE(result.stillOpen);
+    ASSERT_FALSE(result.blocked);
+    ASSERT_EQ(result.dataSize, message.size() - 4);
     ASSERT_EQ(message.substr(0, message.size() - 4), reply);
 }
 
@@ -163,14 +164,14 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
         std::size_t         totalRead = 0;
 
         IOData  r = pipe1.getMessageData(&buffer[0], std::min((totalWritten - totalRead), std::size_t{1000}));
-        totalRead += r.second;
+        totalRead += r.dataSize;
         sleep(1);
 
         while (totalRead != totalWritten)
         {
             IOData  r = pipe1.getMessageData(&buffer[0], std::min((totalWritten - totalRead), std::size_t{1000}));
-            totalRead += r.second;
-            if (!r.first) {
+            totalRead += r.dataSize;
+            if (!r.stillOpen) {
                 break;
             }
         }
@@ -183,11 +184,12 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
     while (!finished)
     {
         IOData result = pipe1.putMessageData(message.c_str(), message.size());
-        totalWritten += result.second;
+        totalWritten += result.dataSize;
     }
 
     IOData result = pipe2.getMessageData(&readFromServer, sizeof(readFromServer));
-    ASSERT_TRUE(result.first);
+    ASSERT_TRUE(result.stillOpen);
+    ASSERT_FALSE(result.blocked);
     ASSERT_EQ(readFromServer, totalWritten);
 }
 
@@ -213,7 +215,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
         std::size_t         totalRead = 0;
 
         IOData  r = pipe1.getMessageData(&buffer[0], message.size());
-        totalRead += r.second;
+        totalRead += r.dataSize;
 
         pipe2.putMessageData(&totalRead, sizeof(totalRead));
     });
@@ -230,8 +232,9 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
     }
 
     IOData result2 = pipe2.getMessageData(&readFromServer, sizeof(readFromServer));
-    ASSERT_TRUE(result1.first);
-    ASSERT_TRUE(result2.first);
-    ASSERT_EQ(readFromServer, result1.second);
+    ASSERT_TRUE(result1.stillOpen);
+    ASSERT_FALSE(result1.blocked);
+    ASSERT_TRUE(result2.stillOpen);
+    ASSERT_FALSE(result2.blocked);
+    ASSERT_EQ(readFromServer, result1.dataSize);
 }
-#endif

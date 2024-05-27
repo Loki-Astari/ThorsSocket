@@ -58,13 +58,13 @@ IOData Socket::getMessageData(void* b, std::size_t size)
     while (dataRead != size)
     {
         IOData chunk = connection->readFromStream(buffer + dataRead, size - dataRead);
+        dataRead += chunk.dataSize;
         if (!chunk.stillOpen) {
-            return chunk;
+            return {dataRead, false, false};
         }
         if (chunk.blocked) {
             readYield();
         }
-        dataRead += chunk.dataSize;
     }
     return {dataRead, true, false};
 }
@@ -81,13 +81,13 @@ IOData Socket::putMessageData(void const* b, std::size_t size)
     while (dataWritten != size)
     {
         IOData chunk = connection->writeToStream(buffer + dataWritten, size - dataWritten);
+        dataWritten += chunk.dataSize;
         if (!chunk.stillOpen) {
-            return chunk;
+            return {dataWritten, false, false};
         }
         if (chunk.blocked) {
             writeYield();
         }
-        dataWritten += chunk.dataSize;
     }
     return {dataWritten, true, false};
 }
