@@ -24,9 +24,9 @@ Pipe::Pipe(Blocking blocking)
     }
     if (blocking == Blocking::No)
     {
-        int result = MOCK_TFUNC(fcntl)(fd[0], SETBLOCKING_CMD, NONBLOCKING_FLAG);
+        int result = MOCK_FUNC(ThorSetFDNonBlocking)(fd[0]);
         if (result == 0) {
-            result = MOCK_TFUNC(fcntl)(fd[1], SETBLOCKING_CMD, NONBLOCKING_FLAG);
+            result = MOCK_FUNC(ThorSetFDNonBlocking)(fd[1]);
         }
         if (result != 0)
         {

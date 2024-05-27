@@ -86,10 +86,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
 
     if (blocking == Blocking::No)
     {
-        // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-ioctlsocket
-        u_long mode = 1;  // 1 to enable non-blocking socket
-        int result = MOCK_FUNC(ioctlsocket)(fd, FIONBIO, &mode);
-        if (result != 0)
+        if (MOCK_FUNC(ThorSetSocketNonBlocking)(fd) == -1)
         {
             int saveErrno = WSAGetLastError();
             MOCK_FUNC(close)(fd);
@@ -99,7 +96,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
                 std::runtime_error,
                 "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                 "Socket",
-                " :Win Failed on ::ioctlsocket.",
+                " :Win Failed on ::ThorSetSocketNonBlocking.",
                 " errno = ", errno, " ", getErrNoStr(saveErrno),
                 " msg >", getErrMsg(saveErrno), "<"
             );
@@ -144,8 +141,8 @@ void Socket::tryFlushBuffer()
             ERROR,
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
-            "Socket",
-            " :Win Failed on ::ioctlsocket.",
+            "tryFlushBuffer",
+            " :Win Failed on ::shutdown.",
             " errno = ", errno, " ", getErrNoStr(saveErrno),
             " msg >", getErrMsg(saveErrno), "<"
         );
@@ -336,7 +333,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
 
     if (blocking == Blocking::No)
     {
-        if (MOCK_TFUNC(fcntl)(fd, F_SETFL, O_NONBLOCK) == -1)
+        if (MOCK_FUNC(ThorSetSocketNonBlocking)(fd) == -1)
         {
             int saveErrno = errno;
             MOCK_FUNC(close)(fd);
