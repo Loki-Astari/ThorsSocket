@@ -46,7 +46,7 @@ TEST(ConnectionSocketTest, GetHostCallFails)
     })
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(gethostbyname).inject().toReturn(nullptr)
-        .expectCallTA(close)
+        .expectCallTA(thorCloseSocket)
     .run();
 }
 
@@ -83,7 +83,7 @@ TEST(ConnectionSocketTest, ConnectCallFailes)
     })
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(connect).inject().toReturn(-1)
-        .expectCallTA(close).toReturn(0)
+        .expectCallTA(thorCloseSocket).toReturn(0)
     .run();
 }
 
@@ -137,7 +137,7 @@ TEST(ConnectionSocketTest, Close)
         socket.close();
         ASSERT_FALSE(socket.isConnected());
     })
-    .expectCallTA(close).toReturn(0)
+    .expectCallTA(thorCloseSocket).toReturn(0)
     .run();
 }
 

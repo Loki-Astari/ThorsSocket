@@ -20,7 +20,10 @@ int thorSetSocketNonBlocking(SOCKET fd)
     int result = ::ioctlsocket(fd, FIONBIO, &mode);
     return (result == 0) ? 0 : -1;
 }
-
+int thorCloseSocket(SOCKET fd)
+{
+    return ::closesocket(fd);
+}
 #else
 
 int thorSetFDNonBlocking(int fd)
@@ -30,6 +33,10 @@ int thorSetFDNonBlocking(int fd)
 int thorSetSocketNonBlocking(int fd)
 {
     return ::fcntl(fd, F_SETFL, O_NONBLOCK);
+}
+int thorCloseSocket(int fd)
+{
+    return ::close(fd);
 }
 
 #endif

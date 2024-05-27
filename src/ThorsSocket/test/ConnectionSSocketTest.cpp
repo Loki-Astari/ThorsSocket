@@ -110,7 +110,7 @@ TA_Object   Socket_Blocking(
                 .expectInitTA(socket).toReturn(12)
                 .expectInitTA(gethostbyname).toReturn(&result)
                 .expectInitTA(connect)
-                .expectDestTA(close)
+                .expectDestTA(thorCloseSocket)
             );
 TA_Object   Socket_NonBlocking(
                 build()
@@ -118,7 +118,7 @@ TA_Object   Socket_NonBlocking(
                 .expectInitTA(gethostbyname).toReturn(&result)
                 .expectInitTA(connect)
                 .expectInitTA(thorSetSocketNonBlocking).checkInput(12)
-                .expectDestTA(close)
+                .expectDestTA(thorCloseSocket)
             );
 }
 
@@ -236,7 +236,7 @@ TEST(ConnectionSSocketTest, Close)
     })
     .expectCallTA(SSL_shutdown).toReturn(1)
     .expectCallTA(SSL_free).toReturn(1)
-    .expectCallTA(close).toReturn(0)
+    .expectCallTA(thorCloseSocket).toReturn(0)
     .run();
 }
 

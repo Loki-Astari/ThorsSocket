@@ -10,6 +10,9 @@
 #include <netdb.h>
 #endif
 
+#include <stdio.h>
+#include  <stdexcept>
+
 #ifdef  __WINNT__
 
 #define PAUSE_AND_WAIT(n)       Sleep(n * 1000)
@@ -18,25 +21,8 @@
 int pipe(int fildes[2]);
 int thorSetFDNonBlocking(int fd);
 int thorSetSocketNonBlocking(SOCKET fd);
+int thorCloseSocket(SOCKET fd);
 
-class SocketSetUp
-{
-    public:
-        SocketSetUp()
-        {
-            WSADATA wsaData;
-            WORD wVersionRequested = MAKEWORD(2, 2);
-            int err = WSAStartup(wVersionRequested, &wsaData);
-            if (err != 0) {
-                printf("WSAStartup failed with error: %d\n", err);
-                throw std::runtime_error("Failed to set up Sockets");
-            }
-        }
-        ~SocketSetUp()
-        {
-            WSACleanup();
-        }
-};
 #else
 
 #define PAUSE_AND_WAIT(n)       sleep(n)
@@ -45,7 +31,7 @@ class SocketSetUp
 
 int thorSetFDNonBlocking(int fd);
 int thorSetSocketNonBlocking(int fd);
-class SocketSetUp {};
+int thorCloseSocket(int fd);
 
 #endif
 

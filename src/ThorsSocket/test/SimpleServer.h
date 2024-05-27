@@ -9,7 +9,11 @@ using ThorsAnvil::ThorsSocket::Socket;
 
 class Server
 {
+#ifdef __WINNT__
+    SOCKET          fd;
+#else
     int             fd;
+#endif
     bool            bound;
 
     public:
@@ -38,10 +42,12 @@ class Server
                 }
 #endif
             }
+            {
             // During testing
-            // we may reuse this socket a lot so allow multiple sockets to bind
-            int flag = 1;
-            ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&flag), sizeof(int));
+                // we may reuse this socket a lot so allow multiple sockets to bind
+                int flag = 1;
+                ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&flag), sizeof(int));
+            }
 
             using SocketAddrIn  = struct ::sockaddr_in;
             using SocketAddrIn  = struct ::sockaddr_in;
@@ -57,12 +63,30 @@ class Server
             {
                 if (::bind(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
                 {
+#ifdef __WINNT__
+                    switch (WSAGetLastError())
+                    {
+                        case WSANOTINITIALISED: std::cerr << "WSANOTINITIALISED\n";break;
+                        case WSAENETDOWN: std::cerr << "WSAENETDOWN\n";break;
+                        case WSAEACCES: std::cerr << "WSAEACCES\n";break;
+                        case WSAEADDRINUSE: std::cerr << "WSAEADDRINUSE\n";break;
+                        case WSAEADDRNOTAVAIL: std::cerr << "WSAEADDRNOTAVAIL\n";break;
+                        case WSAEFAULT: std::cerr << "WSAEFAULT\n";break;
+                        case WSAEINPROGRESS: std::cerr << "WSAEINPROGRESS\n";break;
+                        case WSAEINVAL: std::cerr << "WSAEINVAL\n";break;
+                        case WSAENOBUFS: std::cerr << "WSAENOBUFS\n";break;
+                        case WSAENOTSOCK: std::cerr << "WSAENOTSOCK\n";break;
+                        default:
+                            std::cerr << "?????\n";
+                    }
+#else
                     if (errno == EADDRINUSE && count < 3)
                     {
                         ++count;
                         PAUSE_AND_WAIT(10);
                         continue;
                     }
+#endif
                     close();
                     throw std::runtime_error("Failed to Bind: ::bind");
                 }
@@ -86,7 +110,11 @@ class Server
         void close()
         {
             if (fd != -1) {
+#ifdef __WINNT__
+                ::closesocket(fd);
+#else
                 ::close(fd);
+#endif
             }
             fd = -1;
         }
@@ -105,8 +133,30 @@ class Server
         }
 };
 
+class SocketSetUp
+{
+#ifdef  __WINNT__
+    public:
+        SocketSetUp()
+        {
+            WSADATA wsaData;
+            WORD wVersionRequested = MAKEWORD(2, 2);
+            int err = WSAStartup(wVersionRequested, &wsaData);
+            if (err != 0) {
+                printf("WSAStartup failed with error: %d\n", err);
+                throw std::runtime_error("Failed to set up Sockets");
+            }
+        }
+        ~SocketSetUp()
+        {
+            WSACleanup();
+        }
+#endif
+};
+
 class ServerStart
 {
+    SocketSetUp                     serverSetup;
     std::condition_variable         cond;
     std::mutex                      mutex;
     bool                            serverReady;

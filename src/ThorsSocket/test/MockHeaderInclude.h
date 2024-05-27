@@ -62,6 +62,7 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(write);
     MOCK_TMEMBER(open);
     MOCK_MEMBER(close);
+    MOCK_MEMBER(thorCloseSocket);
     MOCK_MEMBER(pipe);
     MOCK_MEMBER(thorSetFDNonBlocking);
     MOCK_MEMBER(thorSetSocketNonBlocking);
@@ -127,6 +128,7 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(write,                                 [ ](int, void const*, ssize_t size)     {return size;})
             , MOCK_PARAM(open,                                  [ ](char const*, int, int)              {return 12;})
             , MOCK_PARAM(close,                                 [ ](int)                                {return 0;})
+            , MOCK_PARAM(thorCloseSocket,                       [ ](int)                                {return 0;})
             , MOCK_PARAM(pipe,                                  [ ](int* p)                             {p[0] = 12; p[1] =13;return 0;})
             , MOCK_PARAM(thorSetFDNonBlocking,                  [ ](int)                                {return 0;})
             , MOCK_PARAM(thorSetSocketNonBlocking,              [ ](int)                                {return 0;})
