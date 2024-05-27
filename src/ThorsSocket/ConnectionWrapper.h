@@ -1,6 +1,14 @@
 #ifndef THORSANVIL_THORSSOCKET_CONNECTION_WRAPPER_H
 #define THORSANVIL_THORSSOCKET_CONNECTION_WRAPPER_H
 
+#ifdef __WINNT__
+#include <winsock2.h>
+#include <windows.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <netdb.h>
+#endif
 
 #ifdef  __WINNT__
 

@@ -7,7 +7,7 @@ int pipe(int fildes[2])
     return _pipe(fildes, 256, O_BINARY);
 }
 
-int ThorSetFDNonBlocking(int fd)
+int ThorSetFDNonBlocking(int /*fd*/)
 {
     // Non Blocking pipe and files are not supported on Windows
     return -1;

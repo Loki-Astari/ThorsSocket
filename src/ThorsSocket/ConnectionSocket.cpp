@@ -3,14 +3,6 @@
 
 #include <unistd.h>
 #include <sys/types.h>
-#ifdef __WINNT__
-#include <winsock2.h>
-#include <windows.h>
-#include <ws2tcpip.h>
-#else
-#include <sys/socket.h>
-#include <netdb.h>
-#endif
 #include <fcntl.h>
 
 #include <iostream>

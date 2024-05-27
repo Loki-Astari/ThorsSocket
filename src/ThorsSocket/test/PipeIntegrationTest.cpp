@@ -87,7 +87,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 #ifdef __WINNT__
     // Windows does not support non blocking pipes
     // So this test will fail.
-    .. see ConnectionWrapper.cpp
+    // see ConnectionWrapper.cpp
     GTEST_SKIP();
 #endif
     int yieldCount = 0;
@@ -144,7 +144,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 #ifdef __WINNT__
     // Windows does not support non blocking pipes
     // So this test will fail.
-    .. see ConnectionWrapper.cpp
+    // see ConnectionWrapper.cpp
     GTEST_SKIP();
 #endif
     std::mutex              mutex;
