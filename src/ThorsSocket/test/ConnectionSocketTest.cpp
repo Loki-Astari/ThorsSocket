@@ -1,4 +1,3 @@
-#if 0
 #include <gtest/gtest.h>
 #include "ConnectionSocket.h"
 #include "test/ConnectionTest.h"
@@ -162,7 +161,7 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
         Socket                      socket("github.com",80 , Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
-        .expectCallTA(fcntl).inject().toReturn(-1)
+        .expectCallTA(ThorSetSocketNonBlocking).inject().toReturn(-1)
     .run();
 }
 
@@ -176,4 +175,3 @@ TEST(ConnectionSocketTest, ShutdownFails)
         .expectCallTA(shutdown).toReturn(0)
     .run();
 }
-#endif

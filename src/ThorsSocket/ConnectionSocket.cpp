@@ -283,7 +283,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
     }
     while (serv == nullptr && h_errno == TRY_AGAIN);
 
-    if (serv != nullptr)
+    if (serv == nullptr)
     {
         int saveErrno = errno;
 
