@@ -18,7 +18,8 @@ File::File(std::string const& fileName, Open open, Blocking blocking)
                        (open == Open::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? NONBLOCKING_FLAG : 0),
                        O_RDWR))
 {
-    if (fd == -1) {
+    if (fd == -1)
+    {
         ThorsLogAndThrowAction(
             ERROR,
             std::runtime_error,
