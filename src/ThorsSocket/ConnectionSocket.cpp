@@ -3,13 +3,20 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#ifdef __WINNT__
+#include <winsock2.h>
+#include <windows.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
-#include <fcntl.h>
 #include <netdb.h>
+#endif
+#include <fcntl.h>
 
 #include <iostream>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
+using ThorsAnvil::ThorsSocket::IOData;
 
 #ifdef __WINNT__
 Socket::Socket(std::string const& host, int port, Blocking blocking)
@@ -35,7 +42,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
     do
     {
         // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-gethostbyname
-        serv = MOCK_FUNC(gethostbyname)(name);
+        serv = MOCK_FUNC(gethostbyname)(host.c_str());
     }
     while (serv == nullptr && WSAGetLastError() == WSATRY_AGAIN);
     if (serv == nullptr)
@@ -61,7 +68,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
 
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-connect
     int result = MOCK_FUNC(connect)(fd, reinterpret_cast<SOCKADDR*>(&serverAddr), sizeof(serverAddr));
-    if (Result != 0)
+    if (result != 0)
     {
         int saveErrno = WSAGetLastError();
         MOCK_FUNC(close)(fd);
@@ -114,7 +121,7 @@ bool Socket::isConnected() const
     return false;
 }
 
-int Socket::socketId(Mode rw) const
+int Socket::socketId(Mode /*rw*/) const
 {
     return static_cast<int>(fd);
 }
@@ -149,7 +156,7 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
 {
     ssize_t chunkRead = MOCK_FUNC(recv)(fd, buffer, size, 0);
     if (chunkRead == 0) {
-        return {{0, Result::ConnectionClosed}, false};
+        return {0, false, false};
     }
     if (chunkRead == SOCKET_ERROR)
     {
@@ -172,6 +179,7 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
             case WSAENOTSOCK:       [[fallthrough]];
             case WSAEOPNOTSUPP:     [[fallthrough]];
             case WSAEINVAL:
+            {
                 int saveErrno = WSAGetLastError();
                 ThorsLogAndThrowAction(
                     ERROR,
@@ -182,8 +190,10 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
                     " errno = ", errno, " ", getErrNoStr(saveErrno),
                     " msg >", getErrMsg(saveErrno), "<"
                 );
+            }
             case WSAEMSGSIZE:       [[fallthrough]];
             default:
+            {
                 int saveErrno = WSAGetLastError();
                 ThorsLogAndThrowAction(
                     ERROR,
@@ -194,9 +204,10 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
                     " errno = ", errno, " ", getErrNoStr(saveErrno),
                     " msg >", getErrMsg(saveErrno), "<"
                 );
+            }
         }
     }
-    return {chunkRead, true, false};
+    return {static_cast<std::size_t>(chunkRead), true, false};
 }
 
 IOData Socket::writeToStream(char const* buffer, std::size_t size)
@@ -226,6 +237,7 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
             case WSAEOPNOTSUPP:     [[fallthrough]];
             case WSAEHOSTUNREACH:   [[fallthrough]];
             case WSAEINVAL:
+            {
                 int saveErrno = WSAGetLastError();
                 ThorsLogAndThrowAction(
                     ERROR,
@@ -236,9 +248,11 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
                     " errno = ", errno, " ", getErrNoStr(saveErrno),
                     " msg >", getErrMsg(saveErrno), "<"
                 );
+            }
             case WSAEACCES:         [[fallthrough]];
             case WSAEMSGSIZE:       [[fallthrough]];
             default:
+            {
                 int saveErrno = WSAGetLastError();
                 ThorsLogAndThrowAction(
                     ERROR,
@@ -249,9 +263,10 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
                     " errno = ", errno, " ", getErrNoStr(saveErrno),
                     " msg >", getErrMsg(saveErrno), "<"
                 );
+            }
         }
     }
-    return {chunkWritten, true, false};
+    return {static_cast<std::size_t>(chunkWritten), true, false};
 }
 
 #else

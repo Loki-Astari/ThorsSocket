@@ -3,8 +3,12 @@
 
 #include "ThorsSocketConfig.h"
 #include "ConnectionFileDescriptor.h"
+#include "ConnectionWrapper.h"
 
+#ifdef  __WINNT__
+#else
 #include <netdb.h>
+#endif
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
@@ -29,6 +33,10 @@ class Socket: public Connection
 
         virtual IOData readFromStream(char* buffer, std::size_t size)       override;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  override;
+
+        char const* getErrNoStr(int /*error*/)  {return "";}
+        char const* getErrMsg(int /*error*/)    {return "";}
+
 };
 #else
 class Socket: public ConnectionType::FileDescriptor
