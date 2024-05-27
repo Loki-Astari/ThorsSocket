@@ -2,6 +2,7 @@
 #define THORSANVIL_THORSSOCKET_TEST_SIMPLE_SERVER_H
 
 #include <thread>
+#include "ConnectionWrapper.h"
 
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;
@@ -23,15 +24,24 @@ class Server
 
             if (blocking == Blocking::No)
             {
+#ifdef __WINNT__
+                // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-ioctlsocket
+                u_long mode = 1;  // 1 to enable non-blocking socket
+                int result = ::ioctlsocket(fd, FIONBIO, &mode);
+                if (result != 0) {
+                    throw std::runtime_error("Failed to set non-blocking: ::ioctlsocket");
+                }
+#else
                 int status = ::fcntl(fd, F_SETFL, O_NONBLOCK);
                 if (status == -1) {
                     throw std::runtime_error("Failed to set non-blocking: ::fcntl");
                 }
+#endif
             }
             // During testing
             // we may reuse this socket a lot so allow multiple sockets to bind
             int flag = 1;
-            ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(int));
+            ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&flag), sizeof(int));
 
             using SocketAddrIn  = struct ::sockaddr_in;
             using SocketAddrIn  = struct ::sockaddr_in;
@@ -50,7 +60,7 @@ class Server
                     if (errno == EADDRINUSE && count < 3)
                     {
                         ++count;
-                        sleep(10);
+                        PAUSE_AND_WAIT(10);
                         continue;
                     }
                     close();

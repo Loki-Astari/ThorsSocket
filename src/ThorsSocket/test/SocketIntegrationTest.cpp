@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "Socket.h"
 #include "Connection.h"
+#include "ConnectionWrapper.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include "ConnectionSocket.h"
 #include "test/SimpleServer.h"
@@ -57,7 +58,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
             socket.putMessageData(message.c_str() + loop, std::min(std::size_t{5}, message.size() - sent));
-            sleep(1);
+            PAUSE_AND_WAIT(1);
             sent += 5;
         }
     });
@@ -85,7 +86,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
             socket.putMessageData(message.c_str() + loop, std::min(std::size_t{5}, message.size() - sent));
-            sleep(1);
+            PAUSE_AND_WAIT(1);
             sent += 5;
         }
     });
@@ -93,7 +94,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
     int yieldCount = 0;
     Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8080, Blocking::No),
-                        [&yieldCount](){++yieldCount;sleep(2);}};
+                        [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);}};
 
     std::string reply;
     reply.resize(message.size());
@@ -146,7 +147,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
             std::unique_lock<std::mutex> lock(mutex);
             cond.wait(lock, [&finished](){return finished;});
         }
-        sleep(1);
+        PAUSE_AND_WAIT(1);
 
         std::vector<char>   buffer(1000);
         std::size_t         totalRead = 0;
