@@ -8,12 +8,12 @@ int pipe(int fildes[2])
     return _pipe(fildes, 256, O_BINARY);
 }
 
-int ThorSetFDNonBlocking(int /*fd*/)
+int thorSetFDNonBlocking(int /*fd*/)
 {
     // Non Blocking pipe and files are not supported on Windows
     return -1;
 }
-int ThorSetSocketNonBlocking(SOCKET fd)
+int thorSetSocketNonBlocking(SOCKET fd)
 {
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-ioctlsocket
     u_long mode = 1;  // 1 to enable non-blocking socket
@@ -23,11 +23,11 @@ int ThorSetSocketNonBlocking(SOCKET fd)
 
 #else
 
-int ThorSetFDNonBlocking(int fd)
+int thorSetFDNonBlocking(int fd)
 {
     return ::fcntl(fd, F_SETFL, O_NONBLOCK);
 }
-int ThorSetSocketNonBlocking(int fd)
+int thorSetSocketNonBlocking(int fd)
 {
     return ::fcntl(fd, F_SETFL, O_NONBLOCK);
 }

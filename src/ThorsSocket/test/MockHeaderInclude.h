@@ -63,8 +63,8 @@ class MockAllDefaultFunctions
     MOCK_TMEMBER(open);
     MOCK_MEMBER(close);
     MOCK_MEMBER(pipe);
-    MOCK_MEMBER(ThorSetFDNonBlocking);
-    MOCK_MEMBER(ThorSetSocketNonBlocking);
+    MOCK_MEMBER(thorSetFDNonBlocking);
+    MOCK_MEMBER(thorSetSocketNonBlocking);
     MOCK_MEMBER(TLS_client_method);
     MOCK_MEMBER(TLS_server_method);
     MOCK_MEMBER(SSL_CTX_new);
@@ -128,8 +128,8 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(open,                                  [ ](char const*, int, int)              {return 12;})
             , MOCK_PARAM(close,                                 [ ](int)                                {return 0;})
             , MOCK_PARAM(pipe,                                  [ ](int* p)                             {p[0] = 12; p[1] =13;return 0;})
-            , MOCK_PARAM(ThorSetFDNonBlocking,                  [ ](int)                                {return 0;})
-            , MOCK_PARAM(ThorSetSocketNonBlocking,              [ ](int)                                {return 0;})
+            , MOCK_PARAM(thorSetFDNonBlocking,                  [ ](int)                                {return 0;})
+            , MOCK_PARAM(thorSetSocketNonBlocking,              [ ](int)                                {return 0;})
             , MOCK_PARAM(TLS_client_method,                     [ ]()                                   {return (SSL_METHOD*)1;})
             , MOCK_PARAM(TLS_server_method,                     [ ]()                                   {return (SSL_METHOD*)2;})
             , MOCK_PARAM(SSL_CTX_new,                           [ ](SSL_METHOD const*)                  {return (SSL_CTX*)2;})

@@ -78,7 +78,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
 
     if (blocking == Blocking::No)
     {
-        if (MOCK_FUNC(ThorSetSocketNonBlocking)(fd) == -1)
+        if (MOCK_FUNC(thorSetSocketNonBlocking)(fd) == -1)
         {
             int saveErrno = WSAGetLastError();
             MOCK_FUNC(close)(fd);
@@ -88,7 +88,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
                 std::runtime_error,
                 "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                 "Socket",
-                " :Win Failed on ::ThorSetSocketNonBlocking.",
+                " :Win Failed on ::thorSetSocketNonBlocking.",
                 " errno = ", errno, " ", getErrNoStr(saveErrno),
                 " msg >", getErrMsg(saveErrno), "<"
             );
@@ -263,7 +263,8 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
     : fd(-1)
 {
     fd = MOCK_FUNC(socket)(PF_INET, SOCK_STREAM, 0);
-    if (fd == -1) {
+    if (fd == -1)
+    {
         ThorsLogAndThrowAction(
             ERROR,
             std::runtime_error,
@@ -325,7 +326,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
 
     if (blocking == Blocking::No)
     {
-        if (MOCK_FUNC(ThorSetSocketNonBlocking)(fd) == -1)
+        if (MOCK_FUNC(thorSetSocketNonBlocking)(fd) == -1)
         {
             int saveErrno = errno;
             MOCK_FUNC(close)(fd);
@@ -374,7 +375,8 @@ void Socket::close()
 
 void Socket::tryFlushBuffer()
 {
-    if (MOCK_FUNC(shutdown)(fd, SHUT_WR) != 0) {
+    if (MOCK_FUNC(shutdown)(fd, SHUT_WR) != 0)
+    {
         ThorsLogAndThrowAction(
             ERROR,
             std::runtime_error,

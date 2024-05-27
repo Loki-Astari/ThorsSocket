@@ -177,7 +177,7 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
         Socket                      socket("github.com",80 , Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
-        .expectCallTA(ThorSetSocketNonBlocking).inject().toReturn(-1)
+        .expectCallTA(thorSetSocketNonBlocking).inject().toReturn(-1)
     .run();
 }
 

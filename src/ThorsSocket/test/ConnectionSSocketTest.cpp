@@ -117,7 +117,7 @@ TA_Object   Socket_NonBlocking(
                 .expectInitTA(socket).toReturn(12)
                 .expectInitTA(gethostbyname).toReturn(&result)
                 .expectInitTA(connect)
-                .expectInitTA(ThorSetSocketNonBlocking).checkInput(12)
+                .expectInitTA(thorSetSocketNonBlocking).checkInput(12)
                 .expectDestTA(close)
             );
 }

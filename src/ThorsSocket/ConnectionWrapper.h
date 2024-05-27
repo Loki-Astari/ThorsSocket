@@ -16,8 +16,8 @@
 #define NONBLOCKING_FLAG        0
 
 int pipe(int fildes[2]);
-int ThorSetFDNonBlocking(int fd);
-int ThorSetSocketNonBlocking(SOCKET fd);
+int thorSetFDNonBlocking(int fd);
+int thorSetSocketNonBlocking(SOCKET fd);
 
 #else
 
@@ -25,8 +25,8 @@ int ThorSetSocketNonBlocking(SOCKET fd);
 #define NONBLOCKING_FLAG        O_NONBLOCK
 
 
-int ThorSetFDNonBlocking(int fd);
-int ThorSetSocketNonBlocking(int fd);
+int thorSetFDNonBlocking(int fd);
+int thorSetSocketNonBlocking(int fd);
 #endif
 
 #endif

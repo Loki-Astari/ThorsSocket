@@ -16,7 +16,7 @@ namespace ThorsAnvil::BuildTools::Mock
 TA_Object   Pipe(
                 build()
                 .expectInitTA(pipe).toReturn(0)
-                .optionalTA(ThorSetFDNonBlocking).toReturn(0)
+                .optionalTA(thorSetFDNonBlocking).toReturn(0)
                 .expectDestTA(close)
                 .expectDestTA(close)
             );
@@ -47,7 +47,7 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailFirst)
         Pipe                        pipe(Blocking::No);
     })
     .expectObjectTA(Pipe)
-        .expectCallTA(ThorSetFDNonBlocking).inject().toReturn(-1)
+        .expectCallTA(thorSetFDNonBlocking).inject().toReturn(-1)
         .expectCallTA(close).toReturn(0)
         .expectCallTA(close).toReturn(0)
     .run();
@@ -59,8 +59,8 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailSecond)
         Pipe                        pipe(Blocking::No);
     })
     .expectObjectTA(Pipe)
-        .expectCallTA(ThorSetFDNonBlocking).inject().toReturn(0)
-        .expectCallTA(ThorSetFDNonBlocking).inject().toReturn(-1)
+        .expectCallTA(thorSetFDNonBlocking).inject().toReturn(0)
+        .expectCallTA(thorSetFDNonBlocking).inject().toReturn(-1)
         .expectCallTA(close).toReturn(0)
         .expectCallTA(close).toReturn(0)
     .run();
