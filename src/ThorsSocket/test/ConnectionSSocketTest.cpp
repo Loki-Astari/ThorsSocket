@@ -1,4 +1,3 @@
-#if 0
 #include <gtest/gtest.h>
 #include "ConnectionSSocket.h"
 #include "test/ConnectionTest.h"
@@ -123,6 +122,7 @@ TA_Object   Socket_NonBlocking(
             );
 }
 
+#if 0
 TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
     TA_TestNoThrow([](){

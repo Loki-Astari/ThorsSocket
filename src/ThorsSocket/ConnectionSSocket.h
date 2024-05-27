@@ -98,15 +98,15 @@ class SSocket: public Socket
         virtual ~SSocket();
         virtual void tryFlushBuffer()                               override;
 
-        virtual IOResult read(char* buffer, std::size_t size, std::size_t read)             override;
-        virtual IOResult write(char const* buffer, std::size_t size, std::size_t written)   override;
+        virtual IOData readFromStream(char* buffer, std::size_t size)        override;
+        virtual IOData writeToStream(char const* buffer, std::size_t size)   override;
 
-        virtual std::string errorMessage(ssize_t)                   override;
         virtual void close()                                        override;
         virtual bool isConnected()                          const   override;
 
-        static std::string buildErrorMessage(bool prefix = true);
-        static std::string buildErrorMessage(int code);
+        //virtual std::string errorMessage(ssize_t)                   override;
+        //static std::string buildErrorMessage(bool prefix = true);
+        //static std::string buildErrorMessage(int code);
 };
 
 }
