@@ -1,3 +1,4 @@
+#if 0
 #include "ConnectionPipe.h"
 #include "ThorsLogging/ThorsLogging.h"
 
@@ -64,3 +65,4 @@ int Pipe::getWriteFD() const
 {
     return fd[1];
 }
+#endif

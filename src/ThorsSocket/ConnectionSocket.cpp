@@ -1,3 +1,4 @@
+#if 0
 #include "ConnectionSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
 
@@ -108,3 +109,4 @@ int Socket::getWriteFD() const
 {
     return fd;
 }
+#endif

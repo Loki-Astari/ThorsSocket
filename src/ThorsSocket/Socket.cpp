@@ -46,74 +46,50 @@ int Socket::socketId(Mode rw) const
     return connection->socketId(rw);
 }
 
-IOData Socket::getMessageData(void* buffer, std::size_t size)
+IOData Socket::getMessageData(void* b, std::size_t size)
 {
+    char* buffer = reinterpret_cast<char*>(b);
+
     if (!isConnected()) {
         ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Socket is in an invalid state");
     }
 
     std::size_t dataRead = 0;
-    do
+    while (dataRead != size)
     {
-        IOResult result = connection->read(static_cast<char*>(buffer), size, dataRead);
-        dataRead = result.first;
-        switch (result.second)
-        {
-            case Result::OK:
-                break;
-            case Result::CriticalBug:
-                ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::Socket", "getMessageData", "CriticalBug: connection read failed", connection->errorMessage(result.first));
-                break;
-            case Result::Interupt:
-                continue;
-            case Result::ConnectionClosed:
-                return {false, dataRead};
-            case Result::WouldBlock:
-                readYield();
-                continue;
-            case Result::Unknown:
-                // fall through
-            default:
-                ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Unknown: connection read failed", connection->errorMessage(result.first));
+        IOData chunk = connection->readFromStream(buffer + dataRead, size - dataRead);
+        if (!chunk.stillOpen) {
+            return chunk;
         }
+        if (chunk.blocked) {
+            readYield();
+        }
+        dataRead += chunk.dataSize;
     }
-    while (dataRead != size);
-    return {true, dataRead};
+    return {dataRead, true, false};
 }
 
-IOData Socket::putMessageData(void const* buffer, std::size_t size)
+IOData Socket::putMessageData(void const* b, std::size_t size)
 {
+    char const* buffer = reinterpret_cast<char const*>(b);
+
     if (!isConnected()) {
         ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "putMessageData", "Socket is in an invalid state");
     }
 
     std::size_t dataWritten = 0;
-    do
+    while (dataWritten != size)
     {
-        IOResult result = connection->write(static_cast<char const*>(buffer), size, dataWritten);
-        dataWritten = result.first;
-        switch (result.second)
-        {
-            case Result::OK:
-                break;
-            case Result::CriticalBug:
-                ThorsLogAndThrowCritical("ThorsAnvil::ThorsSocket::Socket", "putMessageData", "CriticalBug: connection read failed", connection->errorMessage(result.first));
-                break;
-            case Result::Interupt:
-                continue;
-            case Result::ConnectionClosed:
-                return {false, dataWritten};
-            case Result::WouldBlock:
-                writeYield();
-                continue;
-            case Result::Unknown:
-                // fall through
-            default:
-                ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Unknown: connection read failed", connection->errorMessage(result.first));
+        IOData chunk = connection->writeToStream(buffer + dataWritten, size - dataWritten);
+        if (!chunk.stillOpen) {
+            return chunk;
         }
+        if (chunk.blocked) {
+            writeYield();
+        }
+        dataWritten += chunk.dataSize;
     }
-    while (dataWritten != size);
-    return {true, dataWritten};
+    return {dataWritten, true, false};
 }
 
 void Socket::tryFlushBuffer()

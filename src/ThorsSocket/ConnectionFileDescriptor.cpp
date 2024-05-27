@@ -1,4 +1,5 @@
 #include "ConnectionFileDescriptor.h"
+#include "ThorsLogging/ThorsLogging.h"
 
 #include <map>
 #include <sstream>
@@ -8,117 +9,132 @@
 #include <unistd.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
-using ThorsAnvil::ThorsSocket::IOResult;
+using ThorsAnvil::ThorsSocket::IOData;
+using ThorsAnvil::ThorsSocket::SocketCritical;
+using ThorsAnvil::ThorsSocket::SocketUnknown;
 
 void FileDescriptor::tryFlushBuffer()
 {
     // Default Action do nothing.
 }
 
-IOResult FileDescriptor::read(char* buffer, std::size_t size, std::size_t dataRead)
+IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
 {
-    while (dataRead != size)
-    {
-        ssize_t chunkRead = MOCK_FUNC(read)(getReadFD(), buffer + dataRead, size - dataRead);
-        if (chunkRead == 0) {
-            return {dataRead, Result::ConnectionClosed};
-        }
-        if (chunkRead == -1)
-        {
-            // https://man7.org/linux/man-pages/man2/read.2.html
-            // https://linux.die.net/man/3/read
-            switch (errno)
-            {
-                case EBADF:
-                case EFAULT:
-                case EINVAL:
-                case EISDIR:
-                case ENOTCONN:
-                case EBADMSG:
-                case EOVERFLOW:
-                case ENXIO:
-                case ESPIPE:
-                    return {dataRead, Result::CriticalBug};
-                case EINTR:
-                    return {dataRead, Result::Interupt};
-                case ECONNRESET:
-                    return {dataRead, Result::ConnectionClosed};
-                case EAGAIN:
-#if defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1)
-                case EWOULDBLOCK:
-#endif
-                    return {dataRead, Result::WouldBlock};
-                case EIO:
-                case ENOBUFS:
-                case ETIMEDOUT:
-                case ENOMEM:
-                default:
-                    return {dataRead, Result::Unknown};
-            }
-        }
-        dataRead += chunkRead;
+    ssize_t chunkRead = MOCK_FUNC(read)(getReadFD(), buffer, size);
+    if (chunkRead == 0) {
+        return {0, false, false};
     }
-    return {dataRead, Result::OK};
-}
-
-IOResult FileDescriptor::write(char const* buffer, std::size_t size, std::size_t dataWritten)
-{
-    while (dataWritten != size)
+    if (chunkRead == -1)
     {
-        ssize_t chunkWritten = MOCK_FUNC(write)(getWriteFD(), buffer + dataWritten, size - dataWritten);
-        if (chunkWritten == -1)
+        // https://man7.org/linux/man-pages/man2/read.2.html
+        // https://linux.die.net/man/3/read
+        switch (errno)
         {
-            // https://man7.org/linux/man-pages/man2/write.2.html
-            // https://linux.die.net/man/3/write
-            switch (errno)
-            {
-                case EBADF:
-                case EFAULT:
-                case EINVAL:
-                case ENOTCONN:
-                case ENXIO:
-                case ESPIPE:
-                case EDESTADDRREQ:
-                case ERANGE:
-                case EPIPE:
-                case EACCES:
-                    return {dataWritten, Result::CriticalBug};
-                case EINTR:
-                    return {dataWritten, Result::Interupt};
-                case ECONNRESET:
-                    return {dataWritten, Result::ConnectionClosed};
-                case EAGAIN:
-#if defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1)
-                case EWOULDBLOCK:
+            case EINTR:         return {0, true, false};
+            case ECONNRESET:    return {0, false, false};
+#if defined(__WINNT) || (defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1))
+            case EWOULDBLOCK:   [[fallthrough]];
 #endif
-                    return {dataWritten, Result::WouldBlock};
-                case EIO:
-                case ENOBUFS:
-                case ENETUNREACH:
-                case ENETDOWN:
-                case EDQUOT:
-                case EFBIG:
-                case ENOSPC:
-                case EPERM:
-                default:
-                    return {dataWritten, Result::Unknown};
-            }
+            case EAGAIN:        return {0, true, true};
+            case EBADF:         [[fallthrough]];
+            case EFAULT:        [[fallthrough]];
+            case EINVAL:        [[fallthrough]];
+            case EISDIR:        [[fallthrough]];
+            case ENOTCONN:      [[fallthrough]];
+            case EBADMSG:       [[fallthrough]];
+            case EOVERFLOW:     [[fallthrough]];
+            case ENXIO:         [[fallthrough]];
+            case ESPIPE:
+                ThorsLogAndThrowAction(
+                    ERROR,
+                    SocketCritical,
+                    "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
+                    "readFromStream",
+                    "SocketCritical ",
+                    " errno = ", errno, " ", getErrNoStr(errno),
+                    " msg >", strerror(errno), "<"
+                );
+            case EIO:           [[fallthrough]];
+            case ENOBUFS:       [[fallthrough]];
+            case ETIMEDOUT:     [[fallthrough]];
+            case ENOMEM:        [[fallthrough]];
+            default:
+                ThorsLogAndThrowAction(
+                    ERROR,
+                    SocketUnknown,
+                    "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
+                    "readFromStream",
+                    "SocketUnknown ",
+                    " errno = ", errno, " ", getErrNoStr(errno),
+                    " msg >", strerror(errno), "<"
+                );
         }
-        dataWritten += chunkWritten;
     }
-    return {dataWritten, Result::OK};
+    return {static_cast<std::size_t>(chunkRead), true, false};
 }
 
-std::string FileDescriptor::errorMessage(ssize_t)
+IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
 {
-    return buildErrorMessage();
+    ssize_t chunkWritten = MOCK_FUNC(write)(getWriteFD(), buffer, size);
+    if (chunkWritten == -1)
+    {
+        // https://man7.org/linux/man-pages/man2/write.2.html
+        // https://linux.die.net/man/3/write
+        switch (errno)
+        {
+            case EINTR:         return {0, true, false};
+            case ECONNRESET:    return {0, false, false};
+#if defined(__WINNT__) || (defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1))
+            case EWOULDBLOCK:   [[fallthrough]];
+#endif
+            case EAGAIN:        return {0, true, true};
+            case EBADF:         [[fallthrough]];
+            case EFAULT:        [[fallthrough]];
+            case EINVAL:        [[fallthrough]];
+            case ENOTCONN:      [[fallthrough]];
+            case ENXIO:         [[fallthrough]];
+            case ESPIPE:        [[fallthrough]];
+            case EDESTADDRREQ:  [[fallthrough]];
+            case ERANGE:        [[fallthrough]];
+            case EPIPE:         [[fallthrough]];
+            case EACCES:
+                ThorsLogAndThrowAction(
+                    ERROR,
+                    SocketCritical,
+                    "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
+                    "writeToStream",
+                    "SocketCritical ",
+                    " errno = ", errno, " ", getErrNoStr(errno),
+                    " msg >", strerror(errno), "<"
+                );
+            case EIO:           [[fallthrough]];
+            case ENOBUFS:       [[fallthrough]];
+            case ENETUNREACH:   [[fallthrough]];
+            case ENETDOWN:      [[fallthrough]];
+            case EDQUOT:        [[fallthrough]];
+            case EFBIG:         [[fallthrough]];
+            case ENOSPC:        [[fallthrough]];
+            case EPERM:         [[fallthrough]];
+            default:
+                ThorsLogAndThrowAction(
+                    ERROR,
+                    SocketUnknown,
+                    "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
+                    "readFromStream",
+                    "SocketUnknown ",
+                    " errno = ", errno, " ", getErrNoStr(errno),
+                    " msg >", strerror(errno), "<"
+                );
+        }
+    }
+    return {static_cast<std::size_t>(chunkWritten), true, false};
 }
 
-std::string FileDescriptor::buildErrorMessage()
+char const* FileDescriptor::getErrNoStr(int error)
 {
     static const std::map<int, char const*> errorString =
     {
-#if defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1)
+#if defined(__WINNT__) || (defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1))
         {EWOULDBLOCK, "EWOULDBLOCK"},
 #endif
         {EOVERFLOW, "EOVERFLOW"},       {EBADF, "EBADF"},       {EFAULT, "EFAULT"},     {EINVAL, "EINVAL"},
@@ -137,9 +153,7 @@ std::string FileDescriptor::buildErrorMessage()
         {EHOSTUNREACH, "EHOSTUNREACH"},                         {EINPROGRESS, "EINPROGRESS"},
 
     };
-    std::stringstream result;
-    auto find = errorString.find(errno);
+    auto find = errorString.find(error);
     char const* errorName = find == errorString.end() ? "Unknown" : find->second;
-    result << "ConnectionType::FileDescriptor: errno=" << errno << "(" << errorName << "): msg: " << strerror(errno) << ":";
-    return result.str();
+    return errorName;
 }

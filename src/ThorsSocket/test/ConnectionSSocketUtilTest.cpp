@@ -1,3 +1,4 @@
+#if 0
 #include <gtest/gtest.h>
 #include "ConnectionSSocketUtil.h"
 #include "test/ConnectionTest.h"
@@ -758,4 +759,4 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
-
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #include "ConnectionSSocket.h"
 
 #include <map>
@@ -271,3 +272,4 @@ std::string SSocket::buildErrorMessage(int error)
     result << "ConnectionType::SSocket: SSLErrorCode =" << error << "(" << errorName << "): msg: " << buildOpenSSLErrorMessage(false);
     return result.str();
 }
+#endif

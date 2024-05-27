@@ -21,7 +21,5 @@ class TempFileWithCleanup
 
 using ThorsAnvil::ThorsSocket::Open;
 using ThorsAnvil::ThorsSocket::Blocking;
-using ThorsAnvil::ThorsSocket::IOResult;
-using ThorsAnvil::ThorsSocket::Result;
 
 #endif

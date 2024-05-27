@@ -1,3 +1,4 @@
+#if 0
 #include "ConnectionSSocketUtil.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include <openssl/err.h>
@@ -328,3 +329,4 @@ std::string buildOpenSSLErrorMessage(bool prefix)
     return result.str();
 }
 }
+#endif

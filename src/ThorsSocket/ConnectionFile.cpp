@@ -12,7 +12,15 @@ File::File(std::string const& fileName, Open open, Blocking blocking)
                        O_RDWR))
 {
     if (fd == -1) {
-        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::File", "File: open failed. ", buildErrorMessage());
+        ThorsLogAndThrowAction(
+            ERROR,
+            std::runtime_error,
+            "ThorsAnvil::ThorsSocket::ConnectionType::File",
+            "File",
+            "Failed to open ",
+            " errno = ", errno, " ", getErrNoStr(errno),
+            " msg >", strerror(errno), "<"
+        );
     }
 }
 

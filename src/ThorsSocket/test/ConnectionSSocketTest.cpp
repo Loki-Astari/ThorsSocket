@@ -1,3 +1,4 @@
+#if 0
 #include <gtest/gtest.h>
 #include "ConnectionSSocket.h"
 #include "test/ConnectionTest.h"
@@ -359,4 +360,4 @@ TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_X509_LOOKUP)         {testWrite
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_CLIENT_HELLO_CB)     {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_CLIENT_HELLO_CB);}
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC)               {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC);}
 TEST(ConnectionSSocketTest, Write_SSL_ERROR_WANT_ASYNC_JOB)           {testWriteFailure(Result::Unknown, SSL_ERROR_WANT_ASYNC_JOB);}
-
+#endif

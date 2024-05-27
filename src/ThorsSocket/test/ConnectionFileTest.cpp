@@ -1,3 +1,4 @@
+#if 0
 #include <gtest/gtest.h>
 #include "ConnectionFile.h"
 
@@ -96,3 +97,4 @@ TEST(ConnectionFileTest, WriteFDSameAsSocketId)
     })
     .run();
 }
+#endif

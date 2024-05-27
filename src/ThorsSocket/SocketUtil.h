@@ -3,11 +3,30 @@
 
 #include <cstddef>
 #include <utility>
+#include <exception>
 #include <sys/types.h>
 
 namespace ThorsAnvil::ThorsSocket
 {
 
+struct IOData
+{
+    std::size_t     dataSize;
+    bool            stillOpen;
+    bool            blocked;
+};
+
+struct SocketCritical: public std::logic_error
+{
+    using std::logic_error::logic_error;
+};
+struct SocketUnknown: public std::runtime_error
+{
+    using std::runtime_error::runtime_error;
+};
+
+
+#if 0
 enum class Result
 {
     OK,                     // Read / Write OK
@@ -40,9 +59,9 @@ enum class Result
  * IOResult:    Interface to socket for read/write.
  */
 
-using IOData            = std::pair<bool, std::size_t>;
 using IOInfo            = std::pair<ssize_t, int>;
 using IOResult          = std::pair<ssize_t, Result>;
+#endif
 
 enum class Open     {Append, Truncate};
 enum class Blocking {No, Yes};
