@@ -53,8 +53,8 @@ IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
                     ERROR,
                     SocketCritical,
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
-                    "readFromStream",
-                    "SocketCritical ",
+                    " readFromStream",
+                    " :SocketCritical exception thrown.",
                     " errno = ", errno, " ", getErrNoStr(errno),
                     " msg >", strerror(errno), "<"
                 );
@@ -67,8 +67,8 @@ IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
                     ERROR,
                     SocketUnknown,
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
-                    "readFromStream",
-                    "SocketUnknown ",
+                    " readFromStream",
+                    " :SocketUnknown exception thrown.",
                     " errno = ", errno, " ", getErrNoStr(errno),
                     " msg >", strerror(errno), "<"
                 );
@@ -106,8 +106,8 @@ IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
                     ERROR,
                     SocketCritical,
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
-                    "writeToStream",
-                    "SocketCritical ",
+                    " writeToStream",
+                    " :SocketCritical exception thrown.",
                     " errno = ", errno, " ", getErrNoStr(errno),
                     " msg >", strerror(errno), "<"
                 );
@@ -126,8 +126,8 @@ IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
                     ERROR,
                     SocketUnknown,
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
-                    "readFromStream",
-                    "SocketUnknown ",
+                    " readFromStream",
+                    " :SocketUnknown exception thrown",
                     " errno = ", errno, " ", getErrNoStr(errno),
                     " msg >", strerror(errno), "<"
                 );

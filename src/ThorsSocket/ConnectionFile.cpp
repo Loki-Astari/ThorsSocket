@@ -25,7 +25,7 @@ File::File(std::string const& fileName, Open open, Blocking blocking)
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::File",
             "File",
-            "Failed to open ",
+            " :Failed to open.",
             " errno = ", errno, " ", getErrNoStr(errno),
             " msg >", strerror(errno), "<"
         );

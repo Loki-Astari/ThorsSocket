@@ -1,4 +1,3 @@
-#if 0
 #include <gtest/gtest.h>
 #include "ConnectionPipe.h"
 
@@ -42,14 +41,26 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
     .run();
 }
 
-TEST(ConnectionPipeTest, ConstructPipeNonBlockingFail)
+TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailFirst)
 {
     TA_TestThrow([](){
         Pipe                        pipe(Blocking::No);
     })
     .expectObjectTA(Pipe)
         .expectCallTA(fcntl).inject().toReturn(-1)
-        .expectCallTA(fcntl).toReturn(0)
+        .expectCallTA(close).toReturn(0)
+        .expectCallTA(close).toReturn(0)
+    .run();
+}
+
+TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailSecond)
+{
+    TA_TestThrow([](){
+        Pipe                        pipe(Blocking::No);
+    })
+    .expectObjectTA(Pipe)
+        .expectCallTA(fcntl).inject().toReturn(0)
+        .expectCallTA(fcntl).inject().toReturn(-1)
         .expectCallTA(close).toReturn(0)
         .expectCallTA(close).toReturn(0)
     .run();
@@ -117,4 +128,3 @@ TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
     })
     .run();
 }
-#endif

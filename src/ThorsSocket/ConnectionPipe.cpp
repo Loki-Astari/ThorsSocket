@@ -1,4 +1,3 @@
-#if 0
 #include "ConnectionPipe.h"
 #include "ThorsLogging/ThorsLogging.h"
 
@@ -10,17 +9,36 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 Pipe::Pipe(Blocking blocking)
 {
     int result = MOCK_FUNC(pipe)(fd);
-    if (result == -1) {
-        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::Pipe", "Pipe: open failed. ", buildErrorMessage());
+    if (result == -1)
+    {
+        ThorsLogAndThrowAction(
+            ERROR,
+            std::runtime_error,
+            "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
+            "Pipe",
+            " :Failed to open.",
+            " errno = ", errno, " ", getErrNoStr(errno),
+            " msg >", strerror(errno), "<"
+        );
     }
     if (blocking == Blocking::No)
     {
-        int result1 = MOCK_TFUNC(fcntl)(fd[0], F_SETFL, O_NONBLOCK);
-        int result2 = MOCK_TFUNC(fcntl)(fd[1], F_SETFL, O_NONBLOCK);
-        if (result1 != 0 || result2 != 0)
+        int result = MOCK_TFUNC(fcntl)(fd[0], F_SETFL, O_NONBLOCK);
+        if (result == 0) {
+            result = MOCK_TFUNC(fcntl)(fd[1], F_SETFL, O_NONBLOCK);
+        }
+        if (result != 0)
         {
             close();
-            ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::Pipe", "Pipe: Set non blocking. ", buildErrorMessage());
+            ThorsLogAndThrowAction(
+                ERROR,
+                std::runtime_error,
+                "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
+                "Pipe",
+                " :Failed to set non blocking.",
+                " errno = ", errno, " ", getErrNoStr(errno),
+                " msg >", strerror(errno), "<"
+            );
         }
     }
 }
@@ -65,4 +83,3 @@ int Pipe::getWriteFD() const
 {
     return fd[1];
 }
-#endif
