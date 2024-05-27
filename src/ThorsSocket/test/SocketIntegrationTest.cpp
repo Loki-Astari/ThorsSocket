@@ -17,6 +17,7 @@ namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SocketIntegrationTest, ConnectToSocket)
 {
+    SocketSetUp     socketSetup;
     ServerStart     server;
     server.run<ConnectionType::Socket>(8080, [](Socket&){});
 
@@ -28,6 +29,7 @@ TEST(SocketIntegrationTest, ConnectToSocket)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 {
+    SocketSetUp     socketSetup;
     std::string const message = "This is a line of text\n";
     ServerStart     server;
     server.run<ConnectionType::Socket>(8080, [&message](Socket& socket)
@@ -50,6 +52,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
 {
+    SocketSetUp     socketSetup;
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -78,6 +81,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingRead)
 {
+    SocketSetUp     socketSetup;
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -109,6 +113,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
 {
+    SocketSetUp     socketSetup;
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -133,6 +138,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
 
 TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
 {
+    SocketSetUp     socketSetup;
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -189,6 +195,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
 
 TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
 {
+    SocketSetUp     socketSetup;
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 

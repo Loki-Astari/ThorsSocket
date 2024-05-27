@@ -19,6 +19,24 @@ int pipe(int fildes[2]);
 int thorSetFDNonBlocking(int fd);
 int thorSetSocketNonBlocking(SOCKET fd);
 
+class SocketSetUp
+{
+    public:
+        SocketSetUp()
+        {
+            WSADATA wsaData;
+            WORD wVersionRequested = MAKEWORD(2, 2);
+            int err = WSAStartup(wVersionRequested, &wsaData);
+            if (err != 0) {
+                printf("WSAStartup failed with error: %d\n", err);
+                throw std::runtime_error("Failed to set up Sockets");
+            }
+        }
+        ~SocketSetUp()
+        {
+            WSACleanup();
+        }
+};
 #else
 
 #define PAUSE_AND_WAIT(n)       sleep(n)
@@ -27,6 +45,8 @@ int thorSetSocketNonBlocking(SOCKET fd);
 
 int thorSetFDNonBlocking(int fd);
 int thorSetSocketNonBlocking(int fd);
+class SocketSetUp {};
+
 #endif
 
 #endif
