@@ -18,9 +18,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
     if (fd == thorInvalidFD())
     {
         int saveErrno = thorGetSocketError();
-        ThorsLogAndThrowAction(
-            ERROR,
-            std::runtime_error,
+        ThorsLogAndThrow(
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Failed on ::socket.",
@@ -42,9 +40,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
         int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
 
-        ThorsLogAndThrowAction(
-            ERROR,
-            std::runtime_error,
+        ThorsLogAndThrow(
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Failed on ::gethostbyname.",
@@ -68,9 +64,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
         int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
 
-        ThorsLogAndThrowAction(
-            ERROR,
-            std::runtime_error,
+        ThorsLogAndThrow(
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Failed on ::connect.",
@@ -86,9 +80,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
             int saveErrno = thorGetSocketError();
             MOCK_FUNC(thorCloseSocket)(fd);
 
-            ThorsLogAndThrowAction(
-                ERROR,
-                std::runtime_error,
+            ThorsLogAndThrow(
                 "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                 "Socket",
                 " :Failed on ::thorSetSocketNonBlocking.",
@@ -132,9 +124,7 @@ void Socket::tryFlushBuffer()
     if (result != 0)
     {
         int saveErrno = thorGetSocketError();
-        ThorsLogAndThrowAction(
-            ERROR,
-            std::runtime_error,
+        ThorsLogAndThrow(
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "tryFlushBuffer",
             " :Win Failed on ::shutdown.",
@@ -161,21 +151,19 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
             case WSAESHUTDOWN:      [[fallthrough]];
             case WSAECONNABORTED:   [[fallthrough]];
             case WSAETIMEDOUT:      [[fallthrough]];
+            case WSAENETDOWN:       [[fallthrough]];
             case WSAECONNRESET:     return {0, false, false};
             case WSAEWOULDBLOCK:    return {0, true, true};
             case WSAEINTR:          [[fallthrough]];
             case WSAEINPROGRESS:    return {0, true, false};
             case WSANOTINITIALISED: [[fallthrough]];
-            case WSAENETDOWN:       [[fallthrough]];
             case WSAEFAULT:         [[fallthrough]];
             case WSAENOTCONN:       [[fallthrough]];
             case WSAENOTSOCK:       [[fallthrough]];
             case WSAEOPNOTSUPP:     [[fallthrough]];
             case WSAEINVAL:
             {
-                ThorsLogAndThrowAction(
-                    ERROR,
-                    SocketCritical,
+                ThorsLogAndThrowCritical(
                     "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                     "readFromStream",
                     " :Win Failed on ::recv with SocketCritical",
@@ -186,9 +174,7 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
             case WSAEMSGSIZE:       [[fallthrough]];
             default:
             {
-                ThorsLogAndThrowAction(
-                    ERROR,
-                    SocketUnknown,
+                ThorsLogAndThrowLogical(
                     "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                     "readFromStream",
                     " :Win Failed on ::recv with SocketUnknown",
@@ -215,12 +201,12 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
             case WSAESHUTDOWN:      [[fallthrough]];
             case WSAECONNABORTED:   [[fallthrough]];
             case WSAECONNRESET:     [[fallthrough]];
+            case WSAENETDOWN:       [[fallthrough]];
             case WSAETIMEDOUT:      return {0, false, false};
             case WSAEWOULDBLOCK:    return {0, true, true};
             case WSAEINTR:          [[fallthrough]];
             case WSAEINPROGRESS:    return {0, true, false};
             case WSANOTINITIALISED: [[fallthrough]];
-            case WSAENETDOWN:       [[fallthrough]];
             case WSAEFAULT:         [[fallthrough]];
             case WSAENOBUFS:        [[fallthrough]];
             case WSAENOTCONN:       [[fallthrough]];
@@ -229,9 +215,7 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
             case WSAEHOSTUNREACH:   [[fallthrough]];
             case WSAEINVAL:
             {
-                ThorsLogAndThrowAction(
-                    ERROR,
-                    SocketCritical,
+                ThorsLogAndThrowCritical(
                     "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                     "writeToStream",
                     " :Win Failed on ::send with SocketCritical",
@@ -243,9 +227,7 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
             case WSAEMSGSIZE:       [[fallthrough]];
             default:
             {
-                ThorsLogAndThrowAction(
-                    ERROR,
-                    SocketUnknown,
+                ThorsLogAndThrowLogical(
                     "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                     "writeToStream",
                     " :Win Failed on ::send with SocketUnknown",

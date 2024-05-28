@@ -3,8 +3,6 @@
 #include "Connection.h"
 #include "ThorsLogging/ThorsLogging.h"
 
-using ThorsAnvil::ThorsSocket::SocketCritical;
-using ThorsAnvil::ThorsSocket::SocketUnknown;
 using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
@@ -45,10 +43,10 @@ class TestConnection: public Connection
             if (firstRead) {
                 firstRead = false;
                 if (firstReadResult.dataSize == -1) {
-                    throw SocketCritical{"Test"};
+                    throw std::runtime_error{"Test"};
                 }
                 if (firstReadResult.dataSize == -2) {
-                    throw SocketUnknown{"Test"};
+                    throw std::runtime_error{"Test"};
                 }
                 return firstReadResult;
             }
@@ -62,10 +60,10 @@ class TestConnection: public Connection
             if (firstWrite) {
                 firstWrite = false;
                 if (firstWriteResult.dataSize == -1) {
-                    throw SocketCritical{"Test"};
+                    throw std::runtime_error{"Test"};
                 }
                 if (firstWriteResult.dataSize == -2) {
-                    throw SocketUnknown{"Test"};
+                    throw std::runtime_error{"Test"};
                 }
                 return firstWriteResult;
             }
@@ -228,7 +226,7 @@ TEST(SocketTest, SocketReadCriticalBug)
 
     ASSERT_THROW(
         action(),
-        ThorsAnvil::ThorsSocket::SocketCritical
+        std::runtime_error
     );
 }
 TEST(SocketTest, SocketReadInterupt)
@@ -267,7 +265,7 @@ TEST(SocketTest, SocketReadUnknown)
 
     ASSERT_THROW(
         action(),
-        ThorsAnvil::ThorsSocket::SocketUnknown
+        std::runtime_error
     );
 }
 
@@ -292,7 +290,7 @@ TEST(SocketTest, SocketWriteCriticalBug)
 
     ASSERT_THROW(
         action(),
-        ThorsAnvil::ThorsSocket::SocketCritical
+        std::runtime_error
     );
 }
 TEST(SocketTest, SocketWriteInterupt)
@@ -331,7 +329,7 @@ TEST(SocketTest, SocketWriteUnknown)
 
     ASSERT_THROW(
         action(),
-        ThorsAnvil::ThorsSocket::SocketUnknown
+        std::runtime_error
     );
 }
 

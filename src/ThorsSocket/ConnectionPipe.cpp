@@ -11,9 +11,7 @@ Pipe::Pipe(Blocking blocking)
     int result = MOCK_FUNC(thorCreatePipe)(fd);
     if (result == -1)
     {
-        ThorsLogAndThrowAction(
-            ERROR,
-            std::runtime_error,
+        ThorsLogAndThrow(
             "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
             "Pipe",
             " :Failed to open.",
@@ -30,9 +28,7 @@ Pipe::Pipe(Blocking blocking)
         if (result != 0)
         {
             close();
-            ThorsLogAndThrowAction(
-                ERROR,
-                std::runtime_error,
+            ThorsLogAndThrow(
                 "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
                 "Pipe",
                 " :Failed to set non blocking.",

@@ -14,9 +14,7 @@ File::File(std::string const& fileName, Open open, Blocking blocking)
 {
     if (fd == -1)
     {
-        ThorsLogAndThrowAction(
-            ERROR,
-            std::runtime_error,
+        ThorsLogAndThrow(
             "ThorsAnvil::ThorsSocket::ConnectionType::File",
             "File",
             " :Failed to open.",

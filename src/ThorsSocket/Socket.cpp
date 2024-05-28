@@ -41,7 +41,7 @@ bool Socket::isConnected() const
 int Socket::socketId(Mode rw) const
 {
     if (!isConnected()) {
-        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "socketId", "Socket is in an invalid state");
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "socketId", "Socket is in an invalid state");
     }
     return connection->socketId(rw);
 }
@@ -51,7 +51,7 @@ IOData Socket::getMessageData(void* b, std::size_t size)
     char* buffer = reinterpret_cast<char*>(b);
 
     if (!isConnected()) {
-        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Socket is in an invalid state");
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Socket is in an invalid state");
     }
 
     std::size_t dataRead = 0;
@@ -74,7 +74,7 @@ IOData Socket::putMessageData(void const* b, std::size_t size)
     char const* buffer = reinterpret_cast<char const*>(b);
 
     if (!isConnected()) {
-        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "putMessageData", "Socket is in an invalid state");
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "putMessageData", "Socket is in an invalid state");
     }
 
     std::size_t dataWritten = 0;
@@ -95,7 +95,7 @@ IOData Socket::putMessageData(void const* b, std::size_t size)
 void Socket::tryFlushBuffer()
 {
     if (!isConnected()) {
-        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "tryFlushBuffer", "Socket is in an invalid state");
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "tryFlushBuffer", "Socket is in an invalid state");
     }
     connection->tryFlushBuffer();
 }
@@ -103,7 +103,7 @@ void Socket::tryFlushBuffer()
 void Socket::close()
 {
     if (!isConnected()) {
-        ThorsLogAndThrowAction(ERROR, std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
     }
     connection->close();
 }
