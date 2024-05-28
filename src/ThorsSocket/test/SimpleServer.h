@@ -51,12 +51,8 @@ class Server
             {
                 if (::bind(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
                 {
-#ifdef __WINNT__
-                    int saveErrorNo = WSAGetLastError();
-#else
-                    int saveErrorNo = errno;
-#endif
-                    if (errno == EADDRINUSE && count < 3)
+                    int saveErrorNo = thorGetSocketError();
+                    if (thorGetSocketError() == EADDRINUSE && count < 3)
                     {
                         ++count;
                         PAUSE_AND_WAIT(10);

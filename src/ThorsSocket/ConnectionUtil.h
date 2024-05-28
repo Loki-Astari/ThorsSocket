@@ -17,12 +17,14 @@ int thorCreatePipe(int fd[2]);
 int thorSetFDNonBlocking(int fd);
 int thorSetSocketNonBlocking(SOCKET fd);
 int thorCloseSocket(SOCKET fd);
+inline int thorGetSocketError() {return WSAGetLastError();}
 
 #else
 #include <sys/socket.h>
 #include <netdb.h>
 #include <sys/uio.h>
 #include <netdb.h>
+#include <errno.h>
 
 #define PAUSE_AND_WAIT(n)       sleep(n)
 #define NONBLOCKING_FLAG        O_NONBLOCK
@@ -32,6 +34,7 @@ int thorCreatePipe(int fd[2]);
 int thorSetFDNonBlocking(int fd);
 int thorSetSocketNonBlocking(int fd);
 int thorCloseSocket(int fd);
+inline int thorGetSocketError() {return errno;}
 
 #endif
 

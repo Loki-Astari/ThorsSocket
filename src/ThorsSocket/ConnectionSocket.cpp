@@ -18,14 +18,14 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
     fd  = MOCK_FUNC(socket)(AF_INET, SOCK_STREAM, 0);
     if (fd == INVALID_SOCKET)
     {
-        int saveErrno = WSAGetLastError();
+        int saveErrno = thorGetSocketError();
         ThorsLogAndThrowAction(
             ERROR,
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Win Failed on ::socket.",
-            " errno = ", errno, " ", getErrNoStr(saveErrno),
+            " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
             " msg >", getErrMsg(saveErrno), "<"
         );
     }
@@ -36,10 +36,10 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
         // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-gethostbyname
         serv = MOCK_FUNC(gethostbyname)(host.c_str());
     }
-    while (serv == nullptr && WSAGetLastError() == WSATRY_AGAIN);
+    while (serv == nullptr && thorGetSocketError() == WSATRY_AGAIN);
     if (serv == nullptr)
     {
-        int saveErrno = WSAGetLastError();
+        int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
 
         ThorsLogAndThrowAction(
@@ -48,7 +48,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Win Failed on ::gethostbyname.",
-            " errno = ", errno, " ", getErrNoStr(saveErrno),
+            " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
             " msg >", getErrMsg(saveErrno), "<"
         );
     }
@@ -65,7 +65,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
     int result = MOCK_FUNC(connect)(fd, reinterpret_cast<SOCKADDR*>(&serverAddr), sizeof(serverAddr));
     if (result != 0)
     {
-        int saveErrno = WSAGetLastError();
+        int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
 
         ThorsLogAndThrowAction(
@@ -74,7 +74,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Win Failed on ::connect.",
-            " errno = ", errno, " ", getErrNoStr(saveErrno),
+            " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
             " msg >", getErrMsg(saveErrno), "<"
         );
     }
@@ -83,7 +83,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
     {
         if (MOCK_FUNC(thorSetSocketNonBlocking)(fd) == -1)
         {
-            int saveErrno = WSAGetLastError();
+            int saveErrno = thorGetSocketError();
             MOCK_FUNC(thorCloseSocket)(fd);
 
             ThorsLogAndThrowAction(
@@ -92,7 +92,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
                 "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                 "Socket",
                 " :Win Failed on ::thorSetSocketNonBlocking.",
-                " errno = ", errno, " ", getErrNoStr(saveErrno),
+                " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
                 " msg >", getErrMsg(saveErrno), "<"
             );
         }
@@ -131,14 +131,14 @@ void Socket::tryFlushBuffer()
     int result = MOCK_FUNC(shutdown)(fd, SD_SEND);
     if (result != 0)
     {
-        int saveErrno = WSAGetLastError();
+        int saveErrno = thorGetSocketError();
         ThorsLogAndThrowAction(
             ERROR,
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "tryFlushBuffer",
             " :Win Failed on ::shutdown.",
-            " errno = ", errno, " ", getErrNoStr(saveErrno),
+            " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
             " msg >", getErrMsg(saveErrno), "<"
         );
     }
@@ -153,8 +153,8 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
     if (chunkRead == SOCKET_ERROR)
     {
         // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-recv
-        int errorNumber = WSAGetLastError();
-        switch (errorNumber)
+        int saveErrno = thorGetSocketError();
+        switch (saveErrno)
         {
             case WSAENETRESET:      [[fallthrough]];
             case WSAESHUTDOWN:      [[fallthrough]];
@@ -172,28 +172,26 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
             case WSAEOPNOTSUPP:     [[fallthrough]];
             case WSAEINVAL:
             {
-                int saveErrno = WSAGetLastError();
                 ThorsLogAndThrowAction(
                     ERROR,
                     SocketCritical,
                     "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                     "readFromStream",
                     " :Win Failed on ::recv with SocketCritical",
-                    " errno = ", errno, " ", getErrNoStr(saveErrno),
+                    " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
                     " msg >", getErrMsg(saveErrno), "<"
                 );
             }
             case WSAEMSGSIZE:       [[fallthrough]];
             default:
             {
-                int saveErrno = WSAGetLastError();
                 ThorsLogAndThrowAction(
                     ERROR,
                     SocketUnknown,
                     "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                     "readFromStream",
                     " :Win Failed on ::recv with SocketUnknown",
-                    " errno = ", errno, " ", getErrNoStr(saveErrno),
+                    " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
                     " msg >", getErrMsg(saveErrno), "<"
                 );
             }
@@ -209,8 +207,8 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
     if (chunkWritten == SOCKET_ERROR)
     {
         // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-send
-        int errorNumber = WSAGetLastError();
-        switch (errorNumber)
+        int saveErrno = thorGetSocketError();
+        switch (saveErrno)
         {
             case WSAENETRESET:      [[fallthrough]];
             case WSAESHUTDOWN:      [[fallthrough]];
@@ -230,14 +228,13 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
             case WSAEHOSTUNREACH:   [[fallthrough]];
             case WSAEINVAL:
             {
-                int saveErrno = WSAGetLastError();
                 ThorsLogAndThrowAction(
                     ERROR,
                     SocketCritical,
                     "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                     "writeToStream",
                     " :Win Failed on ::send with SocketCritical",
-                    " errno = ", errno, " ", getErrNoStr(saveErrno),
+                    " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
                     " msg >", getErrMsg(saveErrno), "<"
                 );
             }
@@ -245,14 +242,13 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
             case WSAEMSGSIZE:       [[fallthrough]];
             default:
             {
-                int saveErrno = WSAGetLastError();
                 ThorsLogAndThrowAction(
                     ERROR,
                     SocketUnknown,
                     "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                     "writeToStream",
                     " :Win Failed on ::send with SocketUnknown",
-                    " errno = ", errno, " ", getErrNoStr(saveErrno),
+                    " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
                     " msg >", getErrMsg(saveErrno), "<"
                 );
             }
@@ -266,6 +262,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
     : fd(-1)
 {
     fd = MOCK_FUNC(socket)(PF_INET, SOCK_STREAM, 0);
+    int saveErrno = thorGetSocketError();
     if (fd == -1)
     {
         ThorsLogAndThrowAction(
@@ -274,8 +271,8 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Failed on ::socket.",
-            " errno = ", errno, " ", getErrNoStr(errno),
-            " msg >", strerror(errno), "<"
+            " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
+            " msg >", strerror(saveErrno), "<"
         );
     }
 
@@ -289,7 +286,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
 
     if (serv == nullptr)
     {
-        int saveErrno = errno;
+        int saveErrno = thorGetSocketError();
 
         MOCK_FUNC(thorCloseSocket)(fd);
         fd = -1;
@@ -299,7 +296,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Failed on ::gethostbyname.",
-            " errno = ", errno, " ", getErrNoStr(saveErrno),
+            " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
             " msg >", strerror(saveErrno), "<"
         );
     }
@@ -313,7 +310,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
 
     if (MOCK_FUNC(connect)(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
     {
-        int saveErrno = errno;
+        int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
         fd = -1;
         ThorsLogAndThrowAction(
@@ -322,7 +319,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Failed on ::connect.",
-            " errno = ", errno, " ", getErrNoStr(saveErrno),
+            " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
             " msg >", strerror(saveErrno), "<"
         );
     }
@@ -331,7 +328,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
     {
         if (MOCK_FUNC(thorSetSocketNonBlocking)(fd) == -1)
         {
-            int saveErrno = errno;
+            int saveErrno = thorGetSocketError();
             MOCK_FUNC(thorCloseSocket)(fd);
             fd = -1;
             ThorsLogAndThrowAction(
@@ -340,7 +337,7 @@ Socket::Socket(std::string const& hostname, int port, Blocking blocking)
                 "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
                 "Socket",
                 " :Failed on ::fcntl.",
-                " errno = ", errno, " ", getErrNoStr(saveErrno),
+                " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
                 " msg >", strerror(saveErrno), "<"
             );
         }
@@ -380,14 +377,15 @@ void Socket::tryFlushBuffer()
 {
     if (MOCK_FUNC(shutdown)(fd, SHUT_WR) != 0)
     {
+        int saveErrno = thorGetSocketError();
         ThorsLogAndThrowAction(
             ERROR,
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
             "Socket",
             " :Failed on ::shutdown.",
-            " errno = ", errno, " ", getErrNoStr(errno),
-            " msg >", strerror(errno), "<"
+            " errno = ", saveErrno, " ", getErrNoStr(saveErrno),
+            " msg >", strerror(saveErrno), "<"
         );
     }
 }
