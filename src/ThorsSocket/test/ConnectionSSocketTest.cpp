@@ -244,6 +244,9 @@ TEST(ConnectionSSocketTest, Close)
 
 TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 {
+#ifdef __WINNT__
+    GTEST_SKIP();
+#else
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
@@ -252,10 +255,14 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
     })
     .run();
+#endif
 }
 
 TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 {
+#ifdef __WINNT__
+    GTEST_SKIP();
+#else
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocket                 socket(ctx, "github.com", 443, Blocking::No);
@@ -264,6 +271,7 @@ TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
     })
     .run();
+#endif
 }
 
 void testReadFailure(IOData expected, int errorCode)

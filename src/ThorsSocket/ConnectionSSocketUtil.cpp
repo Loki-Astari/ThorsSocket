@@ -7,6 +7,11 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 extern "C" int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* userdata)
 {
+    return ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(buf, size, rwflag, userdata);
+}
+
+int ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata)
+{
     CertificateInfo& certificateInfo = *static_cast<CertificateInfo*>(userdata);
     std::string&& password = certificateInfo.getPassword(rwflag);
     if (password.size() > static_cast<std::size_t>(size))

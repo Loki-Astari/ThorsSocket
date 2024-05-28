@@ -12,6 +12,7 @@ namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
 extern "C" int certificateInfo_PasswdCB(char* buf, int size, int /*rwflag*/, void* userdata);
+int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata);
 std::string buildOpenSSLErrorMessage(bool prefix = true);
 
 enum class SSLMethodType {Client, Server};
@@ -60,7 +61,7 @@ struct CertificateInfo
     public:
         using GetPasswordFunc = std::function<std::string(int)>;
     private:
-        friend int certificateInfo_PasswdCB(char*, int, int, void*);
+        friend int certificateInfo_PasswdCBNormal(char*, int, int, void*);
 
         std::string     certificateFileName;
         std::string     keyFileName;
