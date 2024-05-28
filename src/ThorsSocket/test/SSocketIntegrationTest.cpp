@@ -3,7 +3,6 @@
 #include "Connection.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include "ConnectionSSocket.h"
-#include "ConnectionWrapper.h"
 #include "test/SimpleServer.h"
 
 #include <utility>

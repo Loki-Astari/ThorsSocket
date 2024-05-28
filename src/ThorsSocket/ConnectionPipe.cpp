@@ -1,5 +1,4 @@
 #include "ConnectionPipe.h"
-#include "ConnectionWrapper.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 #include <fcntl.h>
@@ -9,7 +8,7 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 Pipe::Pipe(Blocking blocking)
 {
-    int result = MOCK_FUNC(pipe)(fd);
+    int result = MOCK_FUNC(thorCreatePipe)(fd);
     if (result == -1)
     {
         ThorsLogAndThrowAction(

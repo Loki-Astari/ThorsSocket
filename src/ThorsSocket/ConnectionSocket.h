@@ -3,7 +3,6 @@
 
 #include "ThorsSocketConfig.h"
 #include "ConnectionFileDescriptor.h"
-#include "ConnectionWrapper.h"
 
 #ifdef  __WINNT__
 #else

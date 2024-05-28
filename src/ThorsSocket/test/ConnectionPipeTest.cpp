@@ -15,7 +15,7 @@ namespace ThorsAnvil::BuildTools::Mock
 {
 TA_Object   Pipe(
                 build()
-                .expectInitTA(pipe).toReturn(0)
+                .expectInitTA(thorCreatePipe).toReturn(0)
                 .optionalTA(thorSetFDNonBlocking).toReturn(0)
                 .expectDestTA(close)
                 .expectDestTA(close)
@@ -37,7 +37,7 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
         Pipe                        pipe(Blocking::No);
     })
     .expectObjectTA(Pipe)
-        .expectCallTA(pipe).inject().toReturn(-1)
+        .expectCallTA(thorCreatePipe).inject().toReturn(-1)
     .run();
 }
 
@@ -96,7 +96,7 @@ TEST(ConnectionPipeTest, Close)
 #ifdef __WINNT__
     // Windows does not support non blocking pipes
     // So this test will fail.
-    // see ConnectionWrapper.cpp
+    // see ConnectionUtil.cpp
     GTEST_SKIP();
 #endif
     MockAllDefaultFunctions     defaultMockedFunctions;

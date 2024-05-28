@@ -1,7 +1,7 @@
 #ifndef THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 #define THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 
-#include "ConnectionWrapper.h"
+#include "ConnectionUtil.h"
 #include <functional>
 
 // Please add includes for all mocked libraries here.
@@ -63,7 +63,7 @@ class MockAllDefaultFunctions
     MOCK_TMEMBER(open);
     MOCK_MEMBER(close);
     MOCK_MEMBER(thorCloseSocket);
-    MOCK_MEMBER(pipe);
+    MOCK_MEMBER(thorCreatePipe);
     MOCK_MEMBER(thorSetFDNonBlocking);
     MOCK_MEMBER(thorSetSocketNonBlocking);
     MOCK_MEMBER(TLS_client_method);
@@ -129,7 +129,7 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(open,                                  [ ](char const*, int, int)              {return 12;})
             , MOCK_PARAM(close,                                 [ ](int)                                {return 0;})
             , MOCK_PARAM(thorCloseSocket,                       [ ](int)                                {return 0;})
-            , MOCK_PARAM(pipe,                                  [ ](int* p)                             {p[0] = 12; p[1] =13;return 0;})
+            , MOCK_PARAM(thorCreatePipe,                        [ ](int* p)                             {p[0] = 12; p[1] =13;return 0;})
             , MOCK_PARAM(thorSetFDNonBlocking,                  [ ](int)                                {return 0;})
             , MOCK_PARAM(thorSetSocketNonBlocking,              [ ](int)                                {return 0;})
             , MOCK_PARAM(TLS_client_method,                     [ ]()                                   {return (SSL_METHOD*)1;})

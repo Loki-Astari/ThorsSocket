@@ -1,5 +1,4 @@
 #include "ConnectionFile.h"
-#include "ConnectionWrapper.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 #include <fcntl.h>

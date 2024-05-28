@@ -2,7 +2,8 @@
 #define THORSANVIL_THORSSOCKET_TEST_SIMPLE_SERVER_H
 
 #include <thread>
-#include "ConnectionWrapper.h"
+#include "Socket.h"
+#include "Connection.h"
 
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;

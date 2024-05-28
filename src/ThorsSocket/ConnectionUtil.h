@@ -18,7 +18,7 @@
 #define PAUSE_AND_WAIT(n)       Sleep(n * 1000)
 #define NONBLOCKING_FLAG        0
 
-int pipe(int fildes[2]);
+int thorCreatePipe(int fd[2]);
 int thorSetFDNonBlocking(int fd);
 int thorSetSocketNonBlocking(SOCKET fd);
 int thorCloseSocket(SOCKET fd);
@@ -29,6 +29,7 @@ int thorCloseSocket(SOCKET fd);
 #define NONBLOCKING_FLAG        O_NONBLOCK
 
 
+int thorCreatePipe(int fd[2]);
 int thorSetFDNonBlocking(int fd);
 int thorSetSocketNonBlocking(int fd);
 int thorCloseSocket(int fd);

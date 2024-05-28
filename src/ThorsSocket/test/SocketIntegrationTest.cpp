@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "Socket.h"
 #include "Connection.h"
-#include "ConnectionWrapper.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include "ConnectionSocket.h"
 #include "test/SimpleServer.h"
