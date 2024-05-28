@@ -2,6 +2,7 @@
 #include "ThorsLogging/ThorsLogging.h"
 #include <openssl/err.h>
 #include <iostream>
+#include <utility>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 

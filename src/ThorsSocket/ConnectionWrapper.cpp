@@ -1,5 +1,6 @@
 #include "ConnectionWrapper.h"
 
+#include <fcntl.h>
 #ifdef __WINNT__
 #include <process.h>
 
@@ -25,7 +26,6 @@ int thorCloseSocket(SOCKET fd)
     return ::closesocket(fd);
 }
 #else
-#include <fcntl.h>
 #include <unistd.h>
 
 int thorSetFDNonBlocking(int fd)
