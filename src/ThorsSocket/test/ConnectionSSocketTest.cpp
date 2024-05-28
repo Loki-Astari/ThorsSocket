@@ -245,6 +245,8 @@ TEST(ConnectionSSocketTest, Close)
 TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 {
 #ifdef __WINNT__
+    // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
+    // So these tests have no meaning.
     GTEST_SKIP();
 #else
     MockAllDefaultFunctions defaultMockedFunctions;
@@ -261,6 +263,8 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 {
 #ifdef __WINNT__
+    // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
+    // So these tests have no meaning.
     GTEST_SKIP();
 #else
     MockAllDefaultFunctions defaultMockedFunctions;

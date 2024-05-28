@@ -4,11 +4,6 @@
 #include <map>
 #include <sstream>
 
-#ifdef  __WINNT__
-#else
-#include <sys/uio.h>
-#endif
-
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -36,7 +31,7 @@ IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
         {
             case EINTR:         return {0, true, false};
             case ECONNRESET:    return {0, false, false};
-#if defined(__WINNT) || (defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1))
+#if defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1)
             case EWOULDBLOCK:   [[fallthrough]];
 #endif
             case EAGAIN:        return {0, true, true};
@@ -88,7 +83,7 @@ IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
         {
             case EINTR:         return {0, true, false};
             case ECONNRESET:    return {0, false, false};
-#if defined(__WINNT__) || (defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1))
+#if defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1)
             case EWOULDBLOCK:   [[fallthrough]];
 #endif
             case EAGAIN:        return {0, true, true};
@@ -140,7 +135,7 @@ char const* FileDescriptor::getErrNoStr(int error)
 {
     static const std::map<int, char const*> errorString =
     {
-#if defined(__WINNT__) || (defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1))
+#if defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1)
         {EWOULDBLOCK, "EWOULDBLOCK"},
 #endif
         {EOVERFLOW, "EOVERFLOW"},       {EBADF, "EBADF"},       {EFAULT, "EFAULT"},     {EINVAL, "EINVAL"},

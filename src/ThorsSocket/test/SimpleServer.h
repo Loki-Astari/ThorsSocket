@@ -10,11 +10,7 @@ using ThorsAnvil::ThorsSocket::Socket;
 
 class Server
 {
-#ifdef __WINNT__
-    SOCKET          fd;
-#else
-    int             fd;
-#endif
+    SOCKET_TYPE     fd;
     bool            bound;
 
     public:
@@ -29,19 +25,10 @@ class Server
 
             if (blocking == Blocking::No)
             {
-#ifdef __WINNT__
-                // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-ioctlsocket
-                u_long mode = 1;  // 1 to enable non-blocking socket
-                int result = ::ioctlsocket(fd, FIONBIO, &mode);
+                int result = thorSetSocketNonBlocking(fd);
                 if (result != 0) {
-                    throw std::runtime_error("Failed to set non-blocking: ::ioctlsocket");
+                    throw std::runtime_error("Failed to set non-blocking: ::thorSetSocketNonBlocking");
                 }
-#else
-                int status = ::fcntl(fd, F_SETFL, O_NONBLOCK);
-                if (status == -1) {
-                    throw std::runtime_error("Failed to set non-blocking: ::fcntl");
-                }
-#endif
             }
             {
             // During testing
@@ -65,29 +52,16 @@ class Server
                 if (::bind(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr)) != 0)
                 {
 #ifdef __WINNT__
-                    switch (WSAGetLastError())
-                    {
-                        case WSANOTINITIALISED: std::cerr << "WSANOTINITIALISED\n";break;
-                        case WSAENETDOWN: std::cerr << "WSAENETDOWN\n";break;
-                        case WSAEACCES: std::cerr << "WSAEACCES\n";break;
-                        case WSAEADDRINUSE: std::cerr << "WSAEADDRINUSE\n";break;
-                        case WSAEADDRNOTAVAIL: std::cerr << "WSAEADDRNOTAVAIL\n";break;
-                        case WSAEFAULT: std::cerr << "WSAEFAULT\n";break;
-                        case WSAEINPROGRESS: std::cerr << "WSAEINPROGRESS\n";break;
-                        case WSAEINVAL: std::cerr << "WSAEINVAL\n";break;
-                        case WSAENOBUFS: std::cerr << "WSAENOBUFS\n";break;
-                        case WSAENOTSOCK: std::cerr << "WSAENOTSOCK\n";break;
-                        default:
-                            std::cerr << "?????\n";
-                    }
+                    int saveErrorNo = WSAGetLastError();
 #else
+                    int saveErrorNo = errno;
+#endif
                     if (errno == EADDRINUSE && count < 3)
                     {
                         ++count;
                         PAUSE_AND_WAIT(10);
                         continue;
                     }
-#endif
                     close();
                     throw std::runtime_error("Failed to Bind: ::bind");
                 }
@@ -111,11 +85,7 @@ class Server
         void close()
         {
             if (fd != -1) {
-#ifdef __WINNT__
-                ::closesocket(fd);
-#else
-                ::close(fd);
-#endif
+                thorCloseSocket(fd);
             }
             fd = -1;
         }

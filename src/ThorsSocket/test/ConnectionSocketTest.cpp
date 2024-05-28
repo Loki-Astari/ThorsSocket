@@ -36,6 +36,8 @@ TEST(ConnectionSocketTest, SocketCallFails)
 TEST(ConnectionSocketTest, GetHostCallFails)
 {
 #ifndef __WINNT__
+    // Can't set h_errno (not a variable on windows)
+    // So can't force a retry.
     h_errno = NO_DATA;
 #endif
     TA_TestThrow([](){
@@ -53,6 +55,8 @@ TEST(ConnectionSocketTest, GetHostCallFails)
 TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 {
 #ifdef  __WINNT__
+    // Can't set h_errno (not a variable on windows)
+    // So can't force a retry.
     GTEST_SKIP();
 #else
     h_errno = NO_DATA;
@@ -144,6 +148,8 @@ TEST(ConnectionSocketTest, Close)
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 {
 #ifdef __WINNT__
+    // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
+    // So these tests have no meaning.
     GTEST_SKIP();
 #else
     MockAllDefaultFunctions       defaultMockedFunctions;
@@ -159,6 +165,8 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 {
 #ifdef __WINNT__
+    // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
+    // So these tests have no meaning.
     GTEST_SKIP();
 #else
     MockAllDefaultFunctions       defaultMockedFunctions;

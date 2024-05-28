@@ -6,12 +6,7 @@
 
 // Please add includes for all mocked libraries here.
 // PART-1-Start
-#ifdef __WINNT__
-#include <winsock2.h>
-#include <windows.h>
-#else
-#include <netdb.h>
-#endif
+#include "ConnectionUtil.h"
 #include <functional>
 #include <fcntl.h>
 #include <openssl/ssl.h>

@@ -4,11 +4,6 @@
 #include "ThorsSocketConfig.h"
 #include "ConnectionFileDescriptor.h"
 
-#ifdef  __WINNT__
-#else
-#include <netdb.h>
-#endif
-
 #include <map>
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
