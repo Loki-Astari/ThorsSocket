@@ -20,8 +20,8 @@ File::File(std::string const& fileName, Open open, Blocking blocking)
             "ThorsAnvil::ThorsSocket::ConnectionType::File",
             "File",
             " :Failed to open.",
-            " errno = ", errno, " ", getErrNoStr(errno),
-            " msg >", strerror(errno), "<"
+            " errno = ", errno, " ", getErrNoStrUnix(errno),
+            " msg >", getErrMsgUnix(errno), "<"
         );
     }
 }

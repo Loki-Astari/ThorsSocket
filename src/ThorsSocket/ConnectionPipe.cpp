@@ -17,8 +17,8 @@ Pipe::Pipe(Blocking blocking)
             "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
             "Pipe",
             " :Failed to open.",
-            " errno = ", errno, " ", getErrNoStr(errno),
-            " msg >", strerror(errno), "<"
+            " errno = ", errno, " ", getErrNoStrUnix(errno),
+            " msg >", getErrMsgUnix(errno), "<"
         );
     }
     if (blocking == Blocking::No)
@@ -36,8 +36,8 @@ Pipe::Pipe(Blocking blocking)
                 "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
                 "Pipe",
                 " :Failed to set non blocking.",
-                " errno = ", errno, " ", getErrNoStr(errno),
-                " msg >", strerror(errno), "<"
+                " errno = ", errno, " ", getErrNoStrUnix(errno),
+                " msg >", getErrMsgUnix(errno), "<"
             );
         }
     }

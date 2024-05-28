@@ -111,7 +111,7 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(socket);
     MOCK_MEMBER(gethostbyname);
     MOCK_MEMBER(connect);
-    MOCK_MEMBER(shutdown);
+    MOCK_MEMBER(thorShutdownSocket);
 
 // PART-3-End
 
@@ -177,7 +177,7 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(socket,                                [ ](int, int, int)                      {return 12;})
             , MOCK_PARAM(gethostbyname,                         std::move(getHostByNameMock))
             , MOCK_PARAM(connect,                               [ ](int, sockaddr const*, unsigned int) {return 0;})
-            , MOCK_PARAM(shutdown,                              [ ](int, int)                           {return 0;})
+            , MOCK_PARAM(thorShutdownSocket,                    [ ](int)                                {return 0;})
 // PART-4-End
         {}
 };

@@ -50,8 +50,8 @@ IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
                     " readFromStream",
                     " :SocketCritical exception thrown.",
-                    " errno = ", errno, " ", getErrNoStr(errno),
-                    " msg >", strerror(errno), "<"
+                    " errno = ", errno, " ", getErrNoStrUnix(errno),
+                    " msg >", getErrMsgUnix(errno), "<"
                 );
             case EIO:           [[fallthrough]];
             case ENOBUFS:       [[fallthrough]];
@@ -64,8 +64,8 @@ IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
                     " readFromStream",
                     " :SocketUnknown exception thrown.",
-                    " errno = ", errno, " ", getErrNoStr(errno),
-                    " msg >", strerror(errno), "<"
+                    " errno = ", errno, " ", getErrNoStrUnix(errno),
+                    " msg >", getErrMsgUnix(errno), "<"
                 );
         }
     }
@@ -103,8 +103,8 @@ IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
                     " writeToStream",
                     " :SocketCritical exception thrown.",
-                    " errno = ", errno, " ", getErrNoStr(errno),
-                    " msg >", strerror(errno), "<"
+                    " errno = ", errno, " ", getErrNoStrUnix(errno),
+                    " msg >", getErrMsgUnix(errno), "<"
                 );
             case EIO:           [[fallthrough]];
             case ENOBUFS:       [[fallthrough]];
@@ -123,41 +123,10 @@ IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
                     " readFromStream",
                     " :SocketUnknown exception thrown",
-                    " errno = ", errno, " ", getErrNoStr(errno),
-                    " msg >", strerror(errno), "<"
+                    " errno = ", errno, " ", getErrNoStrUnix(errno),
+                    " msg >", getErrMsgUnix(errno), "<"
                 );
         }
     }
     return {static_cast<std::size_t>(chunkWritten), true, false};
-}
-
-char const* FileDescriptor::getErrNoStr(int error)
-{
-    static const std::map<int, char const*> errorString =
-    {
-#if defined(HAS_UNIQUE_EWOULDBLOCK) && (HAS_UNIQUE_EWOULDBLOCK == 1)
-        {EWOULDBLOCK, "EWOULDBLOCK"},
-#endif
-        {EOVERFLOW, "EOVERFLOW"},       {EBADF, "EBADF"},       {EFAULT, "EFAULT"},     {EINVAL, "EINVAL"},
-        {EBADMSG, "EBADMSG"},           {ENXIO, "ENXIO"},       {ESPIPE, "ESPIPE"},     {EINTR, "EINTR"},
-        {ECONNRESET, "ECONNRESET"},     {EAGAIN, "EAGAIN"},     {EISDIR, "EISDIR"},     {EEXIST, "EEXIST"},
-        {ENOTCONN, "ENOTCONN"},         {ENOBUFS, "ENOBUFS"},   {EIO, "EIO"},           {ENOMEM, "ENOMEM"},
-        {ETIMEDOUT, "ETIMEDOUT"},       {ENOSPC, "ENOSPC"},     {EPERM, "EPERM"},       {EPIPE, "EPIPE"},
-        {EDESTADDRREQ, "EDESTADDRREQ"}, {EFBIG, "EFBIG"},       {ERANGE, "ERANGE"},
-#ifndef __WINNT__
-        {EDQUOT, "EDQUOT"},
-#endif
-        {ENETUNREACH, "ENETUNREACH"},   {ENETDOWN, "ENETDOWN"}, {EACCES, "EACCES"},     {EBUSY, "EBUSY"},
-        {ENAMETOOLONG, "ENAMETOOLONG"}, {ELOOP, "ELOOP"},       {EMFILE, "EMFILE"},     {ENFILE, "ENFILE"},
-        {EOPNOTSUPP, "EOPNOTSUPP"},     {ENODEV, "ENODEV"},     {ENOENT, "ENOENT"},     {ENOTDIR, "ENOTDIR"},
-        {EAFNOSUPPORT, "EAFNOSUPPORT"}, {EROFS, "EROFS"},       {ETXTBSY, "ETXTBSY"},   {ENOSR, "ENOSR"},
-        {EADDRNOTAVAIL, "EADDRNOTAVAIL"},{EALREADY, "EALREADY"},{EISCONN, "EISCONN"},   {ENOTSOCK, "ENOTSOCK"},
-        {EPROTONOSUPPORT, "EPROTONOSUPPORT"},                   {EADDRINUSE, "EADDRINUSE"},
-        {ECONNREFUSED, "ECONNREFUSED"},                         {EPROTOTYPE, "EPROTOTYPE"},
-        {EHOSTUNREACH, "EHOSTUNREACH"},                         {EINPROGRESS, "EINPROGRESS"},
-
-    };
-    auto find = errorString.find(error);
-    char const* errorName = find == errorString.end() ? "Unknown" : find->second;
-    return errorName;
 }

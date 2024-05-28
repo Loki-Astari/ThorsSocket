@@ -196,6 +196,6 @@ TEST(ConnectionSocketTest, ShutdownFails)
         socket.tryFlushBuffer();
     })
     .expectObjectTA(Socket_NonBlocking)
-        .expectCallTA(shutdown).toReturn(0)
+        .expectCallTA(thorShutdownSocket).toReturn(0)
     .run();
 }
