@@ -104,9 +104,7 @@ class SSocket: public Socket
         virtual void close()                                        override;
         virtual bool isConnected()                          const   override;
 
-        //virtual std::string errorMessage(ssize_t)                   override;
-        //static std::string buildErrorMessage(bool prefix = true);
-        //static std::string buildErrorMessage(int code);
+        char const* getSSErrNoStr(int)  {return "";}
 };
 
 }
