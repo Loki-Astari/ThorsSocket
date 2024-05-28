@@ -25,6 +25,8 @@ int thorCloseSocket(SOCKET fd)
     return ::closesocket(fd);
 }
 #else
+#include <fcntl.h>
+#include <unistd.h>
 
 int thorSetFDNonBlocking(int fd)
 {

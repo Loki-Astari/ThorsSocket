@@ -10,6 +10,8 @@
 #include <netdb.h>
 #endif
 
+#include <map>
+
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
