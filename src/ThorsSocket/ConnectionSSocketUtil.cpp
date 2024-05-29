@@ -6,14 +6,15 @@
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
+extern "C"
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-extern "C" int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* userdata)
+int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* userdata)
 {
     return ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(buf, size, rwflag, userdata);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata)
+int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata)
 {
     CertificateInfo& certificateInfo = *static_cast<CertificateInfo*>(userdata);
     std::string&& password = certificateInfo.getPassword(rwflag);
@@ -204,7 +205,6 @@ void CertificateInfo::apply(SSL* ssl) const
     }
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<AuthorityType A>
 void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx) const
 {
@@ -233,26 +233,35 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx) const
     }
 }
 
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)               const {return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);}
+int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)               const {return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);}
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);}
+int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);}
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)              const {return MOCK_FUNC(SSL_CTX_set_default_verify_store)(ctx);}
+int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)              const {return MOCK_FUNC(SSL_CTX_set_default_verify_store)(ctx);}
 
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int CertifcateAuthorityDataInfo<File>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item) const {return MOCK_FUNC(SSL_CTX_load_verify_file)(ctx, item);}
+int CertifcateAuthorityDataInfo<File>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item) const {return MOCK_FUNC(SSL_CTX_load_verify_file)(ctx, item);}
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int CertifcateAuthorityDataInfo<Dir>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item)  const {return MOCK_FUNC(SSL_CTX_load_verify_dir)(ctx, item);}
+int CertifcateAuthorityDataInfo<Dir>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item)  const {return MOCK_FUNC(SSL_CTX_load_verify_dir)(ctx, item);}
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int CertifcateAuthorityDataInfo<Store>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item)const {return MOCK_FUNC(SSL_CTX_load_verify_store)(ctx, item);}
+int CertifcateAuthorityDataInfo<Store>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item)const {return MOCK_FUNC(SSL_CTX_load_verify_store)(ctx, item);}
 
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> std::string CertifcateAuthorityDataInfo<File>::type()  const {return "CA File";}
+std::string CertifcateAuthorityDataInfo<File>::type()  const {return "CA File";}
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> std::string CertifcateAuthorityDataInfo<Dir>::type()   const {return "CA Dir";}
+std::string CertifcateAuthorityDataInfo<Dir>::type()   const {return "CA Dir";}
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> std::string CertifcateAuthorityDataInfo<Store>::type() const {return "CA Store";}
+std::string CertifcateAuthorityDataInfo<Store>::type() const {return "CA Store";}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void CertifcateAuthorityInfo::apply(SSL_CTX* ctx) const
@@ -262,12 +271,15 @@ void CertifcateAuthorityInfo::apply(SSL_CTX* ctx) const
     store.apply(ctx);
 }
 
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int ClientCAListDataInfo<File>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)   const {return MOCK_FUNC(SSL_add_file_cert_subjects_to_stack)(certs, item);}
+int ClientCAListDataInfo<File>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)   const {return MOCK_FUNC(SSL_add_file_cert_subjects_to_stack)(certs, item);}
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int ClientCAListDataInfo<Dir>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)    const {return MOCK_FUNC(SSL_add_dir_cert_subjects_to_stack)(certs, item);}
+int ClientCAListDataInfo<Dir>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)    const {return MOCK_FUNC(SSL_add_dir_cert_subjects_to_stack)(certs, item);}
+template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-template<> int ClientCAListDataInfo<Store>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)  const {return MOCK_FUNC(SSL_add_store_cert_subjects_to_stack)(certs, item);}
+int ClientCAListDataInfo<Store>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)  const {return MOCK_FUNC(SSL_add_store_cert_subjects_to_stack)(certs, item);}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
@@ -342,24 +354,4 @@ void ClientCAListInfo::apply(SSL* ssl) const
     }
 };
 
-namespace ThorsAnvil::ThorsSocket::ConnectionType
-{
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-std::string buildOpenSSLErrorMessage(bool prefix)
-{
-    bool errorAdded = false;
-    std::stringstream result;
-    if (prefix) {
-        result << "ConnectionType::SSocket: ";
-    }
-    for (long code = MOCK_FUNC(ERR_get_error)(); code != 0; code = MOCK_FUNC(ERR_get_error)())
-    {
-        errorAdded = true;
-        result << "ErrorCode=" << code << ": msg: " << ERR_error_string(code, nullptr) << ":";
-    }
-    if (!errorAdded) {
-        result << "No error codes found!";
-    }
-    return result.str();
-}
 }

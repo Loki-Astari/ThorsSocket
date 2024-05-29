@@ -42,10 +42,10 @@ class TestConnection: public Connection
             }
             if (firstRead) {
                 firstRead = false;
-                if (firstReadResult.dataSize == -1) {
+                if (firstReadResult.dataSize == static_cast<std::size_t>(-1)) {
                     throw std::runtime_error{"Test"};
                 }
-                if (firstReadResult.dataSize == -2) {
+                if (firstReadResult.dataSize == static_cast<std::size_t>(-2)) {
                     throw std::runtime_error{"Test"};
                 }
                 return firstReadResult;
@@ -59,10 +59,10 @@ class TestConnection: public Connection
             }
             if (firstWrite) {
                 firstWrite = false;
-                if (firstWriteResult.dataSize == -1) {
+                if (firstWriteResult.dataSize == static_cast<std::size_t>(-1)) {
                     throw std::runtime_error{"Test"};
                 }
-                if (firstWriteResult.dataSize == -2) {
+                if (firstWriteResult.dataSize == static_cast<std::size_t>(-2)) {
                     throw std::runtime_error{"Test"};
                 }
                 return firstWriteResult;

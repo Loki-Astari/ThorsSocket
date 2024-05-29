@@ -117,12 +117,3 @@ void Socket::close()
     }
     connection->close();
 }
-
-namespace ThorsAnvil::ThorsSocket
-{
-    THORS_SOCKET_HEADER_ONLY_INCLUDE
-    void swap(Socket& lhs, Socket& rhs)
-    {
-        lhs.swap(rhs);
-    }
-}

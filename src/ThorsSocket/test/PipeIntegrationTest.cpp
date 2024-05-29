@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
-#include "Socket.h"
-#include "Connection.h"
-#include "ThorsLogging/ThorsLogging.h"
 #include "ConnectionPipe.h"
+#include "Socket.h"
+#include "ThorsLogging/ThorsLogging.h"
 
 #include <thread>
 

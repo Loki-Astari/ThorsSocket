@@ -1,6 +1,7 @@
 #ifndef THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 #define THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 
+#include "ThorsSocketConfig.h"
 #include "ConnectionUtil.h"
 #include <functional>
 
