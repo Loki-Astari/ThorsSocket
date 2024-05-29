@@ -1,6 +1,7 @@
 #ifndef THORSANVIL_THORSSOCKET_CONNECTION_WRAPPER_H
 #define THORSANVIL_THORSSOCKET_CONNECTION_WRAPPER_H
 
+#include "ThorsSocketConfig.h"
 #include <stdio.h>
 #include <stdexcept>
 

@@ -4,8 +4,6 @@
 #include <iostream>
 #include <utility>
 
-using namespace ThorsAnvil::ThorsSocket::ConnectionType;
-
 extern "C"
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* userdata)
@@ -14,7 +12,7 @@ int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* userdata)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata)
+int ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata)
 {
     CertificateInfo& certificateInfo = *static_cast<CertificateInfo*>(userdata);
     std::string&& password = certificateInfo.getPassword(rwflag);
@@ -29,6 +27,8 @@ int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userda
     }
     return password.size();
 }
+
+using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ProtocolInfo::convertProtocolToOpenSSL(Protocol protocol) const

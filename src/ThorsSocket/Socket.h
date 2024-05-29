@@ -39,7 +39,7 @@ class Socket
 
         void close();
 };
-THORS_SOCKET_HEADER_ONLY_INCLUDE
+inline
 void swap(Socket& lhs, Socket& rhs)
 {
     lhs.swap(rhs);

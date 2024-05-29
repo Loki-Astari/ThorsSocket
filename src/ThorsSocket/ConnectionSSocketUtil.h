@@ -4,8 +4,10 @@
 #include "ThorsSocketConfig.h"
 #include "OpenSSLMacroWrappers.h"
 #include <openssl/ssl.h>
+#include <openssl/err.h>
 #include <string>
 #include <functional>
+#include <sstream>
 
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
@@ -77,7 +79,7 @@ struct CertificateInfo
     public:
         using GetPasswordFunc = std::function<std::string(int)>;
     private:
-        friend int certificateInfo_PasswdCBNormal(char*, int, int, void*);
+        friend int ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(char*, int, int, void*);
 
         std::string     certificateFileName;
         std::string     keyFileName;
