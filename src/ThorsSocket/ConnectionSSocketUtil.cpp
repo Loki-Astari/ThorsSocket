@@ -353,5 +353,3 @@ void ClientCAListInfo::apply(SSL* ssl) const
         MOCK_FUNC(SSL_set_client_CA_list)(ssl, list);
     }
 };
-
-}
