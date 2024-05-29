@@ -33,6 +33,7 @@ namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 TEST(SSocketIntegrationTest, ConnectToServer)
 {
     SocketSetUp         socketSetup;
+    ((void)socketSetup);
     SSLctx              ctxClient{SSLMethodType::Client, CertificateInfo{CLIENT_CERT, CLIENT_KEY}};
     Socket              socket{std::make_unique<ConnectionType::SSocket>(ctxClient, "github.com", 443, Blocking::Yes)};
     std::string request = "GET / HTTP/1.1\r\n"
