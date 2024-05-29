@@ -21,7 +21,7 @@ int thorSetSocketNonBlocking(SOCKET fd);
 int thorCloseSocket(SOCKET fd);
 int thorShutdownSocket(SOCKET fd);
 inline int thorGetSocketError()             {return WSAGetLastError();}
-inline int thorInvalidFD()                  {return INVALID_SOCKET;}
+inline SOCKET thorInvalidFD()               {return INVALID_SOCKET;}
 inline bool thorErrorIsTryAgain(int error)  {return error == WSATRY_AGAIN;}
 char const* getErrNoStrWin(int error);
 char const* getErrMsgWin(int error);
