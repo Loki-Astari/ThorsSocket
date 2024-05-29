@@ -6,6 +6,7 @@
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Pipe::Pipe(Blocking blocking)
 {
     int result = MOCK_FUNC(thorCreatePipe)(fd);
@@ -39,12 +40,14 @@ Pipe::Pipe(Blocking blocking)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Pipe::Pipe(int fdP[])
 {
     fd[0] = fdP[0];
     fd[1] = fdP[1];
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Pipe::~Pipe()
 {
     if (isConnected()) {
@@ -52,16 +55,19 @@ Pipe::~Pipe()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 bool Pipe::isConnected() const
 {
     return fd[0] != -1 || fd[1] != -1;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Pipe::socketId(Mode rw) const
 {
     return rw == Mode::Read ? fd[0] : fd[1];
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Pipe::close()
 {
     MOCK_FUNC(close)(fd[0]);
@@ -70,11 +76,13 @@ void Pipe::close()
     fd[1] = -1;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Pipe::getReadFD() const
 {
     return fd[0];
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Pipe::getWriteFD() const
 {
     return fd[1];

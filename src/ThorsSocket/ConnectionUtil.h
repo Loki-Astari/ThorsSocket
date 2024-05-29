@@ -54,4 +54,8 @@ inline bool thorErrorIsTryAgain(int error)  {return error == TRY_AGAIN;}
 char const* getErrNoStrUnix(int error);
 char const* getErrMsgUnix(int error);
 
+#if THORS_SOCKET_HEADER_ONLY
+#include "ConnectionUtil.source"
+#endif
+
 #endif

@@ -7,6 +7,7 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLUtil::SSLUtil()
 {
     SSL_load_error_strings();
@@ -14,12 +15,14 @@ SSLUtil::SSLUtil()
     //OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, nullptr);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLUtil& SSLUtil::getInstance()
 {
     static SSLUtil  instance;
     return instance;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSLctx::~SSLctx()
 {
     if (ctx) {
@@ -27,6 +30,7 @@ SSLctx::~SSLctx()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info)
     : Socket(host, port, blocking)
     , ssl(nullptr)
@@ -111,6 +115,7 @@ SSocket::SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking 
     MOCK_FUNC(X509_free)(cert);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
     : Socket(fd)
 {
@@ -175,15 +180,18 @@ SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocket::~SSocket()
 {
     close();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SSocket::tryFlushBuffer()
 {
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData SSocket::readFromStream(char* buffer, std::size_t size)
 {
     int ret = MOCK_FUNC(SSL_read)(ssl, buffer, size);
@@ -228,6 +236,7 @@ IOData SSocket::readFromStream(char* buffer, std::size_t size)
     return {static_cast<std::size_t>(ret), true, false};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData SSocket::writeToStream(char const* buffer, std::size_t size)
 {
     int ret = MOCK_FUNC(SSL_write)(ssl, buffer, size);
@@ -272,6 +281,7 @@ IOData SSocket::writeToStream(char const* buffer, std::size_t size)
     return {static_cast<std::size_t>(ret), true, false};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SSocket::close()
 {
     if (ssl)
@@ -284,6 +294,7 @@ void SSocket::close()
     Socket::close();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 bool SSocket::isConnected() const
 {
     return ssl != nullptr;

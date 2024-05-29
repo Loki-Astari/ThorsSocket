@@ -109,4 +109,8 @@ class SSocket: public Socket
 
 }
 
+#if THORS_SOCKET_HEADER_ONLY
+#include "ConnectionSSocket.source"
+#endif
+
 #endif

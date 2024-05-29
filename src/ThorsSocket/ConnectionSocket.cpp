@@ -10,6 +10,7 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(std::string const& host, int port, Blocking blocking)
     : fd(thorInvalidFD())
 {
@@ -91,25 +92,30 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(SOCKET_TYPE fd)
     : fd(fd)
 {}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::~Socket()
 {
     close();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 bool Socket::isConnected() const
 {
     return fd != thorInvalidFD();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Socket::socketId(Mode /*rw*/) const
 {
     return static_cast<int>(fd);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::close()
 {
     if (fd != thorInvalidFD()) {
@@ -118,6 +124,7 @@ void Socket::close()
     fd = thorInvalidFD();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::tryFlushBuffer()
 {
     int result = MOCK_FUNC(thorShutdownSocket)(fd);
@@ -135,6 +142,7 @@ void Socket::tryFlushBuffer()
 }
 
 #ifdef __WINNT__
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::readFromStream(char* buffer, std::size_t size)
 {
     int chunkRead = MOCK_FUNC(recv)(fd, buffer, size, 0);
@@ -187,6 +195,7 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
     return {static_cast<std::size_t>(chunkRead), true, false};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::writeToStream(char const* buffer, std::size_t size)
 {
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-send
@@ -242,11 +251,13 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
 
 #else
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Socket::getReadFD() const
 {
     return fd;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Socket::getWriteFD() const
 {
     return fd;

@@ -25,4 +25,8 @@ class Pipe: public FileDescriptor
 
 }
 
+#if THORS_SOCKET_HEADER_ONLY
+#include "ConnectionPipe.source"
+#endif
+
 #endif

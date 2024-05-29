@@ -23,4 +23,8 @@ class FileDescriptor: public Connection
 
 }
 
+#if THORS_SOCKET_HEADER_ONLY
+#include "ConnectionFileDescriptor.source"
+#endif
+
 #endif

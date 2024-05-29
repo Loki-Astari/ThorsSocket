@@ -6,11 +6,13 @@
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 extern "C" int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* userdata)
 {
     return ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(buf, size, rwflag, userdata);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata)
 {
     CertificateInfo& certificateInfo = *static_cast<CertificateInfo*>(userdata);
@@ -27,6 +29,7 @@ int ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(char
     return password.size();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ProtocolInfo::convertProtocolToOpenSSL(Protocol protocol) const
 {
     switch (protocol)
@@ -39,6 +42,7 @@ int ProtocolInfo::convertProtocolToOpenSSL(Protocol protocol) const
     throw std::runtime_error("Fix");
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ProtocolInfo::apply(SSL_CTX* ctx) const
 {
     //if (SSL_CTX_set_min_proto_version(ctx, convertProtocolToOpenSSL(minProtocol)) != 1)
@@ -57,6 +61,7 @@ void ProtocolInfo::apply(SSL_CTX* ctx) const
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ProtocolInfo::apply(SSL* ssl) const
 {
     //if (SSL_set_min_proto_version(ssl, convertProtocolToOpenSSL(minProtocol)) != 1)
@@ -75,6 +80,7 @@ void ProtocolInfo::apply(SSL* ssl) const
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void CipherInfo::apply(SSL_CTX* ctx) const
 {
     /*Set the Cipher List*/
@@ -92,6 +98,7 @@ void CipherInfo::apply(SSL_CTX* ctx) const
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void CipherInfo::apply(SSL* ssl) const
 {
     /*Set the Cipher List*/
@@ -109,9 +116,11 @@ void CipherInfo::apply(SSL* ssl) const
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 CertificateInfo::CertificateInfo()
 {}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 CertificateInfo::CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword)
     : certificateFileName(certificateFileName)
     , keyFileName(keyFileName)
@@ -125,6 +134,7 @@ CertificateInfo::CertificateInfo(std::string const& certificateFileName, std::st
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void CertificateInfo::apply(SSL_CTX* ctx) const
 {
     if (certificateFileName != "")
@@ -159,6 +169,7 @@ void CertificateInfo::apply(SSL_CTX* ctx) const
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void CertificateInfo::apply(SSL* ssl) const
 {
     if (certificateFileName != "")
@@ -193,6 +204,7 @@ void CertificateInfo::apply(SSL* ssl) const
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<AuthorityType A>
 void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx) const
 {
@@ -221,18 +233,28 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx) const
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)               const {return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);}
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);}
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)              const {return MOCK_FUNC(SSL_CTX_set_default_verify_store)(ctx);}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int CertifcateAuthorityDataInfo<File>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item) const {return MOCK_FUNC(SSL_CTX_load_verify_file)(ctx, item);}
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int CertifcateAuthorityDataInfo<Dir>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item)  const {return MOCK_FUNC(SSL_CTX_load_verify_dir)(ctx, item);}
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int CertifcateAuthorityDataInfo<Store>::setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const* item)const {return MOCK_FUNC(SSL_CTX_load_verify_store)(ctx, item);}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> std::string CertifcateAuthorityDataInfo<File>::type()  const {return "CA File";}
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> std::string CertifcateAuthorityDataInfo<Dir>::type()   const {return "CA Dir";}
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> std::string CertifcateAuthorityDataInfo<Store>::type() const {return "CA Store";}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void CertifcateAuthorityInfo::apply(SSL_CTX* ctx) const
 {
     file.apply(ctx);
@@ -240,10 +262,14 @@ void CertifcateAuthorityInfo::apply(SSL_CTX* ctx) const
     store.apply(ctx);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int ClientCAListDataInfo<File>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)   const {return MOCK_FUNC(SSL_add_file_cert_subjects_to_stack)(certs, item);}
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int ClientCAListDataInfo<Dir>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)    const {return MOCK_FUNC(SSL_add_dir_cert_subjects_to_stack)(certs, item);}
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 template<> int ClientCAListDataInfo<Store>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)  const {return MOCK_FUNC(SSL_add_store_cert_subjects_to_stack)(certs, item);}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
 {
     if (file.items.size() + dir.items.size() + store.items.size() == 0) {
@@ -292,6 +318,7 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
     return list;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ClientCAListInfo::apply(SSL_CTX* ctx) const
 {
     if (verifyClientCA) {
@@ -303,6 +330,7 @@ void ClientCAListInfo::apply(SSL_CTX* ctx) const
     }
 };
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ClientCAListInfo::apply(SSL* ssl) const
 {
     if (verifyClientCA) {
@@ -316,6 +344,7 @@ void ClientCAListInfo::apply(SSL* ssl) const
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::string buildOpenSSLErrorMessage(bool prefix)
 {
     bool errorAdded = false;

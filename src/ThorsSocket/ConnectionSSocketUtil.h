@@ -120,4 +120,8 @@ struct ClientCAListInfo
 
 }
 
+#if THORS_SOCKET_HEADER_ONLY
+#include "ConnectionSSocketUtil.source"
+#endif
+
 #endif

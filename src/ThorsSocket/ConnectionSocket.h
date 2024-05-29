@@ -41,4 +41,8 @@ class Socket: public ConnectionType::FileDescriptor
 
 }
 
+#if THORS_SOCKET_HEADER_ONLY
+#include "ConnectionSocket.source"
+#endif
+
 #endif

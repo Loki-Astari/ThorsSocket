@@ -4,18 +4,21 @@
 
 using namespace ThorsAnvil::ThorsSocket;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(std::unique_ptr<Connection>&& connectionP, std::function<void()>&& readYield, std::function<void()>&& writeYield)
     : connection(std::move(connectionP))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
 {}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(Socket&& move) noexcept
     : connection(std::exchange(move.connection, nullptr))
     , readYield(std::exchange(move.readYield, [](){}))
     , writeYield(std::exchange(move.writeYield, [](){}))
 {}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket& Socket::operator=(Socket&& move) noexcept
 {
     connection.reset(nullptr);
@@ -25,6 +28,7 @@ Socket& Socket::operator=(Socket&& move) noexcept
     return *this;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::swap(Socket& other) noexcept
 {
     using std::swap;
@@ -33,11 +37,13 @@ void Socket::swap(Socket& other) noexcept
     swap(writeYield, other.writeYield);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 bool Socket::isConnected() const
 {
     return connection.get() != nullptr && connection->isConnected();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Socket::socketId(Mode rw) const
 {
     if (!isConnected()) {
@@ -46,6 +52,7 @@ int Socket::socketId(Mode rw) const
     return connection->socketId(rw);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::getMessageData(void* b, std::size_t size)
 {
     char* buffer = reinterpret_cast<char*>(b);
@@ -69,6 +76,7 @@ IOData Socket::getMessageData(void* b, std::size_t size)
     return {dataRead, true, false};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::putMessageData(void const* b, std::size_t size)
 {
     char const* buffer = reinterpret_cast<char const*>(b);
@@ -92,6 +100,7 @@ IOData Socket::putMessageData(void const* b, std::size_t size)
     return {dataWritten, true, false};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::tryFlushBuffer()
 {
     if (!isConnected()) {
@@ -100,6 +109,7 @@ void Socket::tryFlushBuffer()
     connection->tryFlushBuffer();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::close()
 {
     if (!isConnected()) {
@@ -110,6 +120,7 @@ void Socket::close()
 
 namespace ThorsAnvil::ThorsSocket
 {
+    THORS_SOCKET_HEADER_ONLY_INCLUDE
     void swap(Socket& lhs, Socket& rhs)
     {
         lhs.swap(rhs);

@@ -10,11 +10,13 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void FileDescriptor::tryFlushBuffer()
 {
     // Default Action do nothing.
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
 {
     ssize_t chunkRead = MOCK_FUNC(read)(getReadFD(), buffer, size);
@@ -66,6 +68,7 @@ IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
     return {static_cast<std::size_t>(chunkRead), true, false};
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
 {
     ssize_t chunkWritten = MOCK_FUNC(write)(getWriteFD(), buffer, size);

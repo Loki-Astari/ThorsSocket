@@ -6,17 +6,20 @@
 #ifdef __WINNT__
 #include <process.h>
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorCreatePipe(int fildes[2])
 {
     return _pipe(fildes, 256, O_BINARY);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorSetFDNonBlocking(int /*fd*/)
 {
     // Non Blocking pipe and files are not supported on Windows
     return -1;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorSetSocketNonBlocking(SOCKET fd)
 {
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-ioctlsocket
@@ -25,15 +28,18 @@ int thorSetSocketNonBlocking(SOCKET fd)
     return (result == 0) ? 0 : -1;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorCloseSocket(SOCKET fd)
 {
     return ::closesocket(fd);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorShutdownSocket(SOCKET fd)
 {
     return ::shutdown(fd, SD_SEND);
 }
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 char const* getErrNoStrWin(int error)
 {
     static std::map<int, char const*> errorString =
@@ -56,6 +62,7 @@ char const* getErrNoStrWin(int error)
     char const* msg = (find == errorString.end()) ? "Unknown" : find->second;
     return msg;
 }
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 char const* getErrMsgWin(int error)
 {
     static char msgbuf[1024];
@@ -74,26 +81,31 @@ char const* getErrMsgWin(int error)
 #else
 #include <unistd.h>
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorCreatePipe(int fildes[2])
 {
     return pipe(fildes);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorSetFDNonBlocking(int fd)
 {
     return ::fcntl(fd, F_SETFL, O_NONBLOCK);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorSetSocketNonBlocking(int fd)
 {
     return ::fcntl(fd, F_SETFL, O_NONBLOCK);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorCloseSocket(int fd)
 {
     return ::close(fd);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int thorShutdownSocket(int fd)
 {
     return ::shutdown(fd, SHUT_WR);
@@ -101,6 +113,7 @@ int thorShutdownSocket(int fd)
 
 #endif
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 char const* getErrNoStrUnix(int error)
 {
     static std::map<int, char const*> errorString =
@@ -131,6 +144,7 @@ char const* getErrNoStrUnix(int error)
     return msg;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 char const* getErrMsgUnix(int error)
 {
     return strerror(error);
