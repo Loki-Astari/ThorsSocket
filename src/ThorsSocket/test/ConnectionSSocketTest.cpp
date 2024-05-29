@@ -303,7 +303,7 @@ void testReadFailureException(int errorCode)
 
     TA_TestThrow<Exception>([&](){
         char    buffer[12];
-        IOData  result = socket.readFromStream(buffer, 12);
+        socket.readFromStream(buffer, 12);
     })
     .expectCallTA(SSL_read).toReturn(-1)
     .expectCallTA(SSL_get_error).toReturn(std::move(errorCode))
@@ -337,7 +337,7 @@ void testWriteFailureException(int errorCode)
 
     TA_TestThrow<Exception>([&](){
         char    buffer[12];
-        IOData  result = socket.writeToStream(buffer, 12);
+        socket.writeToStream(buffer, 12);
     })
     .expectCallTA(SSL_write).toReturn(-1)
     .expectCallTA(SSL_get_error).toReturn(std::move(errorCode))
