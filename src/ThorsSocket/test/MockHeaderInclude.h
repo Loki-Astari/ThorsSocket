@@ -56,6 +56,8 @@ class MockAllDefaultFunctions
 
     MOCK_MEMBER(read);
     MOCK_MEMBER(write);
+    MOCK_MEMBER(send);
+    MOCK_MEMBER(recv);
     MOCK_TMEMBER(open);
     MOCK_MEMBER(close);
     MOCK_MEMBER(thorCloseSocket);
@@ -122,6 +124,8 @@ class MockAllDefaultFunctions
 // PART-4-Start
             , MOCK_PARAM(read,                                  [ ](int, void*, ssize_t size)           {return size;})
             , MOCK_PARAM(write,                                 [ ](int, void const*, ssize_t size)     {return size;})
+            , MOCK_PARAM(recv,                                  [ ](int, void*, size_t len, int)        {return len;})
+            , MOCK_PARAM(send,                                  [ ](int, const void*, size_t len, int)  {return len;})
             , MOCK_PARAM(open,                                  [ ](char const*, int, int)              {return 12;})
             , MOCK_PARAM(close,                                 [ ](int)                                {return 0;})
             , MOCK_PARAM(thorCloseSocket,                       [ ](int)                                {return 0;})
