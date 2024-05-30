@@ -1,8 +1,8 @@
 #include "ConnectionSSocket.h"
 
 #include <map>
-#include <openssl/err.h>
 #include <iostream>
+#include <openssl/err.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;

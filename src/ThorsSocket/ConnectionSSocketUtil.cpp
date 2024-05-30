@@ -1,8 +1,10 @@
 #include "ConnectionSSocketUtil.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include <openssl/err.h>
+#include <cstddef>
 #include <iostream>
 #include <utility>
+#include <stdexcept>
 
 extern "C"
 THORS_SOCKET_HEADER_ONLY_INCLUDE

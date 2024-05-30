@@ -6,6 +6,7 @@
 #include <fcntl.h>
 
 #include <iostream>
+#include <algorithm>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
