@@ -1,7 +1,8 @@
 #include "ConnectionUtil.h"
 
-#include <fcntl.h>
 #include <map>
+#include <stdio.h>
+#include <fcntl.h>
 
 #ifdef __WINNT__
 #include <process.h>
