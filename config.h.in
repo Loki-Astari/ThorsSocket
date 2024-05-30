@@ -7,6 +7,9 @@
 
     
 
+/* EWOULDBLOCK is defined and different from EAGAIN */
+#undef HAS_UNIQUE_EWOULDBLOCK
+
 /* We have found package CRYPTO */
 #undef HAVE_CRYPTO
 
@@ -80,6 +83,9 @@
 
 /* For header only convert to inline */
 #undef THORS_SOCKET_HEADER_ONLY_INCLUDE
+
+/* Name of package for header files */
+#undef THOR_PACKAGE_NAME
 
 /* Version number of package */
 #undef VERSION

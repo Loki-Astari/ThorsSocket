@@ -1,0 +1,12 @@
+    # > subject="/C=US/ST=Washington/L=Seattle/O=NA/CN=ThorsTesting.com/emailAddress=admin@ThorsTesting.com"
+    [req]
+    distinguished_name = req_distinguished_name
+    prompt = no
+    [req_distinguished_name]
+    CN = ThorsTesting.com
+    emailAddress = admin@ThorsTesting.com
+    C = US
+    ST = Washington
+    L = Seattle
+    O = NA
+    OU = NA
