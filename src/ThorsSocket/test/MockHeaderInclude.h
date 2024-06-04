@@ -113,7 +113,6 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(gethostbyname);
     MOCK_MEMBER(connect);
     MOCK_MEMBER(thorShutdownSocket);
-
 // PART-3-End
 
     public:
