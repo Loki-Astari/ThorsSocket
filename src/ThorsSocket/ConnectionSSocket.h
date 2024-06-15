@@ -50,6 +50,10 @@ class SSLctx
             : ctx(std::exchange(move.ctx, nullptr))
         {}
         //SSLctx& operator=(SSLctx const&)        = delete;
+    private:
+        SSL_METHOD const*       createClient();
+        SSL_METHOD const*       createServer();
+        SSL_CTX*                newCtx(SSL_METHOD const* method);
 };
 
 template<typename... Args>
@@ -64,10 +68,10 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
     SSLUtil::getInstance();
     SSL_METHOD const*  method;
     if (methodType == SSLMethodType::Client) {
-        method = MOCK_FUNC(TLS_client_method)(); // SSLv23_client_method();
+        method = createClient(); // SSLv23_client_method();
     }
     else {
-        method = MOCK_FUNC(TLS_server_method)();
+        method = createServer();
     }
 
     if (method == nullptr)
@@ -77,7 +81,7 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
                          "TLS_client_method() failed: ", buildOpenSSLErrorMessage());
     }
 
-    ctx = MOCK_FUNC(SSL_CTX_new)(method);
+    ctx = newCtx(method);
     if (ctx == nullptr)
     {
         ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
