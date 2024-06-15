@@ -98,7 +98,8 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
 }
 class SSocket: public Socket
 {
-    SSL*        ssl;
+    protected:
+        SSL*        ssl;
     public:
         SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info = CertificateInfo{});
         SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
@@ -112,6 +113,12 @@ class SSocket: public Socket
         virtual bool isConnected()                          const   override;
 
         char const* getSSErrNoStr(int)  {return "";}
+};
+
+class SSocketServer: public SSocket
+{
+    public:
+        SSocketServer(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
 };
 
 }

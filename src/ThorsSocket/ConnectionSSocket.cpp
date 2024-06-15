@@ -144,7 +144,11 @@ SSocket::SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info)
 
     /* Bind the ssl object with the socket*/
     SSL_set_fd(ssl, fd);
+}
 
+SSocketServer::SSocketServer(int fd, SSLctx const& ctx, CertificateInfo&& info)
+    : SSocket(fd, ctx, std::move(info))
+{
     /*Do the SSL Handshake*/
     int status;
     do
