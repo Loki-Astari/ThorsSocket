@@ -142,6 +142,11 @@ void Socket::tryFlushBuffer()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void Socket::release()
+{
+    fd = thorInvalidFD();
+}
 #ifdef __WINNT__
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::readFromStream(char* buffer, std::size_t size)

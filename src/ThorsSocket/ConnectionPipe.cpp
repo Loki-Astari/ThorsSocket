@@ -87,3 +87,9 @@ int Pipe::getWriteFD() const
 {
     return fd[1];
 }
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void Pipe::release()
+{
+    throw std::runtime_error("Can't release a pipe");
+}

@@ -13,6 +13,27 @@ int certificateInfo_PasswdCB(char* buf, int size, int rwflag, void* userdata)
     return ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(buf, size, rwflag, userdata);
 }
 
+namespace ThorsAnvil::ThorsSocket::ConnectionType
+{
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+std::string buildOpenSSLErrorMessage(bool prefix)
+{
+    bool errorAdded = false;
+    std::stringstream result;
+    if (prefix) {
+        result << "ConnectionType::SSocket: ";
+    }
+    for (long code = MOCK_FUNC(ERR_get_error)(); code != 0; code = MOCK_FUNC(ERR_get_error)())
+    {
+        errorAdded = true;
+        result << "ErrorCode=" << code << ": msg: " << ERR_error_string(code, nullptr) << ":";
+    }
+    if (!errorAdded) {
+        result << "No error codes found!";
+    }
+    return result.str();
+}
+}
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata)
 {

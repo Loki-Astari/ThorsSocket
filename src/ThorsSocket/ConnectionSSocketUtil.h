@@ -16,24 +16,7 @@ namespace ThorsAnvil::ThorsSocket::ConnectionType
 
 extern "C" int certificateInfo_PasswdCB(char* buf, int size, int /*rwflag*/, void* userdata);
 int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata);
-inline std::string buildOpenSSLErrorMessage(bool prefix = true)
-{
-    bool errorAdded = false;
-    std::stringstream result;
-    if (prefix) {
-        result << "ConnectionType::SSocket: ";
-    }
-    for (long code = MOCK_FUNC(ERR_get_error)(); code != 0; code = MOCK_FUNC(ERR_get_error)())
-    {
-        errorAdded = true;
-        result << "ErrorCode=" << code << ": msg: " << ERR_error_string(code, nullptr) << ":";
-    }
-    if (!errorAdded) {
-        result << "No error codes found!";
-    }
-    return result.str();
-}
-
+std::string buildOpenSSLErrorMessage(bool prefix = true);
 enum class SSLMethodType {Client, Server};
 
 enum Protocol { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3 };

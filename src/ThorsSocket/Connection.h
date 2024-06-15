@@ -23,6 +23,7 @@ class Connection
         virtual int  socketId(Mode)                         const   = 0;
         virtual void close()                                        = 0;
         virtual void tryFlushBuffer()                               = 0;
+        virtual void release()                                      = 0;
 
         virtual IOData readFromStream(char* buffer, std::size_t size)       = 0;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  = 0;

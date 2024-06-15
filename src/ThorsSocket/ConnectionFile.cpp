@@ -69,3 +69,9 @@ int File::getWriteFD() const
 {
     return fd;
 }
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void File::release()
+{
+    fd = -1;
+}

@@ -1,4 +1,4 @@
-THORSANVIL_ROOT             = $(realpath ../../)
+THORSANVIL_ROOT             = $(abspath ../..)
 
 TARGET                      = ThorsSocket.slib
 NAMESPACE					= ThorsAnvil::ThorsSocket

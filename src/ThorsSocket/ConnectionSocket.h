@@ -30,6 +30,7 @@ class Socket: public ConnectionType::FileDescriptor
         virtual int  socketId(Mode rw)                      const   override;
         virtual void close()                                        override;
         virtual void tryFlushBuffer()                               override;
+        virtual void release()                                      override;
 
 #if __WINNT__
         virtual IOData readFromStream(char* buffer, std::size_t size)       override;

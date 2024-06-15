@@ -34,6 +34,7 @@ class TestConnection: public Connection
         virtual int  socketId(Mode)                         const   {return id;}
         virtual void close()                                        {}
         virtual void tryFlushBuffer()                               {}
+        virtual void release()                                      {}
 
         virtual IOData readFromStream(char* /*buffer*/, std::size_t size)
         {

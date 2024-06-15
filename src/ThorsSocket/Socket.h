@@ -39,6 +39,7 @@ class Socket
         void tryFlushBuffer();
 
         void close();
+        void release();
 };
 inline
 void swap(Socket& lhs, Socket& rhs)

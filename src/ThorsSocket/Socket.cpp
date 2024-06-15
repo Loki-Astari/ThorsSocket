@@ -120,3 +120,12 @@ void Socket::close()
     }
     connection->close();
 }
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void Socket::release()
+{
+    if (!isConnected()) {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
+    }
+    connection->release();
+}

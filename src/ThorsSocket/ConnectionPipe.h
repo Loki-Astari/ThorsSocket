@@ -21,6 +21,7 @@ class Pipe: public FileDescriptor
 
         virtual int getReadFD()                             const   override;
         virtual int getWriteFD()                            const   override;
+        virtual void release()                                      override;
 };
 
 }
