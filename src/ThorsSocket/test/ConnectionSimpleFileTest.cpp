@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
-#include "ConnectionFile.h"
+#include "ConnectionSimpleFile.h"
 
 #include <unistd.h>
 #include <stdlib.h>
 
-using ThorsAnvil::ThorsSocket::ConnectionType::File;
+using ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
 using ThorsAnvil::ThorsSocket::Open;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
@@ -25,7 +25,7 @@ TA_Object   File(
 TEST(ConnectionFileTest, Construct)
 {
     TA_TestNoThrow([](){
-        File                        file("TestFile", Open::Append, Blocking::No);
+        SimpleFile                        file("TestFile", Open::Append, Blocking::No);
     })
     .expectObjectTA(File)
     .run();
@@ -34,7 +34,7 @@ TEST(ConnectionFileTest, Construct)
 TEST(ConnectionFileTest, ConstructOpenFail)
 {
     TA_TestThrow([](){
-        File                        file("TestFile", Open::Append, Blocking::No);
+        SimpleFile                        file("TestFile", Open::Append, Blocking::No);
     })
     .expectObjectTA(File)
         .expectCallTA(open).inject().toReturn(-1)
@@ -44,7 +44,7 @@ TEST(ConnectionFileTest, ConstructOpenFail)
 TEST(ConnectionFileTest, notValidOnMinusOne)
 {
     TA_TestNoThrow([](){
-        File                        file(-1);
+        SimpleFile                        file(-1);
         ASSERT_FALSE(file.isConnected());
     })
     .run();
@@ -53,7 +53,7 @@ TEST(ConnectionFileTest, notValidOnMinusOne)
 TEST(ConnectionFileTest, getSocketIdWorks)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
-    File                        file(12);
+    SimpleFile                  file(12);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(file.socketId(Mode::Read), 12);
@@ -65,7 +65,7 @@ TEST(ConnectionFileTest, getSocketIdWorks)
 TEST(ConnectionFileTest, Close)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
-    File                        file("TestFile", Open::Append, Blocking::No);
+    SimpleFile                  file("TestFile", Open::Append, Blocking::No);
 
     TA_TestNoThrow([&](){
         file.close();
@@ -78,7 +78,7 @@ TEST(ConnectionFileTest, Close)
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
-    File                        file(33);
+    SimpleFile                  file(33);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(file.socketId(Mode::Read), file.getReadFD());
@@ -89,7 +89,7 @@ TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
-    File                        file(34);
+    SimpleFile                  file(34);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(file.socketId(Mode::Write), file.getWriteFD());

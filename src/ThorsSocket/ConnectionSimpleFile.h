@@ -8,13 +8,13 @@
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
-class File: public FileDescriptor
+class SimpleFile: public FileDescriptor
 {
     int fd;
     public:
-        File(std::string const& fileName, Open type, Blocking blocking);
-        File(int fd);
-        virtual ~File();
+        SimpleFile(std::string const& fileName, Open type, Blocking blocking);
+        SimpleFile(int fd);
+        virtual ~SimpleFile();
 
         virtual bool isConnected()                          const   override;
         virtual int  socketId(Mode mode)                    const   override;
@@ -28,7 +28,7 @@ class File: public FileDescriptor
 }
 
 #if THORS_SOCKET_HEADER_ONLY
-#include "ConnectionFile.source"
+#include "ConnectionSimpleFile.source"
 #endif
 
 #endif

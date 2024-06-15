@@ -1,4 +1,4 @@
-#include "ConnectionFile.h"
+#include "ConnectionSimpleFile.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 #include <fcntl.h>
@@ -8,7 +8,7 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-File::File(std::string const& fileName, Open open, Blocking blocking)
+SimpleFile::SimpleFile(std::string const& fileName, Open open, Blocking blocking)
     : fd(MOCK_TFUNC(open)(fileName.c_str(),
                        (open == Open::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? NONBLOCKING_FLAG : 0),
                        O_RDWR))
@@ -16,8 +16,8 @@ File::File(std::string const& fileName, Open open, Blocking blocking)
     if (fd == -1)
     {
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::File",
-            "File",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile",
+            "SimpleFile",
             " :Failed to open.",
             " errno = ", errno, " ", getErrNoStrUnix(errno),
             " msg >", getErrMsgUnix(errno), "<"
@@ -26,12 +26,12 @@ File::File(std::string const& fileName, Open open, Blocking blocking)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-File::File(int fd)
+SimpleFile::SimpleFile(int fd)
     : fd(fd)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-File::~File()
+SimpleFile::~SimpleFile()
 {
     if (isConnected()) {
         close();
@@ -39,39 +39,39 @@ File::~File()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-bool File::isConnected() const
+bool SimpleFile::isConnected() const
 {
     return fd != -1;
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int File::socketId(Mode) const
+int SimpleFile::socketId(Mode) const
 {
     // Both read and write use same ID
     return fd;
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void File::close()
+void SimpleFile::close()
 {
     MOCK_FUNC(close)(fd);
     fd = -1;
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int File::getReadFD() const
+int SimpleFile::getReadFD() const
 {
     return fd;
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int File::getWriteFD() const
+int SimpleFile::getWriteFD() const
 {
     return fd;
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void File::release()
+void SimpleFile::release()
 {
     fd = -1;
 }

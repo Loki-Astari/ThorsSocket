@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
-#include "ConnectionFile.h"
+#include "ConnectionSimpleFile.h"
 #include "test/ConnectionTest.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 
 // FileDescriptor is virtual (not all virtual methods defined).
 //using ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor;
-using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::File;
+using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
