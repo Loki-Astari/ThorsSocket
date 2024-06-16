@@ -126,9 +126,6 @@ SSocketClient::SSocketClient(SSLctx const& ctx, std::string const& host, int por
     if (cert == nullptr)
     {
         int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, ret);
-        MOCK_FUNC(SSL_shutdown)(ssl);
-        MOCK_FUNC(SSL_free)(ssl);
-        ssl = nullptr;
         ThorsLogAndThrow(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
             "SSocketBase",
