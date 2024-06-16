@@ -30,7 +30,7 @@ class SSLUtil
 class SSLctx
 {
     private:
-        friend class SSocket;
+        friend class SSocketBase;
         SSL_CTX*            ctx;
     public:
         template<typename... Args>
@@ -96,14 +96,14 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
     //certifcateAuthority.setCertifcateAuthorityInfo(ctx);
     //clientCAList.setCertifcateAuthorityInfo(ctx);
 }
-class SSocket: public Socket
+class SSocketBase: public Socket
 {
     protected:
         SSL*        ssl;
+        SSocketBase(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info = CertificateInfo{});
+        SSocketBase(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
     public:
-        SSocket(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info = CertificateInfo{});
-        SSocket(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
-        virtual ~SSocket();
+        virtual ~SSocketBase();
         virtual void tryFlushBuffer()                               override;
 
         virtual IOData readFromStream(char* buffer, std::size_t size)        override;
@@ -113,9 +113,23 @@ class SSocket: public Socket
         virtual bool isConnected()                          const   override;
 
         char const* getSSErrNoStr(int)  {return "";}
+    private:
+        void initSSocket(SSLctx const& ctx, CertificateInfo&& info);
 };
 
-class SSocketServer: public SSocket
+class SSocketClient: public SSocketBase
+{
+    public:
+        SSocketClient(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info = CertificateInfo{});
+};
+
+class SSocketAccept: public SSocketBase
+{
+    public:
+        SSocketAccept(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
+};
+
+class SSocketServer: public SSocketBase
 {
     public:
         SSocketServer(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
