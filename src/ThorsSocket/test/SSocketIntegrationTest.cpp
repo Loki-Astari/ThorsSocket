@@ -61,7 +61,7 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
                                     CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     ServerStart         server;
-    server.run<ConnectionType::SSocketServer>(8092, [](Socket& socket){
+    server.run<SSocketServer>(8092, [](Socket& socket){
         char buffer[10];
         socket.getMessageData(buffer,4);
         socket.putMessageData(buffer,4);
@@ -87,7 +87,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     ServerStart         server;
-    server.run<ConnectionType::SSocketServer>(8092, [](Socket& socket){socket.putMessageData("x", 1);}, ctxServer);
+    server.run<SSocketServer>(8092, [](Socket& socket){socket.putMessageData("x", 1);}, ctxServer);
 
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
@@ -108,7 +108,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
                                  };
     std::string const message = "This is a line of text\n";
     ServerStart     server;
-    server.run<ConnectionType::SSocketServer>(8092, [&message](Socket& socket)
+    server.run<SSocketServer>(8092, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size());
     }, ctxServer);
@@ -136,7 +136,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<ConnectionType::SSocketServer>(8092, [&message](Socket& socket)
+    server.run<SSocketServer>(8092, [&message](Socket& socket)
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
@@ -169,7 +169,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<ConnectionType::SSocketServer>(8092, [&message](Socket& socket)
+    server.run<SSocketServer>(8092, [&message](Socket& socket)
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
@@ -205,7 +205,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<ConnectionType::SSocketServer>(8092, [&message](Socket& socket)
+    server.run<SSocketServer>(8092, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size() - 4);
     }, ctxServer);
@@ -239,7 +239,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<ConnectionType::SSocketServer>(8092, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
+    server.run<SSocketServer>(8092, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);
@@ -299,7 +299,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<ConnectionType::SSocketServer>(8092, [&mutex, &cond, &finished, &message](Socket& socket)
+    server.run<SSocketServer>(8092, [&mutex, &cond, &finished, &message](Socket& socket)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);

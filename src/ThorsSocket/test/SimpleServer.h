@@ -4,9 +4,62 @@
 #include <thread>
 #include "Socket.h"
 #include "Connection.h"
+#include "ConnectionSSocket.h"
 
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSLctx;
+using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
+
+class SSocketServer: public SSocketBase
+{
+    public:
+        SSocketServer(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{})
+            : SSocketBase(fd, ctx, std::move(info))
+        {
+            /*Do the SSL Handshake*/
+            int status;
+            do
+            {
+                status = SSL_accept(ssl);
+                if (status != 1)
+                {
+                    int error = MOCK_FUNC(SSL_get_error)(ssl, status);
+                    if (error == SSL_ERROR_WANT_ACCEPT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
+                        continue;
+                    }
+                }
+                break;
+            }
+            while (true);
+
+            /* Check for error in handshake*/
+            if (status < 1)
+            {
+                int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, status);
+                MOCK_FUNC(SSL_free)(ssl);
+                ThorsLogAndThrow(
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SSocketServer",
+                    "SSocketServer",
+                    " :Failed on SSL_accept.",
+                    " errno = ", errno, " ", getSSErrNoStr(saveErrno),
+                    " msg >", ERR_error_string(saveErrno, nullptr), "<"
+                );
+            }
+
+            /* Check for Client authentication error */
+            if (SSL_get_verify_result(ssl) != X509_V_OK)
+            {
+                MOCK_FUNC(SSL_free)(ssl);
+                ThorsLogAndThrow(
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SSocketServer",
+                    "SSocketServer",
+                    " :Failed on SSL_get_verify_result."
+                );
+            }
+        }
+};
 
 class Server
 {

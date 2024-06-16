@@ -121,19 +121,11 @@ class SSocketClient: public SSocketBase
 {
     public:
         SSocketClient(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info = CertificateInfo{});
+        SSocketClient(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
+    private:
+        void initSSocketClient();
 };
 
-class SSocketAccept: public SSocketBase
-{
-    public:
-        SSocketAccept(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
-};
-
-class SSocketServer: public SSocketBase
-{
-    public:
-        SSocketServer(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
-};
 
 }
 
