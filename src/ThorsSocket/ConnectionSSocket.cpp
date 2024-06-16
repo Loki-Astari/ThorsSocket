@@ -171,8 +171,8 @@ SSocketServer::SSocketServer(int fd, SSLctx const& ctx, CertificateInfo&& info)
         int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, status);
         MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
-            "SSocket",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketServer",
+            "SSocketServer",
             " :Failed on SSL_accept.",
             " errno = ", errno, " ", getSSErrNoStr(saveErrno),
             " msg >", ERR_error_string(saveErrno, nullptr), "<"
@@ -184,8 +184,8 @@ SSocketServer::SSocketServer(int fd, SSLctx const& ctx, CertificateInfo&& info)
     {
         MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::SSocket",
-            "SSocket",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketServer",
+            "SSocketServer",
             " :Failed on SSL_get_verify_result."
         );
     }
