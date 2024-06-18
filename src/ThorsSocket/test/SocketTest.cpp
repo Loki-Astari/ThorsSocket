@@ -8,6 +8,33 @@ using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Mode;
 
+class TestConnection;
+struct TestConnectionInfo
+{
+    using Connection = TestConnection;
+
+    bool    firstRead;
+    bool    firstWrite;
+    bool    valid;
+    int     id;
+    IOData  firstReadResult;
+    IOData  firstWriteResult;
+    int*    readCount;
+    int*    writeCount;
+
+    public:
+        TestConnectionInfo(bool valid = true, int id = 12, IOData firstReadResult = {0, true, false}, IOData firstWriteResult = {0, true, false}, int* readCount = nullptr, int* writeCount = nullptr)
+            : firstRead(true)
+            , firstWrite(true)
+            , valid(valid)
+            , id(id)
+            , firstReadResult(firstReadResult)
+            , firstWriteResult(firstWriteResult)
+            , readCount(readCount)
+            , writeCount(writeCount)
+        {}
+};
+
 class TestConnection: public Connection
 {
     bool    firstRead;
@@ -20,15 +47,15 @@ class TestConnection: public Connection
     int*    writeCount;
 
     public:
-        TestConnection(bool valid = true, int id = 12, IOData firstReadResult = {0, true, false}, IOData firstWriteResult = {0, true, false}, int* readCount = nullptr, int* writeCount = nullptr)
+        TestConnection(TestConnectionInfo const& info)
             : firstRead(true)
             , firstWrite(true)
-            , valid(valid)
-            , id(id)
-            , firstReadResult(firstReadResult)
-            , firstWriteResult(firstWriteResult)
-            , readCount(readCount)
-            , writeCount(writeCount)
+            , valid(info.valid)
+            , id(info.id)
+            , firstReadResult(info.firstReadResult)
+            , firstWriteResult(info.firstWriteResult)
+            , readCount(info.readCount)
+            , writeCount(info.writeCount)
         {}
         virtual bool isConnected()                          const   {return valid;}
         virtual int  socketId(Mode)                         const   {return id;}
@@ -76,7 +103,7 @@ class TestConnection: public Connection
 
 TEST(SocketTest, SocketBuilderBuild)
 {
-    Socket                      socket{std::make_unique<TestConnection>(), [](){}, [](){}};
+    Socket                      socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}, [](){}, [](){}};
 }
 
 TEST(SocketTest, SocketConstruct)
@@ -86,7 +113,7 @@ TEST(SocketTest, SocketConstruct)
 
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-    Socket socket{std::make_unique<TestConnection>(true, 11, IOData{0, true, true}, IOData{0, true, true}),
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 11, IOData{0, true, true}, IOData{0, true, true}},
                         [&yieldRCount](){++yieldRCount;},
                         [&yieldWCount](){++yieldWCount;}};
     ASSERT_TRUE(socket.isConnected());
@@ -103,8 +130,9 @@ TEST(SocketTest, SocketConstruct)
 }
 TEST(SocketTest, SocketConstructFaild)
 {
+    auto action = [](){Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{false}};};
     ASSERT_NO_THROW(
-        Socket socket{std::make_unique<TestConnection>(false)};
+        action();
     );
 }
 TEST(SocketTest, SocketConstructMove)
@@ -114,7 +142,7 @@ TEST(SocketTest, SocketConstructMove)
 
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{0, true, true}, IOData{0, true, true}),
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, true}, IOData{0, true, true}},
                         [&yieldRCount](){++yieldRCount;},
                         [&yieldWCount](){++yieldWCount;}};
 
@@ -145,10 +173,10 @@ TEST(SocketTest, SocketAssignMove)
 
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-    Socket socket{std::make_unique<TestConnection>(true, 21, IOData{0, true, true}, IOData{0, true, true}),
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 21, IOData{0, true, true}, IOData{0, true, true}},
                         [&yieldRCount](){++yieldRCount;},
                         [&yieldWCount](){++yieldWCount;}};
-    Socket move{std::make_unique<TestConnection>()};
+    Socket move{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
 
     move = std::move(socket);
 
@@ -167,8 +195,8 @@ TEST(SocketTest, SocketAssignMove)
 }
 TEST(SocketTest, SocketSwap)
 {
-    Socket socket{std::make_unique<TestConnection>(true, 21)};
-    Socket move{std::make_unique<TestConnection>(true, 22)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 21}};
+    Socket move{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 22}};
 
     move.swap(socket);
 
@@ -180,8 +208,8 @@ TEST(SocketTest, SocketSwap)
 }
 TEST(SocketTest, SocketSwapUsingFunction)
 {
-    Socket socket{std::make_unique<TestConnection>(true, 21)};
-    Socket move{std::make_unique<TestConnection>(true, 22)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 21}};
+    Socket move{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 22}};
 
     swap(socket, move);
 
@@ -193,7 +221,7 @@ TEST(SocketTest, SocketSwapUsingFunction)
 }
 TEST(SocketTest, SocketCheckIdThrowsWhenNotConnected)
 {
-    Socket socket{std::make_unique<TestConnection>(true, 13)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13}};
 
     ASSERT_EQ(socket.socketId(Mode::Read), 13);
 
@@ -208,7 +236,7 @@ TEST(SocketTest, SocketCheckIdThrowsWhenNotConnected)
 
 TEST(SocketTest, SocketReadOK)
 {
-    Socket socket{std::make_unique<TestConnection>(true, 13)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13}};
 
     char buffer[12];
     IOData result = socket.getMessageData(buffer, 12);
@@ -218,7 +246,7 @@ TEST(SocketTest, SocketReadOK)
 }
 TEST(SocketTest, SocketReadCriticalBug)
 {
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{static_cast<std::size_t>(-1), true, false})};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{static_cast<std::size_t>(-1), true, false}}};
 
     auto action = [&socket]() {
         char buffer[12];
@@ -233,7 +261,7 @@ TEST(SocketTest, SocketReadCriticalBug)
 TEST(SocketTest, SocketReadInterupt)
 {
     int readCount   = 0;
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{0, true, false}, IOData{0, true, false}, &readCount)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{0, true, false}, &readCount}};
 
     char buffer[12];
     IOData result = socket.getMessageData(buffer, 12);
@@ -245,7 +273,7 @@ TEST(SocketTest, SocketReadInterupt)
 TEST(SocketTest, SocketReadConnectionClosed)
 {
     int readCount   = 0;
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{0, false, false}, IOData{0, true, false}, &readCount)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, false, false}, IOData{0, true, false}, &readCount}};
 
     char buffer[12];
     IOData result = socket.getMessageData(buffer, 12);
@@ -257,7 +285,7 @@ TEST(SocketTest, SocketReadConnectionClosed)
 TEST(SocketTest, SocketReadUnknown)
 {
     int readCount   = 0;
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{static_cast<std::size_t>(-2), true, false}, IOData{0, true, false}, &readCount)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{static_cast<std::size_t>(-2), true, false}, IOData{0, true, false}, &readCount}};
 
     auto action = [&socket](){
         char buffer[12];
@@ -272,7 +300,7 @@ TEST(SocketTest, SocketReadUnknown)
 
 TEST(SocketTest, SocketWriteOK)
 {
-    Socket socket{std::make_unique<TestConnection>(true, 13)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13}};
 
     char buffer[12];
     IOData result = socket.putMessageData(buffer, 12);
@@ -282,7 +310,7 @@ TEST(SocketTest, SocketWriteOK)
 }
 TEST(SocketTest, SocketWriteCriticalBug)
 {
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{0, true, false}, IOData{static_cast<std::size_t>(-1), true, false})};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{static_cast<std::size_t>(-1), true, false}}};
 
     auto action = [&socket]() {
         char buffer[12];
@@ -297,7 +325,7 @@ TEST(SocketTest, SocketWriteCriticalBug)
 TEST(SocketTest, SocketWriteInterupt)
 {
     int writeCount   = 0;
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{0, true, false}, IOData{0, true, false}, nullptr, &writeCount)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{0, true, false}, nullptr, &writeCount}};
 
     char buffer[12];
     IOData result = socket.putMessageData(buffer, 12);
@@ -309,7 +337,7 @@ TEST(SocketTest, SocketWriteInterupt)
 TEST(SocketTest, SocketWriteConnectionClosed)
 {
     int writeCount   = 0;
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{0, true, false}, IOData{0, false, false}, nullptr, &writeCount)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{0, false, false}, nullptr, &writeCount}};
 
     char buffer[12];
     IOData result = socket.putMessageData(buffer, 12);
@@ -321,7 +349,7 @@ TEST(SocketTest, SocketWriteConnectionClosed)
 TEST(SocketTest, SocketWriteUnknown)
 {
     int writeCount   = 0;
-    Socket socket{std::make_unique<TestConnection>(true, 13, IOData{0, true, false}, IOData{static_cast<std::size_t>(-2), true, false}, nullptr, &writeCount)};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{static_cast<std::size_t>(-2), true, false}, nullptr, &writeCount}};
 
     auto action = [&socket](){
         char buffer[12];
@@ -336,13 +364,13 @@ TEST(SocketTest, SocketWriteUnknown)
 
 TEST(SocketTest, CloseNormalSocket)
 {
-    Socket socket{std::make_unique<TestConnection>()};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
 
     socket.close();
 }
 TEST(SocketTest, CloseNotConnectedSocket)
 {
-    Socket socket{std::make_unique<TestConnection>()};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
     Socket move = std::move(socket);
 
     auto action = [&socket](){
@@ -356,13 +384,13 @@ TEST(SocketTest, CloseNotConnectedSocket)
 }
 TEST(SocketTest, TryFlushNormal)
 {
-    Socket socket{std::make_unique<TestConnection>()};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
 
     socket.tryFlushBuffer();
 }
 TEST(SocketTest, TryFlushNotConnectedSocket)
 {
-    Socket socket{std::make_unique<TestConnection>()};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
     Socket move = std::move(socket);
 
     auto action = [&socket](){

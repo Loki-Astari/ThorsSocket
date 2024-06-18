@@ -21,11 +21,11 @@ using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Mode;
 
-using ThorsAnvil::ThorsSocket::ConnectionType::SSLctx;
-using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
-using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
+using ThorsAnvil::ThorsSocket::SSLctx;
+using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::CertificateInfo;
+using ThorsAnvil::ThorsSocket::SSLMethodType;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient;
-using ThorsAnvil::ThorsSocket::ConnectionType::SSLMethodType;
 
 namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
@@ -34,7 +34,7 @@ TEST(SSocketIntegrationTest, ConnectToServer)
     SocketSetUp         socketSetup;
     ((void)socketSetup);
     SSLctx              ctxClient{SSLMethodType::Client, CertificateInfo{CLIENT_CERT, CLIENT_KEY}};
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "github.com", 443, Blocking::Yes)};
+    Socket              socket{{"github.com", 443, Blocking::Yes, ctxClient}};
     std::string request = "GET / HTTP/1.1\r\n"
                           "Host: github.com\r\n"
                           "User-Agent: ThorSocket/1.0\r\n"
@@ -61,16 +61,16 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
                                     CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     ServerStart         server;
-    server.run<SSocketServer>(8092, [](Socket& socket){
+    server.run<SSocketAcceptRequest>(8092, {ctxServer}, [](Socket& socket){
         char buffer[10];
         socket.getMessageData(buffer,4);
         socket.putMessageData(buffer,4);
-    }, ctxServer);
+    });
 
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "127.0.0.1", 8092, Blocking::Yes)};
+    Socket              socket{{"127.0.0.1", 8092, Blocking::Yes, ctxClient}};
     IOData resultPut = socket.putMessageData("Test", 4);
     char buffer[10];
     IOData resultGet = socket.getMessageData(buffer, 4);
@@ -87,12 +87,12 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     ServerStart         server;
-    server.run<SSocketServer>(8092, [](Socket& socket){socket.putMessageData("x", 1);}, ctxServer);
+    server.run<SSocketAcceptRequest>(8092, {ctxServer}, [](Socket& socket){socket.putMessageData("x", 1);});
 
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "127.0.0.1", 8092, Blocking::Yes)};
+    Socket              socket{{"127.0.0.1", 8092, Blocking::Yes, ctxClient}};
 
     char x;
     socket.getMessageData(&x, 1);
@@ -108,16 +108,16 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
                                  };
     std::string const message = "This is a line of text\n";
     ServerStart     server;
-    server.run<SSocketServer>(8092, [&message](Socket& socket)
+    server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size());
-    }, ctxServer);
+    });
 
 
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "127.0.0.1", 8092, Blocking::Yes)};
+    Socket              socket{{"127.0.0.1", 8092, Blocking::Yes, ctxClient}};
 
     std::string reply;
     reply.resize(message.size());
@@ -136,7 +136,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<SSocketServer>(8092, [&message](Socket& socket)
+    server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&message](Socket& socket)
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
@@ -144,13 +144,13 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
             PAUSE_AND_WAIT(1);
             sent += 5;
         }
-    }, ctxServer);
+    });
 
 
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "127.0.0.1", 8092, Blocking::Yes)};
+    Socket              socket{{"127.0.0.1", 8092, Blocking::Yes, ctxClient}};
 
     std::string reply;
     reply.resize(message.size());
@@ -169,7 +169,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<SSocketServer>(8092, [&message](Socket& socket)
+    server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&message](Socket& socket)
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
@@ -177,14 +177,14 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
             PAUSE_AND_WAIT(1);
             sent += 5;
         }
-    }, ctxServer);
+    });
 
 
     int yieldCount = 0;
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                 };
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "127.0.0.1", 8092, Blocking::No),
+    Socket              socket{{"127.0.0.1", 8092, Blocking::No, ctxClient},
                                     [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);}};
 
     std::string reply;
@@ -205,16 +205,16 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<SSocketServer>(8092, [&message](Socket& socket)
+    server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size() - 4);
-    }, ctxServer);
+    });
 
 
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "127.0.0.1", 8092, Blocking::Yes)};
+    Socket              socket{{"127.0.0.1", 8092, Blocking::Yes, ctxClient}};
 
     std::string reply;
     reply.resize(message.size());
@@ -239,7 +239,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<SSocketServer>(8092, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
+    server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);
@@ -259,12 +259,12 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
             }
         }
         socket.putMessageData(&totalRead, sizeof(totalRead));
-    }, ctxServer);
+    });
 
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "127.0.0.1", 8092, Blocking::No),
+    Socket              socket{{"127.0.0.1", 8092, Blocking::No, ctxClient},
                                     [](){},
                                     [&mutex, &cond, &finished]()
                                     {
@@ -299,7 +299,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
-    server.run<SSocketServer>(8092, [&mutex, &cond, &finished, &message](Socket& socket)
+    server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&mutex, &cond, &finished, &message](Socket& socket)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);
@@ -313,12 +313,12 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
         totalRead += r.dataSize;
 
         socket.putMessageData(&totalRead, sizeof(totalRead));
-    }, ctxServer);
+    });
 
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{std::make_unique<ConnectionType::SSocketClient>(ctxClient, "127.0.0.1", 8092, Blocking::Yes)};
+    Socket              socket{{"127.0.0.1", 8092, Blocking::Yes, ctxClient}};
 
     std::size_t readFromServer = 0;
 

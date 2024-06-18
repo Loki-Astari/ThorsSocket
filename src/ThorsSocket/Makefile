@@ -1,5 +1,7 @@
 THORSANVIL_ROOT             = $(abspath ../..)
 
+EXCLUDE_HEADERS				= $(wildcard Connection*.h)
+
 TARGET                      = ThorsSocket.slib
 NAMESPACE					= ThorsAnvil::ThorsSocket
 

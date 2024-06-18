@@ -8,9 +8,9 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SimpleFile::SimpleFile(std::string const& fileName, Open open, Blocking blocking)
-    : fd(MOCK_TFUNC(open)(fileName.c_str(),
-                       (open == Open::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? NONBLOCKING_FLAG : 0),
+SimpleFile::SimpleFile(FileInfo const& fileInfo)
+    : fd(MOCK_TFUNC(open)(fileInfo.fileName.c_str(),
+                       (fileInfo.open == Open::Append ? O_APPEND : O_TRUNC) | O_CREAT | (fileInfo.blocking == Blocking::No ? NONBLOCKING_FLAG : 0),
                        O_RDWR))
 {
     if (fd == -1)

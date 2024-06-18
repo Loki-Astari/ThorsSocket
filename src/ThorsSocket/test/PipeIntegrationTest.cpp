@@ -10,6 +10,7 @@ using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;
+using ThorsAnvil::ThorsSocket::PipeInfo;
 namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 class PipeServerStart
@@ -29,7 +30,7 @@ class PipeServerStart
 
 TEST(PipeIntegrationTest, ConnectToPipe)
 {
-    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    Socket              pipe{PipeInfo{Blocking::Yes}};
     PipeServerStart     server([](){});
 
     ASSERT_NE(pipe.socketId(Mode::Read), -1);
@@ -38,7 +39,7 @@ TEST(PipeIntegrationTest, ConnectToPipe)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 {
-    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    Socket              pipe{PipeInfo{Blocking::Yes}};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
@@ -58,7 +59,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 {
-    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    Socket              pipe{PipeInfo{Blocking::Yes}};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
@@ -90,7 +91,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
     GTEST_SKIP();
 #endif
     int yieldCount = 0;
-    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::No),
+    Socket              pipe{PipeInfo{Blocking::No},
                                 [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);}};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
@@ -118,7 +119,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 {
-    Socket              pipe{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    Socket              pipe{PipeInfo{Blocking::Yes}};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
@@ -150,7 +151,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
     std::condition_variable cond;
     bool                    finished        = false;
 
-    Socket  pipe1{std::make_unique<ConnectionType::Pipe>(Blocking::No),
+    Socket  pipe1{PipeInfo{Blocking::No},
                         [](){},
                         [&mutex, &cond, &finished]()
                         {
@@ -159,7 +160,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
                             cond.notify_all();
                         }
                  };
-    Socket  pipe2{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    Socket  pipe2{PipeInfo{Blocking::Yes}};
 
     std::string const message = "This is a line of text\n";
 
@@ -206,8 +207,8 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
 {
-    Socket  pipe1{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
-    Socket  pipe2{std::make_unique<ConnectionType::Pipe>(Blocking::Yes)};
+    Socket  pipe1{PipeInfo{Blocking::Yes}};
+    Socket  pipe2{PipeInfo{Blocking::Yes}};
 
     std::string const message = "This is a line of text\n";
 

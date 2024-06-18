@@ -12,7 +12,7 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(std::string const& host, int port, Blocking blocking)
+Socket::Socket(SocketInfo const& socketInfo)
     : fd(thorInvalidFD())
 {
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-socket
@@ -33,7 +33,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
     do
     {
         // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-gethostbyname
-        serv = MOCK_FUNC(gethostbyname)(host.c_str());
+        serv = MOCK_FUNC(gethostbyname)(socketInfo.host.c_str());
     }
     while (serv == nullptr && thorErrorIsTryAgain(thorGetSocketError()));
 
@@ -53,7 +53,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
 
     SocketAddrIn serverAddr{};
     serverAddr.sin_family       = AF_INET;
-    serverAddr.sin_port         = htons(port);
+    serverAddr.sin_port         = htons(socketInfo.port);
     char* src = reinterpret_cast<char*>(serv->h_addr);
     char* dst = reinterpret_cast<char*>(&serverAddr.sin_addr.s_addr);
     std::copy(src, src + serv->h_length, dst);
@@ -75,7 +75,7 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
         );
     }
 
-    if (blocking == Blocking::No)
+    if (socketInfo.blocking == Blocking::No)
     {
         if (MOCK_FUNC(thorSetSocketNonBlocking)(fd) == -1)
         {
@@ -94,8 +94,8 @@ Socket::Socket(std::string const& host, int port, Blocking blocking)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(SOCKET_TYPE fd)
-    : fd(fd)
+Socket::Socket(OpenSocketInfo const& socketInfo)
+    : fd(socketInfo.fd)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE

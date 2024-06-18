@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include "OpenSSLMacroWrappers.h"
+#include "ConnectionSSocket.h"
 #include "ThorsSocketConfig.h"
 
 // PART-1-End

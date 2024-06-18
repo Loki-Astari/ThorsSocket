@@ -7,7 +7,7 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Pipe::Pipe(Blocking blocking)
+Pipe::Pipe(PipeInfo const& pipeInfo)
 {
     int result = MOCK_FUNC(thorCreatePipe)(fd);
     if (result == -1)
@@ -20,7 +20,7 @@ Pipe::Pipe(Blocking blocking)
             " msg >", getErrMsgUnix(errno), "<"
         );
     }
-    if (blocking == Blocking::No)
+    if (pipeInfo.blocking == Blocking::No)
     {
         int result = MOCK_FUNC(thorSetFDNonBlocking)(fd[0]);
         if (result == 0) {

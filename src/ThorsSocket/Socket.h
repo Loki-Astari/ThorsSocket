@@ -12,6 +12,7 @@ namespace ThorsAnvil::ThorsSocket
 {
 
 class Connection;
+enum class TestMarker {True};
 
 class Socket
 {
@@ -20,7 +21,18 @@ class Socket
     std::function<void()>           writeYield;
 
     public:
-        Socket(std::unique_ptr<Connection>&& connection, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
+        Socket(FileInfo const& file, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
+        Socket(PipeInfo const& pipe, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
+        Socket(SocketInfo const& socket, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
+        Socket(SSocketInfo const& socket, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
+
+        // Good for testing only.
+        template<typename T>
+        Socket(TestMarker, T const& socket, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){})
+            : connection(std::make_unique<typename T::Connection>(socket))
+            , readYield(std::move(readYield))
+            , writeYield(std::move(writeYield))
+        {}
 
         Socket(Socket&& move)               noexcept;
         Socket& operator=(Socket&& move)    noexcept;

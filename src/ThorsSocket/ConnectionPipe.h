@@ -2,6 +2,7 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_PIPE_H
 
 #include "ThorsSocketConfig.h"
+#include "SocketUtil.h"
 #include "ConnectionFileDescriptor.h"
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
@@ -11,7 +12,7 @@ class Pipe: public FileDescriptor
 {
     int fd[2];
     public:
-        Pipe(Blocking blocking);
+        Pipe(PipeInfo const& pipeInfo);
         Pipe(int fd[]);
         virtual ~Pipe();
 

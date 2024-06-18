@@ -17,7 +17,7 @@ extern TA_Object Socket_NonBlocking;
 TEST(ConnectionSocketTest, Construct)
 {
     TA_TestNoThrow([](){
-        Socket                      socket("github.com",80 , Blocking::No);
+        Socket                      socket({"github.com",80 , Blocking::No});
     })
     .expectObjectTA(Socket_NonBlocking)
     .run();
@@ -26,7 +26,7 @@ TEST(ConnectionSocketTest, Construct)
 TEST(ConnectionSocketTest, SocketCallFails)
 {
     TA_TestThrow([](){
-        Socket                      socket("github.com",80 , Blocking::No);
+        Socket                      socket({"github.com",80 , Blocking::No});
     })
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(socket).inject().toReturn(-1)
@@ -44,7 +44,7 @@ TEST(ConnectionSocketTest, GetHostCallFails)
 #ifndef __WINNT__
         h_errno = HOST_NOT_FOUND; // TODO put inside function
 #endif
-        Socket                      socket("github.com",80 , Blocking::No);
+        Socket                      socket({"github.com",80 , Blocking::No});
     })
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(gethostbyname).inject().toReturn(nullptr)
@@ -69,7 +69,7 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
             h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND;
             return nullptr;
         });
-        Socket                      socket("github.com",80 , Blocking::No);
+        Socket                      socket({"github.com",80 , Blocking::No});
     })
     .expectObjectTA(Socket_NonBlocking)
         // This removes the gethostbyname from the init section.
@@ -83,7 +83,7 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 TEST(ConnectionSocketTest, ConnectCallFailes)
 {
     TA_TestThrow([](){
-        Socket                      socket("github.com",80 , Blocking::No);
+        Socket                      socket({"github.com",80 , Blocking::No});
     })
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(connect).inject().toReturn(-1)
@@ -94,7 +94,7 @@ TEST(ConnectionSocketTest, ConnectCallFailes)
 TEST(ConnectionSocketTest, CreateNonBlocking)
 {
     TA_TestNoThrow([](){
-        Socket                      socket("github.com",80 , Blocking::Yes);
+        Socket                      socket({"github.com",80 , Blocking::Yes});
     })
     .expectObjectTA(Socket_Blocking)
     .run();
@@ -103,7 +103,7 @@ TEST(ConnectionSocketTest, CreateNonBlocking)
 TEST(ConnectionSocketTest, CreateBlocking)
 {
     TA_TestNoThrow([](){
-        Socket                      socket("github.com",80 , Blocking::No);
+        Socket                      socket({"github.com",80 , Blocking::No});
     })
     .expectObjectTA(Socket_NonBlocking)
     .run();
@@ -112,7 +112,7 @@ TEST(ConnectionSocketTest, CreateBlocking)
 TEST(ConnectionSocketTest, notValidOnMinusOne)
 {
     MockAllDefaultFunctions       defaultMockedFunctions;
-    Socket                        socket(-1);
+    Socket                        socket({-1});
 
     TA_TestNoThrow([&](){
         ASSERT_FALSE(socket.isConnected());
@@ -123,7 +123,7 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
 TEST(ConnectionSocketTest, getSocketIdWorks)
 {
     MockAllDefaultFunctions       defaultMockedFunctions;
-    Socket                        socket(12);
+    Socket                        socket({12});
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), 12);
@@ -135,7 +135,7 @@ TEST(ConnectionSocketTest, getSocketIdWorks)
 TEST(ConnectionSocketTest, Close)
 {
     MockAllDefaultFunctions       defaultMockedFunctions;
-    Socket                      socket("github.com",80 , Blocking::No);
+    Socket                      socket({"github.com",80 , Blocking::No});
 
     TA_TestNoThrow([&](){
         socket.close();
@@ -153,7 +153,7 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
     GTEST_SKIP();
 #else
     MockAllDefaultFunctions       defaultMockedFunctions;
-    Socket                        socket(33);
+    Socket                        socket({33});
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
@@ -170,7 +170,7 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
     GTEST_SKIP();
 #else
     MockAllDefaultFunctions       defaultMockedFunctions;
-    Socket                        socket(34);
+    Socket                        socket({34});
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());
@@ -182,7 +182,7 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 TEST(ConnectionSocketTest, SetNonBlockingFails)
 {
     TA_TestThrow([](){
-        Socket                      socket("github.com",80 , Blocking::No);
+        Socket                      socket({"github.com",80 , Blocking::No});
     })
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(thorSetSocketNonBlocking).inject().toReturn(-1)
@@ -192,7 +192,7 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
 TEST(ConnectionSocketTest, ShutdownFails)
 {
     TA_TestNoThrow([](){
-        Socket                      socket("github.com",80 , Blocking::No);
+        Socket                      socket({"github.com",80 , Blocking::No});
         socket.tryFlushBuffer();
     })
     .expectObjectTA(Socket_NonBlocking)

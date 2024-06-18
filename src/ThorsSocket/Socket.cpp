@@ -1,5 +1,9 @@
 #include "Socket.h"
 #include "Connection.h"
+#include "ConnectionSimpleFile.h"
+#include "ConnectionPipe.h"
+#include "ConnectionSocket.h"
+#include "ConnectionSSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 #include <utility>
@@ -8,8 +12,29 @@
 using namespace ThorsAnvil::ThorsSocket;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(std::unique_ptr<Connection>&& connectionP, std::function<void()>&& readYield, std::function<void()>&& writeYield)
-    : connection(std::move(connectionP))
+Socket::Socket(FileInfo const& fileInfo, std::function<void()>&& readYield, std::function<void()>&& writeYield)
+    : connection(std::make_unique<ConnectionType::SimpleFile>(fileInfo))
+    , readYield(std::move(readYield))
+    , writeYield(std::move(writeYield))
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+Socket::Socket(PipeInfo const& pipeInfo, std::function<void()>&& readYield, std::function<void()>&& writeYield)
+    : connection(std::make_unique<ConnectionType::Pipe>(pipeInfo))
+    , readYield(std::move(readYield))
+    , writeYield(std::move(writeYield))
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+Socket::Socket(SocketInfo const& socketInfo, std::function<void()>&& readYield, std::function<void()>&& writeYield)
+    : connection(std::make_unique<ConnectionType::Socket>(socketInfo))
+    , readYield(std::move(readYield))
+    , writeYield(std::move(writeYield))
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+Socket::Socket(SSocketInfo const& ssocketInfo, std::function<void()>&& readYield, std::function<void()>&& writeYield)
+    : connection(std::make_unique<ConnectionType::SSocketClient>(ssocketInfo))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
 {}

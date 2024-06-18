@@ -2,6 +2,7 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_WRAPPER_H
 
 #include "ThorsSocketConfig.h"
+#include "SocketUtil.h"
 #include <stdio.h>
 #include <stdexcept>
 
@@ -12,7 +13,6 @@
 
 #define PAUSE_AND_WAIT(n)       Sleep(n * 1000)
 #define NONBLOCKING_FLAG        0
-#define SOCKET_TYPE             SOCKET
 #define getErrNoStrSocket       getErrNoStrWin
 #define getErrMsgSocket         getErrMsgWin
 
@@ -36,7 +36,6 @@ char const* getErrMsgWin(int error);
 
 #define PAUSE_AND_WAIT(n)       sleep(n)
 #define NONBLOCKING_FLAG        O_NONBLOCK
-#define SOCKET_TYPE             int
 #define getErrNoStrSocket       getErrNoStrUnix
 #define getErrMsgSocket         getErrMsgUnix
 

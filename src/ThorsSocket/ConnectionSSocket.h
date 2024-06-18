@@ -2,7 +2,8 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_SECURE_SOCKET_H
 
 #include "ThorsSocketConfig.h"
-#include "ConnectionSSocketUtil.h"
+#include "SocketUtil.h"
+#include "SecureSocketUtil.h"
 #include "ConnectionSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
 
@@ -11,97 +12,21 @@
 #include <cstddef>
 #include <openssl/ssl.h>
 
+inline STACK_OF(X509_NAME)* sk_X509_NAME_new_null_wrapper()                            {return sk_X509_NAME_new_null();}
+inline void                 sk_X509_NAME_free_wrapper(STACK_OF(X509_NAME)* list)       {sk_X509_NAME_free(list);}
+inline void                 sk_X509_NAME_pop_free_wrapper(STACK_OF(X509_NAME)* list)   {sk_X509_NAME_pop_free(list, X509_NAME_free);}
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
 class SSocket;
 
-class SSLUtil
-{
-    SSLUtil();
-    public:
-        static SSLUtil& getInstance();
-
-        SSLUtil(SSLUtil const&)                 = delete;
-        SSLUtil& operator=(SSLUtil const&)      = delete;
-};
-
-class SSLctx
-{
-    private:
-        friend class SSocketBase;
-        SSL_CTX*            ctx;
-    public:
-        template<typename... Args>
-        SSLctx(SSLMethodType methodType, Args&&... args);
-               // ProtocolInfo
-               // CipherInfo
-               // CertificateInfo
-               // CertifcateAuthorityInfo
-               // ClientCAListInfo
-
-        ~SSLctx();
-
-        SSLctx(SSLctx const&)                   = delete;
-        SSLctx& operator=(SSLctx const&)        = delete;
-
-        SSLctx(SSLctx&& move)
-            : ctx(std::exchange(move.ctx, nullptr))
-        {}
-        //SSLctx& operator=(SSLctx const&)        = delete;
-    private:
-        SSL_METHOD const*       createClient();
-        SSL_METHOD const*       createServer();
-        SSL_CTX*                newCtx(SSL_METHOD const* method);
-};
-
-template<typename... Args>
-SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
-               // ProtocolInfo protocolRange,
-               //CipherInfo const& cipherList,
-               //CertificateInfo const& certificate,
-               //CertifcateAuthorityInfo const& certifcateAuthority,
-               //ClientCAListInfo const& clientCAList)
-    : ctx(nullptr)
-{
-    SSLUtil::getInstance();
-    SSL_METHOD const*  method;
-    if (methodType == SSLMethodType::Client) {
-        method = createClient(); // SSLv23_client_method();
-    }
-    else {
-        method = createServer();
-    }
-
-    if (method == nullptr)
-    {
-        ThorsLogAndThrow("ThorsAnvil::THorsSocket::SSLctx",
-                         "SSLctx",
-                         "TLS_client_method() failed: ", buildOpenSSLErrorMessage());
-    }
-
-    ctx = newCtx(method);
-    if (ctx == nullptr)
-    {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
-                         "SSLctx",
-                         "SSL_CTX_new() failed: ", buildOpenSSLErrorMessage());
-    }
-
-    (args.apply(ctx),...);
-    //protocolRange.setProtocolInfo(ctx);
-    //cipherList.setCipherInfo(ctx);
-    //certificate.setCertificateInfo(ctx);
-    //certifcateAuthority.setCertifcateAuthorityInfo(ctx);
-    //clientCAList.setCertifcateAuthorityInfo(ctx);
-}
 class SSocketBase: public Socket
 {
     protected:
         SSL*        ssl;
-        SSocketBase(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info = CertificateInfo{});
-        SSocketBase(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
+        SSocketBase(SSocketInfo const& socketInfo);
+        SSocketBase(OpenSSocketInfo const& socketInfo);
     public:
         virtual ~SSocketBase();
         virtual void tryFlushBuffer()                               override;
@@ -120,8 +45,8 @@ class SSocketBase: public Socket
 class SSocketClient: public SSocketBase
 {
     public:
-        SSocketClient(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info = CertificateInfo{});
-        SSocketClient(int fd, SSLctx const& ctx, CertificateInfo&& info = CertificateInfo{});
+        SSocketClient(SSocketInfo const& socketInfo);
+        SSocketClient(OpenSSocketInfo const& socketInfo);
     private:
         void initSSocketClient();
 };

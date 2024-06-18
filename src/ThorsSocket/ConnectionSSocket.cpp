@@ -1,4 +1,5 @@
 #include "ConnectionSSocket.h"
+#include "SecureSocketUtil.h"
 
 #include <map>
 #include <iostream>
@@ -8,51 +9,21 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSL_METHOD const* SSLctx::createClient()            {return MOCK_FUNC(TLS_client_method)();}
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSL_METHOD const* SSLctx::createServer()            {return MOCK_FUNC(TLS_server_method)();}
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSL_CTX* SSLctx::newCtx(SSL_METHOD const* method)   {return MOCK_FUNC(SSL_CTX_new)(method);}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSLUtil::SSLUtil()
-{
-    SSL_load_error_strings();
-    SSL_library_init();
-    //OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, nullptr);
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSLUtil& SSLUtil::getInstance()
-{
-    static SSLUtil  instance;
-    return instance;
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSLctx::~SSLctx()
-{
-    if (ctx) {
-        MOCK_FUNC(SSL_CTX_free)(ctx);
-    }
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketBase::SSocketBase(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info)
-    : Socket(host, port, blocking)
+SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo)
+    : Socket(ssocketInfo)
     , ssl(nullptr)
 {
-    initSSocket(ctx, std::move(info));
+    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate));
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketBase::SSocketBase(int fd, SSLctx const& ctx, CertificateInfo&& info)
-    : Socket(fd)
+SSocketBase::SSocketBase(OpenSSocketInfo const& ssocketInfo)
+    : Socket(ssocketInfo)
 {
-    initSSocket(ctx, std::move(info));
+    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate));
 }
 
-void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& info)
+void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate)
 {
     ssl = MOCK_FUNC(SSL_new)(ctx.ctx);
     if (!ssl)
@@ -67,7 +38,7 @@ void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& info)
         );
     }
 
-    info.apply(ssl);
+    certificate.apply(ssl);
 
     int ret;
     if ((ret = MOCK_FUNC(SSL_set_fd)(ssl, socketId(Mode::Read))) != 1)
@@ -84,14 +55,14 @@ void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& info)
     }
 }
 
-SSocketClient::SSocketClient(SSLctx const& ctx, std::string const& host, int port, Blocking blocking, CertificateInfo&& info)
-    : SSocketBase(ctx, host, port, blocking, std::move(info))
+SSocketClient::SSocketClient(SSocketInfo const& ssocketInfo)
+    : SSocketBase(ssocketInfo)
 {
     initSSocketClient();
 }
 
-SSocketClient::SSocketClient(int fd, SSLctx const& ctx, CertificateInfo&& info)
-    : SSocketBase(fd, ctx, std::move(info))
+SSocketClient::SSocketClient(OpenSSocketInfo const& ssocketInfo)
+    : SSocketBase(ssocketInfo)
 {
     initSSocketClient();
 }

@@ -2,7 +2,8 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_SECURE_SOCKET_CONFIG_H
 
 #include "ThorsSocketConfig.h"
-#include "OpenSSLMacroWrappers.h"
+#include "ThorsLogging/ThorsLogging.h"
+
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <string>
@@ -10,9 +11,14 @@
 #include <functional>
 #include <sstream>
 
+#include <openssl/ssl.h>
 
-namespace ThorsAnvil::ThorsSocket::ConnectionType
+namespace ThorsAnvil::ThorsSocket
 {
+    namespace ConnectionType
+    {
+        class SSocketBase;
+    }
 
 extern "C" int certificateInfo_PasswdCB(char* buf, int size, int /*rwflag*/, void* userdata);
 int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata);
@@ -20,6 +26,16 @@ std::string buildOpenSSLErrorMessage(bool prefix = true);
 enum class SSLMethodType {Client, Server};
 
 enum Protocol { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3 };
+
+class SSLUtil
+{
+    SSLUtil();
+    public:
+        static SSLUtil& getInstance();
+
+        SSLUtil(SSLUtil const&)                 = delete;
+        SSLUtil& operator=(SSLUtil const&)      = delete;
+};
 
 struct ProtocolInfo
 {
@@ -58,12 +74,41 @@ struct CipherInfo
     void apply(SSL* ssl)        const;
 };
 
+class SSLctx
+{
+    private:
+        friend class ConnectionType::SSocketBase;
+        SSL_CTX*            ctx;
+    public:
+        template<typename... Args>
+        SSLctx(SSLMethodType methodType, Args&&... args);
+               // ProtocolInfo
+               // CipherInfo
+               // CertificateInfo
+               // CertifcateAuthorityInfo
+               // ClientCAListInfo
+
+        ~SSLctx();
+
+        SSLctx(SSLctx const&)                   = delete;
+        SSLctx& operator=(SSLctx const&)        = delete;
+
+        SSLctx(SSLctx&& move)
+            : ctx(std::exchange(move.ctx, nullptr))
+        {}
+        //SSLctx& operator=(SSLctx const&)        = delete;
+    private:
+        SSL_METHOD const*       createClient();
+        SSL_METHOD const*       createServer();
+        SSL_CTX*                newCtx(SSL_METHOD const* method);
+};
+
 struct CertificateInfo
 {
     public:
         using GetPasswordFunc = std::function<std::string(int)>;
     private:
-        friend int ThorsAnvil::ThorsSocket::ConnectionType::certificateInfo_PasswdCBNormal(char*, int, int, void*);
+        friend int ThorsAnvil::ThorsSocket::certificateInfo_PasswdCBNormal(char*, int, int, void*);
 
         std::string     certificateFileName;
         std::string     keyFileName;
@@ -119,6 +164,48 @@ struct ClientCAListInfo
     void apply(SSL_CTX* ctx)   const;
     void apply(SSL* ssl)       const;
 };
+
+template<typename... Args>
+SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
+               // ProtocolInfo protocolRange,
+               //CipherInfo const& cipherList,
+               //CertificateInfo const& certificate,
+               //CertifcateAuthorityInfo const& certifcateAuthority,
+               //ClientCAListInfo const& clientCAList)
+    : ctx(nullptr)
+{
+    SSLUtil::getInstance();
+    SSL_METHOD const*  method;
+    if (methodType == SSLMethodType::Client) {
+        method = createClient(); // SSLv23_client_method();
+    }
+    else {
+        method = createServer();
+    }
+
+    if (method == nullptr)
+    {
+        ThorsLogAndThrow("ThorsAnvil::THorsSocket::SSLctx",
+                         "SSLctx",
+                         "TLS_client_method() failed: ", buildOpenSSLErrorMessage());
+    }
+
+    ctx = newCtx(method);
+    if (ctx == nullptr)
+    {
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
+                         "SSLctx",
+                         "SSL_CTX_new() failed: ", buildOpenSSLErrorMessage());
+    }
+
+    (args.apply(ctx),...);
+    //protocolRange.setProtocolInfo(ctx);
+    //cipherList.setCipherInfo(ctx);
+    //certificate.setCertificateInfo(ctx);
+    //certifcateAuthority.setCertifcateAuthorityInfo(ctx);
+    //clientCAList.setCertifcateAuthorityInfo(ctx);
+}
+
 
 }
 

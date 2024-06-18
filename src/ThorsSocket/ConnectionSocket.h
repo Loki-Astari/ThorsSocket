@@ -2,6 +2,7 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_SOCKET_H
 
 #include "ThorsSocketConfig.h"
+#include "SocketUtil.h"
 #include "ConnectionFileDescriptor.h"
 
 #include <string>
@@ -22,8 +23,8 @@ class Socket: public ConnectionType::FileDescriptor
 {
     SOCKET_TYPE fd;
     public:
-        Socket(std::string const& host, int port, Blocking blocking);
-        Socket(SOCKET_TYPE fd);
+        Socket(SocketInfo const& socketInfo);
+        Socket(OpenSocketInfo const& socketInfo);
         virtual ~Socket();
 
         virtual bool isConnected()                          const   override;
