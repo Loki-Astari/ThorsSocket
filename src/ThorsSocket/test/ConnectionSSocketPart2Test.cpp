@@ -1,16 +1,12 @@
 #include <gtest/gtest.h>
-#include "ConnectionSSocket.h"
 #include "test/ConnectionTest.h"
+#include "ConnectionSSocket.h"
 
-#include <openssl/ssl.h>
-
-
-using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::IOData;
+using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient;
-using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;

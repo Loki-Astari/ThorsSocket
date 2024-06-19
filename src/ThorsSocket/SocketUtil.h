@@ -4,9 +4,7 @@
 #include "SecureSocketUtil.h"
 
 #include <cstddef>
-#include <utility>
-#include <stdexcept>
-#include <sys/types.h>
+#include <string>
 
 #ifdef  __WINNT__
 #define SOCKET_TYPE             SOCKET

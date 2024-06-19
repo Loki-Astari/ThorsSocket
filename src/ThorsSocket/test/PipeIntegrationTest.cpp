@@ -1,17 +1,14 @@
 #include <gtest/gtest.h>
 #include "ConnectionPipe.h"
 #include "Socket.h"
-#include "ThorsLogging/ThorsLogging.h"
 
 #include <thread>
 
-using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::PipeInfo;
-namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 class PipeServerStart
 {

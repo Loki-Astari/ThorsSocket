@@ -1,7 +1,9 @@
 #ifndef THORSANVIL_THORSSOCKET_TEST_CONNECTION_TEST_H
 #define THORSANVIL_THORSSOCKET_TEST_CONNECTION_TEST_H
 
-#include "Connection.h"
+#include <string>
+#include <stdlib.h>
+#include <unistd.h>
 
 class TempFileWithCleanup
 {
@@ -18,8 +20,5 @@ class TempFileWithCleanup
         }
         operator std::string const&() {return fileName;}
 };
-
-using ThorsAnvil::ThorsSocket::Open;
-using ThorsAnvil::ThorsSocket::Blocking;
 
 #endif

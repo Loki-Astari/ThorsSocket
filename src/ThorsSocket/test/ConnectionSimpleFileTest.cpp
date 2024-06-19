@@ -1,9 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionSimpleFile.h"
 
-#include <unistd.h>
-#include <stdlib.h>
-
 using ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
 using ThorsAnvil::ThorsSocket::Open;
 using ThorsAnvil::ThorsSocket::Mode;

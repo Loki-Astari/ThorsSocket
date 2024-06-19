@@ -1,11 +1,10 @@
 #include "SecureSocketUtil.h"
 #include "ConnectionSSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
+
+#include <openssl/ssl.h>
 #include <openssl/err.h>
-#include <cstddef>
-#include <iostream>
-#include <utility>
-#include <stdexcept>
+
 
 extern "C"
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -377,13 +376,6 @@ void ClientCAListInfo::apply(SSL* ssl) const
         MOCK_FUNC(SSL_set_client_CA_list)(ssl, list);
     }
 };
-#include "ConnectionSSocket.h"
-#include "SecureSocketUtil.h"
-
-#include <map>
-#include <iostream>
-#include <openssl/err.h>
-
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSL_METHOD const* SSLctx::createClient()            {return MOCK_FUNC(TLS_client_method)();}

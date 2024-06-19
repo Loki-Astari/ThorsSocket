@@ -3,9 +3,6 @@
 
 #include <thread>
 #include "Socket.h"
-#include "Connection.h"
-#include "ConnectionSSocket.h"
-#include "ConnectionSocket.h"
 
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;

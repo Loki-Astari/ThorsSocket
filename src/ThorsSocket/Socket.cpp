@@ -1,13 +1,9 @@
 #include "Socket.h"
-#include "Connection.h"
 #include "ConnectionSimpleFile.h"
 #include "ConnectionPipe.h"
 #include "ConnectionSocket.h"
 #include "ConnectionSSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
-
-#include <utility>
-#include <algorithm>
 
 #include <poll.h>
 

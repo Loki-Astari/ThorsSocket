@@ -1,18 +1,13 @@
+#include <gtest/gtest.h>
+#include "test/SimpleServer.h"
 #include "SocketStream.h"
 #include "SocketStreamBuffer.h"
-#include "test/SimpleServer.h"
-#include <gtest/gtest.h>
-#include <thread>
+
 #include <fstream>
-// #include <fstream>
-// #include <sys/types.h>
-// #include <sys/stat.h>
-// #include <fcntl.h>
 
 using ThorsAnvil::ThorsSocket::SocketStream;
 using ThorsAnvil::ThorsSocket::SocketStreamBuffer;
 using ThorsAnvil::ThorsSocket::Open;
-using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::PipeInfo;
 

@@ -2,15 +2,9 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_SECURE_SOCKET_H
 
 #include "ThorsSocketConfig.h"
-#include "SocketUtil.h"
-#include "SecureSocketUtil.h"
 #include "ConnectionSocket.h"
-#include "ThorsLogging/ThorsLogging.h"
 
-#include <utility>
-#include <string>
 #include <cstddef>
-#include <openssl/ssl.h>
 
 inline STACK_OF(X509_NAME)* sk_X509_NAME_new_null_wrapper()                            {return sk_X509_NAME_new_null();}
 inline void                 sk_X509_NAME_free_wrapper(STACK_OF(X509_NAME)* list)       {sk_X509_NAME_free(list);}

@@ -4,14 +4,13 @@
 #include "ThorsSocketConfig.h"
 #include "ThorsLogging/ThorsLogging.h"
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 #include <string>
+#include <utility>
 #include <vector>
 #include <functional>
-#include <sstream>
 
 #include <openssl/ssl.h>
+
 
 namespace ThorsAnvil::ThorsSocket
 {

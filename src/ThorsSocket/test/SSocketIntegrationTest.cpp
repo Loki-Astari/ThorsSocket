@@ -1,12 +1,7 @@
 #include <gtest/gtest.h>
+#include "test/SimpleServer.h"
 #include "ConnectionSSocket.h"
 #include "Socket.h"
-#include "ThorsLogging/ThorsLogging.h"
-#include "test/SimpleServer.h"
-
-#include <utility>
-#include <string_view>
-
 
 #define CERT_FILE       "test/data/server/server.crt"
 #define KEY_FILE        "test/data/server/server.key"

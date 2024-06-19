@@ -2,10 +2,8 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_H
 
 #include "ThorsSocketConfig.h"
-#include "ConnectionUtil.h"
 #include "SocketUtil.h"
-#include <memory>
-#include <string>
+
 #include <cstddef>
 
 namespace ThorsAnvil::ThorsSocket

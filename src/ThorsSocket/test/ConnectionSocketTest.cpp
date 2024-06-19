@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
-#include "ConnectionSocket.h"
 #include "test/ConnectionTest.h"
+#include "ConnectionSocket.h"
 
 using ThorsAnvil::ThorsSocket::Mode;
+using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::ConnectionType::Socket;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;

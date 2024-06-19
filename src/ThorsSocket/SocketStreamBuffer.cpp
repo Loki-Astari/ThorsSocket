@@ -1,4 +1,6 @@
 #include "SocketStreamBuffer.h"
+#include "Connection.h"
+
 using namespace ThorsAnvil::ThorsSocket;
 
 

@@ -1,12 +1,9 @@
 #include <gtest/gtest.h>
-#include "ConnectionSSocket.h"
 #include "test/ConnectionTest.h"
-
-#include <openssl/ssl.h>
-
+#include "ConnectionSSocket.h"
 
 using ThorsAnvil::ThorsSocket::Mode;
-using ThorsAnvil::ThorsSocket::IOData;
+using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient;
@@ -104,7 +101,7 @@ TA_Object   SSocket(
             );
 
 static char const* addrList[] = {""};
-static ThorsAnvil::ThorsSocket::ConnectionType::HostEnt result {.h_length=1, .h_addr_list=const_cast<char**>(addrList)};
+static HostEnt result {.h_length=1, .h_addr_list=const_cast<char**>(addrList)};
 
 TA_Object   Socket_Blocking(
                 build()

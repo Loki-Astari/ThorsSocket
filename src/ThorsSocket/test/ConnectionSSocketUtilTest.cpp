@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
-#include "SecureSocketUtil.h"
 #include "test/ConnectionTest.h"
-#include <openssl/ssl.h>
+#include "SecureSocketUtil.h"
 
 using ThorsAnvil::ThorsSocket::Protocol;
 using ThorsAnvil::ThorsSocket::ProtocolInfo;

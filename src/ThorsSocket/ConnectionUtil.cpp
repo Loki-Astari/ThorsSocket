@@ -1,7 +1,6 @@
 #include "ConnectionUtil.h"
 
 #include <map>
-#include <string.h>
 #include <fcntl.h>
 
 #ifdef __WINNT__

@@ -2,9 +2,7 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_FILE_H
 
 #include "ThorsSocketConfig.h"
-#include "SocketUtil.h"
 #include "ConnectionFileDescriptor.h"
-#include <string>
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {

@@ -1,8 +1,6 @@
 #include "ConnectionSSocket.h"
-#include "SecureSocketUtil.h"
+#include "ThorsLogging/ThorsLogging.h"
 
-#include <map>
-#include <iostream>
 #include <openssl/err.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;

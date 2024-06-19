@@ -4,6 +4,8 @@
 #include "ThorsSocketConfig.h"
 #include "SocketStreamBuffer.h"
 
+#include <iostream>
+
 namespace ThorsAnvil::ThorsSocket
 {
 

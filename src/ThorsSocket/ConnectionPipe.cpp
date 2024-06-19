@@ -1,7 +1,7 @@
 #include "ConnectionPipe.h"
+#include "ConnectionUtil.h"
 #include "ThorsLogging/ThorsLogging.h"
 
-#include <fcntl.h>
 #include <unistd.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;

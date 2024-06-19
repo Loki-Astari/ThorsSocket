@@ -3,7 +3,10 @@
 
 #include "ThorsSocketConfig.h"
 #include "Socket.h"
+
 #include <iostream>
+#include <vector>
+#include <cstddef>
 
 namespace ThorsAnvil::ThorsSocket
 {

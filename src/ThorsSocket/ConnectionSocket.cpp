@@ -1,13 +1,6 @@
 #include "ConnectionSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <fcntl.h>
-
-#include <iostream>
-#include <algorithm>
-
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 

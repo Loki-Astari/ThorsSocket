@@ -1,17 +1,12 @@
 #include <gtest/gtest.h>
+#include "test/SimpleServer.h"
 #include "ConnectionSocket.h"
 #include "Socket.h"
-#include "ThorsLogging/ThorsLogging.h"
-#include "test/SimpleServer.h"
 
-#include <thread>
-
-using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;
-namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SocketIntegrationTest, ConnectToSocket)
 {
