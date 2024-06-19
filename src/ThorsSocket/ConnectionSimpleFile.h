@@ -13,7 +13,7 @@ class SimpleFile: public FileDescriptor
 {
     int fd;
     public:
-        SimpleFile(FileInfo const& fileInfo);
+        SimpleFile(FileInfo const& fileInfo, Blocking blocking);
         SimpleFile(int fd);
         virtual ~SimpleFile();
 

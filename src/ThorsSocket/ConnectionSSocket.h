@@ -25,7 +25,7 @@ class SSocketBase: public Socket
 {
     protected:
         SSL*        ssl;
-        SSocketBase(SSocketInfo const& socketInfo);
+        SSocketBase(SSocketInfo const& socketInfo, Blocking blocking);
         SSocketBase(OpenSSocketInfo const& socketInfo);
     public:
         virtual ~SSocketBase();
@@ -45,7 +45,7 @@ class SSocketBase: public Socket
 class SSocketClient: public SSocketBase
 {
     public:
-        SSocketClient(SSocketInfo const& socketInfo);
+        SSocketClient(SSocketInfo const& socketInfo, Blocking blocking);
         SSocketClient(OpenSSocketInfo const& socketInfo);
     private:
         void initSSocketClient();

@@ -32,17 +32,13 @@ struct FileInfo
 {
     std::string         fileName;
     Open                open;
-    Blocking            blocking;
 };
 struct PipeInfo
-{
-    Blocking            blocking;
-};
+{};
 struct SocketInfo
 {
     std::string         host;
     int                 port;
-    Blocking            blocking;
 };
 
 struct OpenSocketInfo

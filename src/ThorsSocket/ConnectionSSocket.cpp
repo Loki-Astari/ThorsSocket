@@ -9,8 +9,8 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo)
-    : Socket(ssocketInfo)
+SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo, Blocking blocking)
+    : Socket(ssocketInfo, blocking)
     , ssl(nullptr)
 {
     initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate));
@@ -55,8 +55,8 @@ void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate)
     }
 }
 
-SSocketClient::SSocketClient(SSocketInfo const& ssocketInfo)
-    : SSocketBase(ssocketInfo)
+SSocketClient::SSocketClient(SSocketInfo const& ssocketInfo, Blocking blocking)
+    : SSocketBase(ssocketInfo, blocking)
 {
     initSSocketClient();
 }

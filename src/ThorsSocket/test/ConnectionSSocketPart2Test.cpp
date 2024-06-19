@@ -20,7 +20,7 @@ TEST(ConnectionSSocketTestPart2, Read_OK)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, Blocking::No, ctx});
+    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestNoThrow([&](){
         char    buffer[12];
@@ -39,7 +39,7 @@ TEST(ConnectionSSocketTestPart2, Write_OK)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, Blocking::No, ctx});
+    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestNoThrow([&](){
         char    buffer[12];
@@ -58,7 +58,7 @@ void testReadFailure(IOData expected, int errorCode)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, Blocking::No, ctx});
+    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestNoThrow([&](){
         char    buffer[12];
@@ -77,7 +77,7 @@ void testReadFailureException(int errorCode)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, Blocking::No, ctx});
+    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestThrow<Exception>([&](){
         char    buffer[12];
@@ -92,7 +92,7 @@ void testWriteFailure(IOData expected, int errorCode)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, Blocking::No, ctx});
+    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestNoThrow([&](){
         char    buffer[12];
@@ -111,7 +111,7 @@ void testWriteFailureException(int errorCode)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, Blocking::No, ctx});
+    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestThrow<Exception>([&](){
         char    buffer[12];

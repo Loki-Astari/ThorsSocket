@@ -12,7 +12,7 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(SocketInfo const& socketInfo)
+Socket::Socket(SocketInfo const& socketInfo, Blocking blocking)
     : fd(thorInvalidFD())
 {
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-socket
@@ -75,7 +75,7 @@ Socket::Socket(SocketInfo const& socketInfo)
         );
     }
 
-    if (socketInfo.blocking == Blocking::No)
+    if (blocking == Blocking::No)
     {
         if (MOCK_FUNC(thorSetSocketNonBlocking)(fd) == -1)
         {

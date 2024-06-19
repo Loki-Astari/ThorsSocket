@@ -9,32 +9,34 @@
 #include <utility>
 #include <algorithm>
 
+#include <poll.h>
+
 using namespace ThorsAnvil::ThorsSocket;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(FileInfo const& fileInfo, std::function<void()>&& readYield, std::function<void()>&& writeYield)
-    : connection(std::make_unique<ConnectionType::SimpleFile>(fileInfo))
+Socket::Socket(FileInfo const& fileInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+    : connection(std::make_unique<ConnectionType::SimpleFile>(fileInfo, blocking))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(PipeInfo const& pipeInfo, std::function<void()>&& readYield, std::function<void()>&& writeYield)
-    : connection(std::make_unique<ConnectionType::Pipe>(pipeInfo))
+Socket::Socket(PipeInfo const& pipeInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+    : connection(std::make_unique<ConnectionType::Pipe>(pipeInfo, blocking))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(SocketInfo const& socketInfo, std::function<void()>&& readYield, std::function<void()>&& writeYield)
-    : connection(std::make_unique<ConnectionType::Socket>(socketInfo))
+Socket::Socket(SocketInfo const& socketInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+    : connection(std::make_unique<ConnectionType::Socket>(socketInfo, blocking))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(SSocketInfo const& ssocketInfo, std::function<void()>&& readYield, std::function<void()>&& writeYield)
-    : connection(std::make_unique<ConnectionType::SSocketClient>(ssocketInfo))
+Socket::Socket(SSocketInfo const& ssocketInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+    : connection(std::make_unique<ConnectionType::SSocketClient>(ssocketInfo, blocking))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
 {}
@@ -42,16 +44,16 @@ Socket::Socket(SSocketInfo const& ssocketInfo, std::function<void()>&& readYield
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(Socket&& move) noexcept
     : connection(std::exchange(move.connection, nullptr))
-    , readYield(std::exchange(move.readYield, [](){}))
-    , writeYield(std::exchange(move.writeYield, [](){}))
+    , readYield(std::exchange(move.readYield, [](){return false;}))
+    , writeYield(std::exchange(move.writeYield, [](){return false;}))
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket& Socket::operator=(Socket&& move) noexcept
 {
     connection.reset(nullptr);
-    readYield = [](){};
-    writeYield =[](){};
+    readYield = [](){return false;};
+    writeYield =[](){return false;};
     swap(move);
     return *this;
 }
@@ -83,10 +85,22 @@ int Socket::socketId(Mode rw) const
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::getMessageData(void* b, std::size_t size)
 {
+    return getMessageDataFromStream(b, size, true);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+IOData Socket::tryGetMessageData(void* b, std::size_t size)
+{
+    return getMessageDataFromStream(b, size, false);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+IOData Socket::getMessageDataFromStream(void* b, std::size_t size, bool waitWhenBlocking)
+{
     char* buffer = reinterpret_cast<char*>(b);
 
     if (!isConnected()) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "getMessageData", "Socket is in an invalid state");
+        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "getMessageDataFromStream", "Socket is in an invalid state");
     }
 
     std::size_t dataRead = 0;
@@ -97,8 +111,14 @@ IOData Socket::getMessageData(void* b, std::size_t size)
         if (!chunk.stillOpen) {
             return {dataRead, false, false};
         }
-        if (chunk.blocked) {
-            readYield();
+        if (chunk.blocked)
+        {
+            if (!waitWhenBlocking) {
+                return {dataRead, true, true};
+            }
+            if (!readYield()) {
+                waitForInput();
+            }
         }
     }
     return {dataRead, true, false};
@@ -106,6 +126,18 @@ IOData Socket::getMessageData(void* b, std::size_t size)
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::putMessageData(void const* b, std::size_t size)
+{
+    return putMessageDataToStream(b, size, true);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+IOData Socket::tryPutMessageData(void const* b, std::size_t size)
+{
+    return putMessageDataToStream(b, size, false);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+IOData Socket::putMessageDataToStream(void const* b, std::size_t size, bool waitWhenBlocking)
 {
     char const* buffer = reinterpret_cast<char const*>(b);
 
@@ -121,11 +153,44 @@ IOData Socket::putMessageData(void const* b, std::size_t size)
         if (!chunk.stillOpen) {
             return {dataWritten, false, false};
         }
-        if (chunk.blocked) {
-            writeYield();
+        if (chunk.blocked)
+        {
+            if (!waitWhenBlocking) {
+                return {dataWritten, true, true};
+            }
+
+            if (!writeYield()) {
+                waitForOutput();
+            }
         }
     }
     return {dataWritten, true, false};
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void Socket::waitForInput()
+{
+    waitForFileDescriptor(socketId(Mode::Read), POLLIN);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void Socket::waitForOutput()
+{
+    waitForFileDescriptor(socketId(Mode::Write), POLLOUT);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void Socket::waitForFileDescriptor(int fd, short flag)
+{
+    using PollFD = pollfd;
+    PollFD  fds[1] = {{fd, static_cast<short>(flag | POLLPRI), 0}};
+    int result;
+    while ((result = poll(fds, 1, -1)) <= 0)
+    {
+        if (result == -1) {
+            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "waitForInput", ": poll return an error");
+        }
+    }
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE

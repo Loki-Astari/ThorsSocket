@@ -12,7 +12,7 @@ class Pipe: public FileDescriptor
 {
     int fd[2];
     public:
-        Pipe(PipeInfo const& pipeInfo);
+        Pipe(PipeInfo const& pipeInfo, Blocking blocking);
         Pipe(int fd[]);
         virtual ~Pipe();
 

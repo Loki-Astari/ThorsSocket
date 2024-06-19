@@ -23,7 +23,7 @@ class Socket: public ConnectionType::FileDescriptor
 {
     SOCKET_TYPE fd;
     public:
-        Socket(SocketInfo const& socketInfo);
+        Socket(SocketInfo const& socketInfo, Blocking blocking);
         Socket(OpenSocketInfo const& socketInfo);
         virtual ~Socket();
 

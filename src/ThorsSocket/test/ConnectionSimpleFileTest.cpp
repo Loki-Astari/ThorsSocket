@@ -25,7 +25,7 @@ TA_Object   File(
 TEST(ConnectionFileTest, Construct)
 {
     TA_TestNoThrow([](){
-        SimpleFile                        file({"TestFile", Open::Append, Blocking::No});
+        SimpleFile                        file({"TestFile", Open::Append}, Blocking::No);
     })
     .expectObjectTA(File)
     .run();
@@ -34,7 +34,7 @@ TEST(ConnectionFileTest, Construct)
 TEST(ConnectionFileTest, ConstructOpenFail)
 {
     TA_TestThrow([](){
-        SimpleFile                        file({"TestFile", Open::Append, Blocking::No});
+        SimpleFile                        file({"TestFile", Open::Append}, Blocking::No);
     })
     .expectObjectTA(File)
         .expectCallTA(open).inject().toReturn(-1)
@@ -65,7 +65,7 @@ TEST(ConnectionFileTest, getSocketIdWorks)
 TEST(ConnectionFileTest, Close)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
-    SimpleFile                  file({"TestFile", Open::Append, Blocking::No});
+    SimpleFile                  file({"TestFile", Open::Append}, Blocking::No);
 
     TA_TestNoThrow([&](){
         file.close();

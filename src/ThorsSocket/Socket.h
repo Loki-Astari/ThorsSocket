@@ -14,21 +14,23 @@ namespace ThorsAnvil::ThorsSocket
 class Connection;
 enum class TestMarker {True};
 
+using YieldFunc     = std::function<bool()>;
+
 class Socket
 {
     std::unique_ptr<Connection>     connection;
-    std::function<void()>           readYield;
-    std::function<void()>           writeYield;
+    YieldFunc                       readYield;
+    YieldFunc                       writeYield;
 
     public:
-        Socket(FileInfo const& file, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
-        Socket(PipeInfo const& pipe, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
-        Socket(SocketInfo const& socket, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
-        Socket(SSocketInfo const& socket, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){});
+        Socket(FileInfo const& file, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
+        Socket(PipeInfo const& pipe, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
+        Socket(SocketInfo const& socket, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
+        Socket(SSocketInfo const& socket, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
 
         // Good for testing only.
         template<typename T>
-        Socket(TestMarker, T const& socket, std::function<void()>&& readYield = [](){}, std::function<void()>&& writeYield = [](){})
+        Socket(TestMarker, T const& socket, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;})
             : connection(std::make_unique<typename T::Connection>(socket))
             , readYield(std::move(readYield))
             , writeYield(std::move(writeYield))
@@ -46,12 +48,20 @@ class Socket
         int  socketId(Mode rw)              const;      // Only useful for unit tests
 
         IOData getMessageData(void* buffer, std::size_t size);
+        IOData tryGetMessageData(void* buffer, std::size_t size);
         IOData putMessageData(void const* buffer, std::size_t size);
+        IOData tryPutMessageData(void const* buffer, std::size_t size);
 
         void tryFlushBuffer();
 
         void close();
         void release();
+    private:
+        IOData getMessageDataFromStream(void* b, std::size_t size, bool waitWhenBlocking);
+        IOData putMessageDataToStream(void const* b, std::size_t size, bool waitWhenBlocking);
+        void waitForInput();
+        void waitForOutput();
+        void waitForFileDescriptor(int fd, short flag);
 };
 inline
 void swap(Socket& lhs, Socket& rhs)

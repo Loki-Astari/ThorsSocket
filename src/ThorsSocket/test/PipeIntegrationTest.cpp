@@ -30,7 +30,7 @@ class PipeServerStart
 
 TEST(PipeIntegrationTest, ConnectToPipe)
 {
-    Socket              pipe{PipeInfo{Blocking::Yes}};
+    Socket              pipe{PipeInfo{}, Blocking::Yes};
     PipeServerStart     server([](){});
 
     ASSERT_NE(pipe.socketId(Mode::Read), -1);
@@ -39,7 +39,7 @@ TEST(PipeIntegrationTest, ConnectToPipe)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 {
-    Socket              pipe{PipeInfo{Blocking::Yes}};
+    Socket              pipe{PipeInfo{}, Blocking::Yes};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
@@ -59,7 +59,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 {
-    Socket              pipe{PipeInfo{Blocking::Yes}};
+    Socket              pipe{PipeInfo{}, Blocking::Yes};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
@@ -91,8 +91,8 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
     GTEST_SKIP();
 #endif
     int yieldCount = 0;
-    Socket              pipe{PipeInfo{Blocking::No},
-                                [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);}};
+    Socket              pipe{PipeInfo{}, Blocking::No,
+                                [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);return true;}};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
@@ -119,7 +119,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 {
-    Socket              pipe{PipeInfo{Blocking::Yes}};
+    Socket              pipe{PipeInfo{}, Blocking::Yes};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
     {
@@ -151,16 +151,17 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
     std::condition_variable cond;
     bool                    finished        = false;
 
-    Socket  pipe1{PipeInfo{Blocking::No},
-                        [](){},
+    Socket  pipe1{PipeInfo{}, Blocking::No,
+                        [](){return false;},
                         [&mutex, &cond, &finished]()
                         {
                             std::unique_lock<std::mutex> lock(mutex);
                             finished = true;
                             cond.notify_all();
+                            return true;
                         }
                  };
-    Socket  pipe2{PipeInfo{Blocking::Yes}};
+    Socket  pipe2{PipeInfo{}, Blocking::Yes};
 
     std::string const message = "This is a line of text\n";
 
@@ -207,8 +208,8 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
 {
-    Socket  pipe1{PipeInfo{Blocking::Yes}};
-    Socket  pipe2{PipeInfo{Blocking::Yes}};
+    Socket  pipe1{PipeInfo{}, Blocking::Yes};
+    Socket  pipe2{PipeInfo{}, Blocking::Yes};
 
     std::string const message = "This is a line of text\n";
 

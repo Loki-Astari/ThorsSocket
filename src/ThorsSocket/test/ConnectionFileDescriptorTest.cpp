@@ -24,9 +24,7 @@ void testSocketReadFailure(int error)
     TA_TestThrow<Exception>([&](){
         char buffer[12];
         errno = error;  // TODO needs to be set in read
-        std::cerr << "Read\n";
         file.readFromStream(buffer, 12);
-        std::cerr << "Read DONE\n";
     })
     .expectCallTA(read).toReturn(-1)
     .run();

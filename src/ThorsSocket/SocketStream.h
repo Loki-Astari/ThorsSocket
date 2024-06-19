@@ -2,25 +2,29 @@
 #define THORSANVIL_THORSSOCKET_SOCKET_STREAM_H
 
 #include "ThorsSocketConfig.h"
-#include "Socket.h"
-#include <iostream>
+#include "SocketStreamBuffer.h"
 
 namespace ThorsAnvil::ThorsSocket
 {
 
 class SocketStream: public std::iostream
 {
-    class SocketStreamBuffer: std::basic_streambuf
-    {
-        Socket                  socket;
-        std::vector<char>       inputBuffer;
-        std::vector<char>       outputBuffer;
-        public:
-            SocketStreamBuffer(SocketInfo const& info);
-    };
+    SocketStreamBuffer  buffer;
 
     public:
+        SocketStream(PipeInfo const& info);
+        SocketStream(FileInfo const& info);
         SocketStream(SocketInfo const& info);
+        SocketStream(SSocketInfo const& info);
+        SocketStream(SocketStream const&)                       = delete;
+        SocketStream(SocketStream&& move) noexcept;
+        ~SocketStream()                                         = default;
+
+        SocketStream& operator=(SocketStream const&)            = delete;
+        SocketStream& operator=(SocketStream&& move) noexcept   = delete;
+
+        // Usefult for testing
+        Socket& getSocket() {return buffer.getSocket();}
 };
 
 }
