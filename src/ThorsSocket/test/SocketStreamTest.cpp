@@ -16,6 +16,7 @@ TEST(SocketStreamTest, ReadNormal)
     SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
     char data[16];
+    std::cout << "Test: Read: " << (void*)data << "\n";
     stream.read(data,16);
 
     ASSERT_EQ(std::string(data, data + 16), std::string("1234567890ABCDEF"));

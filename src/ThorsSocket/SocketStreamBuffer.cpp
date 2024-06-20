@@ -11,7 +11,10 @@ SocketStreamBuffer::SocketStreamBuffer(PipeInfo const& info)
     , outputBuffer(4 * 1024)
     , inCount(0)
     , outCount(0)
-{}
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&inputBuffer[0], &inputBuffer[0] + inputBuffer.size() - 1);
+}
 
 SocketStreamBuffer::SocketStreamBuffer(FileInfo const& info)
     : std::streambuf{}
@@ -20,7 +23,10 @@ SocketStreamBuffer::SocketStreamBuffer(FileInfo const& info)
     , outputBuffer(4 * 1024)
     , inCount(0)
     , outCount(0)
-{}
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&inputBuffer[0], &inputBuffer[0] + inputBuffer.size() - 1);
+}
 
 SocketStreamBuffer::SocketStreamBuffer(SocketInfo const& info)
     : std::streambuf{}
@@ -29,7 +35,10 @@ SocketStreamBuffer::SocketStreamBuffer(SocketInfo const& info)
     , outputBuffer(4 * 1024)
     , inCount(0)
     , outCount(0)
-{}
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&inputBuffer[0], &inputBuffer[0] + inputBuffer.size() - 1);
+}
 
 SocketStreamBuffer::SocketStreamBuffer(SSocketInfo const& info)
     : std::streambuf{}
@@ -38,7 +47,10 @@ SocketStreamBuffer::SocketStreamBuffer(SSocketInfo const& info)
     , outputBuffer(4 * 1024)
     , inCount(0)
     , outCount(0)
-{}
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&inputBuffer[0], &inputBuffer[0] + inputBuffer.size() - 1);
+}
 
 SocketStreamBuffer::SocketStreamBuffer(SocketStreamBuffer&& move) noexcept
     : std::streambuf{std::move(move)}
@@ -47,7 +59,11 @@ SocketStreamBuffer::SocketStreamBuffer(SocketStreamBuffer&& move) noexcept
     , outputBuffer(std::move(move.outputBuffer))
     , inCount(move.inCount)
     , outCount(move.outCount)
-{}
+{
+    setg(move.eback(), move.gptr(), move.egptr());
+    setp(move.pbase(), move.epptr());
+    pbump(move.pptr() - move.pbase());
+}
 
 SocketStreamBuffer::~SocketStreamBuffer()
 {
@@ -75,6 +91,7 @@ SocketStreamBuffer::~SocketStreamBuffer()
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStreamBuffer::int_type SocketStreamBuffer::underflow()
 {
+    std::cout << "underflow\n";
     /*
      * Ensures that at least one character is available in the input area by updating the pointers
      * to the input area (if needed) * and reading more data in from the input sequence
@@ -145,9 +162,7 @@ std::streamsize SocketStreamBuffer::xsgetn(char_type* dest, std::streamsize coun
             // If we still have to retrieve a significant chunk then read it directly into
             // into the destination object. Note: This is a blocking call and will return
             // only when there is enough data.
-            IOData result = socket.getMessageData(dest + retrieved, count - retrieved);
-            inCount += result.dataSize;
-            retrieved += result.dataSize;
+            retrieved += readFromStream(dest + retrieved, count - retrieved);
         }
         else
         {
@@ -169,9 +184,7 @@ std::streamsize SocketStreamBuffer::xsgetn(char_type* dest, std::streamsize coun
                     // OK so the underflow() did not read enough
                     // So the stream would block so we are going to call the blocking
                     // version until we get enough data.
-                    IOData result = socket.getMessageData(dest + retrieved, count - retrieved);
-                    inCount += result.dataSize;
-                    retrieved += result.dataSize;
+                    retrieved += readFromStream(dest + retrieved, count - retrieved);
                 }
             }
         }
@@ -246,22 +259,18 @@ std::streamsize SocketStreamBuffer::xsputn(char_type const* source, std::streams
     // So write everything to the output stream.
     overflow();
 
-    IOData result = socket.putMessageData(source, count);
-    outCount += result.dataSize;
-
-    return result.dataSize;
+    return writeToStream(source, count);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int SocketStreamBuffer::sync()
 {
-    std::size_t outputSize = pptr() - pbase();
+    std::streamsize outputSize = pptr() - pbase();
 
-    IOData result = socket.putMessageData(pbase(), pptr() - pbase());
-    outCount += result.dataSize;
+    std::streamsize result = writeToStream(pbase(), pptr() - pbase());
 
     setp(&outputBuffer[0], &outputBuffer[outputBuffer.size() - 1]);
-    return result.dataSize == outputSize
+    return result == outputSize
               ? 0     // Success. Amount written equals buffer.
               : -1;   // Failure
 }
@@ -280,4 +289,48 @@ std::streampos SocketStreamBuffer::seekoff(std::streamoff off, std::ios_base::se
     return (which == std::ios_base::out)
                 ? outCount + (pptr() - pbase())
                 : inCount  + (gptr() - eback());
+}
+
+void SocketStreamBuffer::reserveInputSize(std::size_t size)
+{
+    char_type* begin    = eback();
+    char_type* current  = gptr();
+    char_type* end      = egptr();
+
+    std::size_t newSizeNeeded = (current + size) - begin;
+    if (inputBuffer.size() < newSizeNeeded)
+    {
+        inputBuffer.resize(newSizeNeeded);
+        setg(&inputBuffer[0], &inputBuffer[current-begin], &inputBuffer[end-current]);
+    }
+}
+
+void SocketStreamBuffer::reserveOutputSize(std::size_t size)
+{
+    char_type* begin    = pbase();
+    char_type* current  = pptr();
+    char_type* end      = epptr();
+
+    std::size_t newSizeNeeded = (current + size) - begin;
+    if (outputBuffer.size() < newSizeNeeded)
+    {
+        outputBuffer.resize(newSizeNeeded);
+        setp(&inputBuffer[0], &inputBuffer[end-current]);
+        pbump(current - begin);
+    }
+}
+
+std::streamsize SocketStreamBuffer::writeToStream(char const* data, std::size_t size)
+{
+    IOData result = socket.putMessageData(data, size);
+    outCount += result.dataSize;
+    return result.dataSize;
+}
+
+std::streamsize SocketStreamBuffer::readFromStream(char* data, std::size_t size)
+{
+    std::cout << "Reading Into: " << (void*)data << " Size: " << size << "\n";
+    IOData result = socket.getMessageData(data, size);
+    inCount += result.dataSize;
+    return result.dataSize;
 }

@@ -9,9 +9,11 @@
 namespace ThorsAnvil::ThorsSocket
 {
 
+
+template<typename Buffer = SocketStreamBuffer>
 class SocketStream: public std::iostream
 {
-    SocketStreamBuffer  buffer;
+    Buffer  buffer;
 
     public:
         SocketStream(PipeInfo const& info);
@@ -26,13 +28,12 @@ class SocketStream: public std::iostream
         SocketStream& operator=(SocketStream&& move) noexcept   = delete;
 
         // Usefult for testing
-        Socket& getSocket() {return buffer.getSocket();}
+        Socket&         getSocket()         {return buffer.getSocket();}
+        Socket const&   getSocket() const   {return buffer.getSocket();}
 };
 
 }
 
-#if THORS_SOCKET_HEADER_ONLY
-#include "SocketStream.source"
-#endif
+#include "SocketStream.tpp"
 
 #endif

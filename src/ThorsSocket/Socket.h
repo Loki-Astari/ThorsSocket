@@ -27,6 +27,10 @@ class Socket
         Socket(PipeInfo const& pipe, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
         Socket(SocketInfo const& socket, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
         Socket(SSocketInfo const& socket, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
+        // --
+        Socket(OpenSocketInfo const& socket, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
+        Socket(OpenSSocketInfo const& socket, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
+        ~Socket();
 
         // Good for testing only.
         template<typename T>
