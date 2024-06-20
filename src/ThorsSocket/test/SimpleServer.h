@@ -3,10 +3,119 @@
 
 #include <thread>
 #include "Socket.h"
-#include "Connection.h"
 
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;
+using ThorsAnvil::ThorsSocket::SSLctx;
+using ThorsAnvil::ThorsSocket::CertificateInfo;
+using ThorsAnvil::ThorsSocket::OpenSocketInfo;
+using ThorsAnvil::ThorsSocket::OpenSSocketInfo;
+using ConSocket = ThorsAnvil::ThorsSocket::ConnectionType::Socket;
+using ConSSocket = ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase;
+
+struct SocketServerInfo;
+struct SSocketServerInfo;
+class SocketServerAccept;
+class SSocketServerAccept;
+
+struct SocketAcceptRequest
+{
+    using ServerInfo   = SocketServerInfo;
+
+    SocketAcceptRequest()
+    {}
+};
+struct SSocketAcceptRequest
+{
+    using ServerInfo   = SSocketServerInfo;
+
+    SSocketAcceptRequest(SSLctx const& ctx, CertificateInfo&& certificate = CertificateInfo{})
+        : ctx(ctx)
+        , certificate(std::move(certificate))
+    {}
+    SSLctx const&        ctx;
+    CertificateInfo&&   certificate;
+};
+struct SocketServerInfo
+{
+    using Connection = SocketServerAccept;
+
+    SocketServerInfo(SOCKET_TYPE fd, SocketAcceptRequest const& request)
+        : fd(fd)
+    {}
+
+    SOCKET_TYPE         fd;
+};
+struct SSocketServerInfo
+{
+    using Connection = SSocketServerAccept;
+
+    SSocketServerInfo(SOCKET_TYPE fd, SSocketAcceptRequest const& request)
+        : fd(fd)
+        , ctx(request.ctx)
+        , certificate(std::move(request.certificate))
+    {}
+
+    SOCKET_TYPE         fd;
+    SSLctx const&       ctx;
+    CertificateInfo&&   certificate;
+};
+
+class SocketServerAccept: public ConSocket
+{
+    public:
+        SocketServerAccept(SocketServerInfo const& serverInfo)
+            : ConSocket(OpenSocketInfo{serverInfo.fd})
+        {}
+};
+class SSocketServerAccept: public ConSSocket
+{
+    public:
+        SSocketServerAccept(SSocketServerInfo const& serverInfo)
+            : ConSSocket(OpenSSocketInfo{serverInfo.fd, serverInfo.ctx, std::move(serverInfo.certificate)})
+        {
+            /*Do the SSL Handshake*/
+            int status;
+            do
+            {
+                status = SSL_accept(ssl);
+                if (status != 1)
+                {
+                    int error = MOCK_FUNC(SSL_get_error)(ssl, status);
+                    if (error == SSL_ERROR_WANT_ACCEPT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
+                        continue;
+                    }
+                }
+                break;
+            }
+            while (true);
+
+            /* Check for error in handshake*/
+            if (status < 1)
+            {
+                int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, status);
+                MOCK_FUNC(SSL_free)(ssl);
+                ThorsLogAndThrow(
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SSocketServer",
+                    "SSocketServer",
+                    " :Failed on SSL_accept.",
+                    " errno = ", errno, " ", getSSErrNoStr(saveErrno),
+                    " msg >", ERR_error_string(saveErrno, nullptr), "<"
+                );
+            }
+
+            /* Check for Client authentication error */
+            if (SSL_get_verify_result(ssl) != X509_V_OK)
+            {
+                MOCK_FUNC(SSL_free)(ssl);
+                ThorsLogAndThrow(
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SSocketServer",
+                    "SSocketServer",
+                    " :Failed on SSL_get_verify_result."
+                );
+            }
+        }
+};
 
 class Server
 {
@@ -88,15 +197,16 @@ class Server
         Server(Server const&)               = delete;
         Server& operator=(Server const&)    = delete;
 
-        template<typename T, typename Tuple, std::size_t... Index>
-        Socket accept(Tuple&& args, std::index_sequence<Index...>)
+        template<typename T>
+        Socket accept(T&& serverRequest)
         {
-            int newSocket = ::accept(fd, nullptr, nullptr);
-            if (newSocket == -1)
+            using ServerInfo = typename T::ServerInfo;
+            ServerInfo acceptInfo{::accept(fd, nullptr, nullptr), serverRequest};
+            if (acceptInfo.fd == -1)
             {
                 throw std::runtime_error("Server:  -> Failed t Accept: ::accept");
             }
-            return {std::make_unique<T>(newSocket, std::get<Index>(args)...)};
+            return Socket{ThorsAnvil::ThorsSocket::TestMarker::True, acceptInfo};
         }
 };
 
@@ -130,8 +240,8 @@ class ServerStart
     std::function<void(Socket&)>    action;
     std::thread                     serverThread;
 
-    template<typename T, typename Tuple>
-    void server(int port, Tuple&& args)
+    template<typename T>
+    void server(int port, T&& serverRequest)
     {
         Server  server(port, Blocking::Yes);
         {
@@ -141,19 +251,18 @@ class ServerStart
         }
 
         //Socket  socket = server.accept<T>(std::forward<Args>(args)...);
-        Socket  socket = server.accept<T>(std::move(args), std::make_index_sequence<std::tuple_size<Tuple>::value>{});
+        Socket  socket = server.accept<T>(std::move(serverRequest));
         action(socket);
     };
 
     public:
-        template<typename T, typename F, typename... Args>
-        void run(int port, F&& actionP, Args&&... args)
+        template<typename T, typename F>
+        void run(int port, T&& serverRequest, F&& actionP)
         {
             serverReady     = false;
             action          = std::move(actionP);
-            std::tuple<Args...> data{std::forward<Args>(args)...};
 
-            serverThread    = std::thread(&ServerStart::server<T, std::tuple<Args...>>, this, port, std::move(data));
+            serverThread    = std::thread(&ServerStart::server<T>, this, port, std::move(serverRequest));
 
             std::unique_lock<std::mutex> lock(mutex);
             cond.wait(lock, [&serverReady = this->serverReady](){return serverReady;});

@@ -1,13 +1,13 @@
 #include "ConnectionPipe.h"
+#include "ConnectionUtil.h"
 #include "ThorsLogging/ThorsLogging.h"
 
-#include <fcntl.h>
 #include <unistd.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Pipe::Pipe(Blocking blocking)
+Pipe::Pipe(PipeInfo const&, Blocking blocking)
 {
     int result = MOCK_FUNC(thorCreatePipe)(fd);
     if (result == -1)
@@ -86,4 +86,10 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Pipe::getWriteFD() const
 {
     return fd[1];
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void Pipe::release()
+{
+    throw std::runtime_error("Can't release a pipe");
 }

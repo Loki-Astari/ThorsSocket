@@ -1,12 +1,8 @@
 #include <gtest/gtest.h>
-#include "ConnectionFile.h"
 #include "test/ConnectionTest.h"
-#include "ThorsLogging/ThorsLogging.h"
+#include "ConnectionSimpleFile.h"
 
-
-// FileDescriptor is virtual (not all virtual methods defined).
-//using ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor;
-using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::File;
+using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
@@ -24,9 +20,7 @@ void testSocketReadFailure(int error)
     TA_TestThrow<Exception>([&](){
         char buffer[12];
         errno = error;  // TODO needs to be set in read
-        std::cerr << "Read\n";
         file.readFromStream(buffer, 12);
-        std::cerr << "Read DONE\n";
     })
     .expectCallTA(read).toReturn(-1)
     .run();

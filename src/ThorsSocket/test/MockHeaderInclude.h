@@ -5,13 +5,16 @@
 
 // Please add includes for all mocked libraries here.
 // PART-1-Start
-#include "ConnectionUtil.h"
-#include <functional>
+
+#include <utility>
+
+#include "ConnectionSSocket.h"
+
 #include <fcntl.h>
+#include <netdb.h>
+#include <sys/socket.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-#include "OpenSSLMacroWrappers.h"
-#include "ThorsSocketConfig.h"
 
 // PART-1-End
 namespace ThorsAnvil::BuildTools::Mock

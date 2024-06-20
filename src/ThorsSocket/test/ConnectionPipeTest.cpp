@@ -1,9 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionPipe.h"
 
-#include <unistd.h>
-#include <stdlib.h>
-
 using ThorsAnvil::ThorsSocket::ConnectionType::Pipe;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
@@ -25,7 +22,7 @@ TA_Object   Pipe(
 TEST(ConnectionPipeTest, Construct)
 {
     TA_TestNoThrow([](){
-        Pipe                        pipe(Blocking::No);
+        Pipe                        pipe({}, Blocking::No);
     })
     .expectObjectTA(Pipe)
     .run();
@@ -34,7 +31,7 @@ TEST(ConnectionPipeTest, Construct)
 TEST(ConnectionPipeTest, ConstructPipeFail)
 {
     TA_TestThrow([](){
-        Pipe                        pipe(Blocking::No);
+        Pipe                        pipe({},Blocking::No);
     })
     .expectObjectTA(Pipe)
         .expectCallTA(thorCreatePipe).inject().toReturn(-1)
@@ -44,7 +41,7 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
 TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailFirst)
 {
     TA_TestThrow([](){
-        Pipe                        pipe(Blocking::No);
+        Pipe                        pipe({},Blocking::No);
     })
     .expectObjectTA(Pipe)
         .expectCallTA(thorSetFDNonBlocking).inject().toReturn(-1)
@@ -56,7 +53,7 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailFirst)
 TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailSecond)
 {
     TA_TestThrow([](){
-        Pipe                        pipe(Blocking::No);
+        Pipe                        pipe({},Blocking::No);
     })
     .expectObjectTA(Pipe)
         .expectCallTA(thorSetFDNonBlocking).inject().toReturn(0)
@@ -100,7 +97,7 @@ TEST(ConnectionPipeTest, Close)
     GTEST_SKIP();
 #endif
     MockAllDefaultFunctions     defaultMockedFunctions;
-    Pipe                        pipe(Blocking::No);
+    Pipe                        pipe({},Blocking::No);
 
     TA_TestNoThrow([&](){
         pipe.close();

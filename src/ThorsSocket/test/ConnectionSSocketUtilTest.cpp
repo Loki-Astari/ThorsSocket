@@ -1,14 +1,13 @@
 #include <gtest/gtest.h>
-#include "ConnectionSSocketUtil.h"
 #include "test/ConnectionTest.h"
-#include <openssl/ssl.h>
+#include "SecureSocketUtil.h"
 
-using ThorsAnvil::ThorsSocket::ConnectionType::Protocol;
-using ThorsAnvil::ThorsSocket::ConnectionType::ProtocolInfo;
-using ThorsAnvil::ThorsSocket::ConnectionType::CipherInfo;
-using ThorsAnvil::ThorsSocket::ConnectionType::CertificateInfo;
-using ThorsAnvil::ThorsSocket::ConnectionType::CertifcateAuthorityInfo;
-using ThorsAnvil::ThorsSocket::ConnectionType::ClientCAListInfo;
+using ThorsAnvil::ThorsSocket::Protocol;
+using ThorsAnvil::ThorsSocket::ProtocolInfo;
+using ThorsAnvil::ThorsSocket::CipherInfo;
+using ThorsAnvil::ThorsSocket::CertificateInfo;
+using ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo;
+using ThorsAnvil::ThorsSocket::ClientCAListInfo;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 

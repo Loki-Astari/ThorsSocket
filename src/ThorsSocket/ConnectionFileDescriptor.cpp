@@ -1,10 +1,7 @@
 #include "ConnectionFileDescriptor.h"
+#include "ConnectionUtil.h"
 #include "ThorsLogging/ThorsLogging.h"
 
-#include <map>
-#include <sstream>
-
-#include <sys/types.h>
 #include <unistd.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;

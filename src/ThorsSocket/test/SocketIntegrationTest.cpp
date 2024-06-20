@@ -1,24 +1,19 @@
 #include <gtest/gtest.h>
+#include "test/SimpleServer.h"
 #include "ConnectionSocket.h"
 #include "Socket.h"
-#include "ThorsLogging/ThorsLogging.h"
-#include "test/SimpleServer.h"
 
-#include <thread>
-
-using ThorsAnvil::ThorsSocket::Connection;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;
-namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SocketIntegrationTest, ConnectToSocket)
 {
     ServerStart     server;
-    server.run<ConnectionType::Socket>(8092, [](Socket&){});
+    server.run<SocketAcceptRequest>(8092, {}, [](Socket&){});
 
-    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8092, Blocking::Yes)};
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
 
     ASSERT_NE(socket.socketId(Mode::Read), -1);
     ASSERT_NE(socket.socketId(Mode::Write), -1);
@@ -28,13 +23,13 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 {
     std::string const message = "This is a line of text\n";
     ServerStart     server;
-    server.run<ConnectionType::Socket>(8092, [&message](Socket& socket)
+    server.run<SocketAcceptRequest>(8092, {}, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size());
     });
 
 
-    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8092, Blocking::Yes)};
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
 
     std::string reply;
     reply.resize(message.size());
@@ -51,7 +46,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    server.run<ConnectionType::Socket>(8092, [&message](Socket& socket)
+    server.run<SocketAcceptRequest>(8092, {}, [&message](Socket& socket)
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
@@ -62,7 +57,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
     });
 
 
-    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8092, Blocking::Yes)};
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
 
     std::string reply;
     reply.resize(message.size());
@@ -79,7 +74,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    server.run<ConnectionType::Socket>(8092, [&message](Socket& socket)
+    server.run<SocketAcceptRequest>(8092, {}, [&message](Socket& socket)
     {
         std::size_t sent = 0;
         for(std::size_t loop = 0; loop < message.size(); loop += 5) {
@@ -91,8 +86,8 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
 
     int yieldCount = 0;
-    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8092, Blocking::No),
-                        [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);}};
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::No,
+                        [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);return true;}};
 
     std::string reply;
     reply.resize(message.size());
@@ -110,13 +105,13 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
-    server.run<ConnectionType::Socket>(8092, [&message](Socket& socket)
+    server.run<SocketAcceptRequest>(8092, {}, [&message](Socket& socket)
     {
         socket.putMessageData(message.c_str(), message.size() - 4);
     });
 
 
-    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8092, Blocking::Yes)};
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
 
     std::string reply;
     reply.resize(message.size());
@@ -139,7 +134,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
     bool                    finished        = false;
     std::size_t             totalWritten    = 0;
 
-    server.run<ConnectionType::Socket>(8092, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
+    server.run<SocketAcceptRequest>(8092, {}, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);
@@ -161,13 +156,14 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     });
 
-    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8092, Blocking::No),
-                        [](){},
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::No,
+                        [](){return false;},
                         [&mutex, &cond, &finished]()
                         {
                             std::unique_lock<std::mutex> lock(mutex);
                             finished = true;
                             cond.notify_all();
+                            return true;
                         }};
 
     std::size_t readFromServer = 0;
@@ -194,7 +190,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
     std::condition_variable cond;
     bool                    finished = false;
 
-    server.run<ConnectionType::Socket>(8092, [&mutex, &cond, &finished, &message](Socket& socket)
+    server.run<SocketAcceptRequest>(8092, {}, [&mutex, &cond, &finished, &message](Socket& socket)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);
@@ -210,7 +206,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     });
 
-    Socket  socket{std::make_unique<ConnectionType::Socket>("127.0.0.1", 8092, Blocking::Yes)};
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
 
     std::size_t readFromServer = 0;
 
