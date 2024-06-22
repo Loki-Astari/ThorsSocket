@@ -26,7 +26,7 @@ Socket::Socket(SocketInfo const& socketInfo, Blocking blocking)
     do
     {
         // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-gethostbyname
-        serv = MOCK_FUNC(gethostbyname)(socketInfo.host.c_str());
+        serv = MOCK_FUNC(gethostbyname)(&socketInfo.host[0]);
     }
     while (serv == nullptr && thorErrorIsTryAgain(thorGetSocketError()));
 

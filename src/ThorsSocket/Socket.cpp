@@ -10,6 +10,13 @@
 using namespace ThorsAnvil::ThorsSocket;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
+Socket::Socket()
+    : connection(nullptr)
+    , readYield([](){return false;})
+    , writeYield([](){return false;})
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(FileInfo const& fileInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
     : connection(std::make_unique<ConnectionType::SimpleFile>(fileInfo, blocking))
     , readYield(std::move(readYield))

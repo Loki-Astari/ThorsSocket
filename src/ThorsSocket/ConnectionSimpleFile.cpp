@@ -10,7 +10,7 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SimpleFile::SimpleFile(FileInfo const& fileInfo, Blocking blocking)
-    : fd(MOCK_TFUNC(open)(fileInfo.fileName.c_str(),
+    : fd(MOCK_TFUNC(open)(&fileInfo.fileName[0],
                        (fileInfo.open == Open::Append ? O_APPEND : O_TRUNC) | O_CREAT | (blocking == Blocking::No ? NONBLOCKING_FLAG : 0) | O_RDWR,
                        0777))
 {

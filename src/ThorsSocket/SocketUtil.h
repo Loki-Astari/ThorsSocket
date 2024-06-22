@@ -4,7 +4,7 @@
 #include "SecureSocketUtil.h"
 
 #include <cstddef>
-#include <string>
+#include <string_view>
 
 #ifdef  __WINNT__
 #define SOCKET_TYPE             SOCKET
@@ -28,14 +28,14 @@ enum class Mode     {Read, Write};
 
 struct FileInfo
 {
-    std::string         fileName;
+    std::string_view    fileName;
     Open                open;
 };
 struct PipeInfo
 {};
 struct SocketInfo
 {
-    std::string         host;
+    std::string_view    host;
     int                 port;
 };
 
