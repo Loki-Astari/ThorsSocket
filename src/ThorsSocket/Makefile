@@ -1,4 +1,5 @@
 THORSANVIL_ROOT             = $(abspath ../..)
+COVERAGE_REQUIRED			= 70
 
 EXCLUDE_HEADERS				= $(wildcard Connection*.h)
 

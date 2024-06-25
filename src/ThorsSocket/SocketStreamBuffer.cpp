@@ -91,7 +91,6 @@ SocketStreamBuffer::~SocketStreamBuffer()
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStreamBuffer::int_type SocketStreamBuffer::underflow()
 {
-    std::cout << "underflow\n";
     /*
      * Ensures that at least one character is available in the input area by updating the pointers
      * to the input area (if needed) * and reading more data in from the input sequence
@@ -329,7 +328,6 @@ std::streamsize SocketStreamBuffer::writeToStream(char const* data, std::size_t 
 
 std::streamsize SocketStreamBuffer::readFromStream(char* data, std::size_t size)
 {
-    std::cout << "Reading Into: " << (void*)data << " Size: " << size << "\n";
     IOData result = socket.getMessageData(data, size);
     inCount += result.dataSize;
     return result.dataSize;
