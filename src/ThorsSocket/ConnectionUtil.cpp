@@ -2,6 +2,7 @@
 
 #include <map>
 #include <fcntl.h>
+#include <string.h>
 
 #ifdef __WINNT__
 #include <process.h>
