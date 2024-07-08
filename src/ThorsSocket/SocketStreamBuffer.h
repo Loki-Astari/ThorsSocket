@@ -53,8 +53,11 @@ class SocketStreamBuffer: public std::streambuf
 
         virtual int             sync() override;
         virtual std::streampos  seekoff(std::streamoff off, std::ios_base::seekdir way, std::ios_base::openmode which = std::ios_base::in | std::ios_base::out) override;
+
+        void incrementInCount(std::size_t size)     {inCount    += size;}
+        void incrementOutCount(std::size_t size)    {outCount   += size;}
     protected:
-        // USed by derived class to write.
+        // Used by derived class to write.
         std::streamsize writeToStream(char const* data, std::size_t size);
         std::streamsize readFromStream(char* data, std::size_t size);
 };

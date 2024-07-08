@@ -110,15 +110,14 @@ SocketStreamBuffer::int_type SocketStreamBuffer::underflow()
     {
         // We have read the whole of this buffer.
         // Add it to the count.
-        inCount += (egptr() - eback());
+        incrementInCount(egptr() - eback());
 
         // Now get more data
         IOData result = socket.tryGetMessageData(&inputBuffer[0], inputBuffer.size());
         if (result.dataSize == 0 && result.stillOpen)
         {
             // Must get at least one byte.
-            // So if not data was retrieved read blocking until we have data or there
-            // is an error
+            // So if not enough data was retrieved read blocking until we have data or there is an error
             result = socket.getMessageData(&inputBuffer[0], 1);
         }
         setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[result.dataSize]);
@@ -322,13 +321,13 @@ void SocketStreamBuffer::reserveOutputSize(std::size_t size)
 std::streamsize SocketStreamBuffer::writeToStream(char const* data, std::size_t size)
 {
     IOData result = socket.putMessageData(data, size);
-    outCount += result.dataSize;
+    incrementOutCount(result.dataSize);
     return result.dataSize;
 }
 
 std::streamsize SocketStreamBuffer::readFromStream(char* data, std::size_t size)
 {
     IOData result = socket.getMessageData(data, size);
-    inCount += result.dataSize;
+    incrementInCount(result.dataSize);
     return result.dataSize;
 }
