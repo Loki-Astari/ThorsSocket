@@ -8,13 +8,9 @@
 
 #include <utility>
 
+#include "ConnectionUtil.h"
 #include "ConnectionSSocket.h"
-
-#include <fcntl.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
+#include "SecureSocketUtil.h"
 
 // PART-1-End
 namespace ThorsAnvil::BuildTools::Mock

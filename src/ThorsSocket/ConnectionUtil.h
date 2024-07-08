@@ -2,6 +2,7 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_WRAPPER_H
 
 #include "ThorsSocketConfig.h"
+#include <fcntl.h>
 
 #ifdef  __WINNT__
 #include <winsock2.h>

@@ -10,6 +10,7 @@
 #include <functional>
 
 #include <openssl/ssl.h>
+#include <openssl/err.h>
 
 
 namespace ThorsAnvil::ThorsSocket
