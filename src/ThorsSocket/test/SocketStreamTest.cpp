@@ -43,9 +43,6 @@ TEST(SocketStreamTest, ReadNormalButHugeChunk)
 }
 TEST(SocketStreamTest, MoveASocketStream)
 {
-    SocketSetUp     setupSocket;
-    ((void)setupSocket);
-
     SocketStream  streamOriginal({"test/data/SocketStreamTest-ReadNormal", Open::Append});
     SocketStream  stream(std::move(streamOriginal));
 
