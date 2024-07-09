@@ -5,8 +5,6 @@
 #include "ConnectionSSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
 
-#include <poll.h>
-
 using namespace ThorsAnvil::ThorsSocket;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -203,12 +201,13 @@ void Socket::waitForOutput()
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::waitForFileDescriptor(int fd, short flag)
 {
-    using PollFD = pollfd;
-    PollFD  fds[1] = {{fd, static_cast<short>(flag | POLLPRI), 0}};
     int result;
-    while ((result = poll(fds, 1, -1)) <= 0)
+    using PollFD = THOR_POLL_TYPE;
+    PollFD  fds[1] = {{THOR_SOCKET_ID(fd), static_cast<short>(flag | THOR_POLLPRI), 0}};
+
+    while ((result = THOR_POLL(fds, 1, -1)) <= 0)
     {
-        if (result == -1) {
+        if (result == THOR_POLL_ERROR) {
             ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "waitForInput", ": poll return an error");
         }
     }

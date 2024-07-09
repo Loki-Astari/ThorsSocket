@@ -113,7 +113,7 @@ TEST(ConnectionSocketTest, CreateBlocking)
 TEST(ConnectionSocketTest, notValidOnMinusOne)
 {
     MockAllDefaultFunctions       defaultMockedFunctions;
-    Socket                        socket({-1});
+    Socket                        socket({THOR_SOCKET_ID(-1)});
 
     TA_TestNoThrow([&](){
         ASSERT_FALSE(socket.isConnected());

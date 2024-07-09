@@ -6,6 +6,7 @@
 #include <openssl/err.h>
 #include <fcntl.h>
 
+
 #ifdef  __WINNT__
 #include <winsock2.h>
 #include <windows.h>
@@ -15,6 +16,11 @@
 #define NONBLOCKING_FLAG        0
 #define getErrNoStrSocket       getErrNoStrWin
 #define getErrMsgSocket         getErrMsgWin
+#define THOR_POLL_TYPE          WSAPOLLFD
+#define THOR_POLL               WSAPoll
+#define THOR_SOCKET_ID(x)       static_cast<SOCKET>(x)
+#define THOR_POLL_ERROR         SOCKET_ERROR
+#define THOR_POLLPRI            0
 
 int thorCreatePipe(int fd[2]);
 int thorSetFDNonBlocking(int fd);
@@ -28,6 +34,7 @@ char const* getErrNoStrWin(int error);
 char const* getErrMsgWin(int error);
 
 #else
+#include <poll.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <sys/uio.h>
@@ -38,6 +45,11 @@ char const* getErrMsgWin(int error);
 #define NONBLOCKING_FLAG        O_NONBLOCK
 #define getErrNoStrSocket       getErrNoStrUnix
 #define getErrMsgSocket         getErrMsgUnix
+#define THOR_POLL_TYPE          pollfd
+#define THOR_POLL               poll
+#define THOR_SOCKET_ID(x)       x
+#define THOR_POLL_ERROR         -1
+#define THOR_POLLPRI            POLLPRI
 
 int thorCreatePipe(int fd[2]);
 int thorSetFDNonBlocking(int fd);
