@@ -10,6 +10,10 @@ using ThorsAnvil::ThorsSocket::Mode;
 
 TEST(SocketIntegrationTest, ConnectToSocket)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     ServerStart     server;
     server.run<SocketAcceptRequest>(8092, {}, [](Socket&){});
 
@@ -21,6 +25,10 @@ TEST(SocketIntegrationTest, ConnectToSocket)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
     server.run<SocketAcceptRequest>(8092, {}, [&message](Socket& socket)
@@ -43,6 +51,10 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -71,6 +83,10 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingRead)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -102,6 +118,10 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -126,6 +146,10 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
 
 TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -183,6 +207,10 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
 
 TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 

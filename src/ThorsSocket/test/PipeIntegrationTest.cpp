@@ -27,6 +27,10 @@ class PipeServerStart
 
 TEST(PipeIntegrationTest, ConnectToPipe)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     Socket              pipe{PipeInfo{}, Blocking::Yes};
     PipeServerStart     server([](){});
 
@@ -36,6 +40,10 @@ TEST(PipeIntegrationTest, ConnectToPipe)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     Socket              pipe{PipeInfo{}, Blocking::Yes};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
@@ -56,6 +64,10 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     Socket              pipe{PipeInfo{}, Blocking::Yes};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
@@ -81,6 +93,10 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
 #ifdef __WINNT__
     // Windows does not support non blocking pipes
     // So this test will fail.
@@ -116,6 +132,10 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     Socket              pipe{PipeInfo{}, Blocking::Yes};
     std::string const   message = "This is a line of text\n";
     PipeServerStart     server([&pipe, &message]()
@@ -138,6 +158,10 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
 #ifdef __WINNT__
     // Windows does not support non blocking pipes
     // So this test will fail.
@@ -205,6 +229,10 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     Socket  pipe1{PipeInfo{}, Blocking::Yes};
     Socket  pipe2{PipeInfo{}, Blocking::Yes};
 

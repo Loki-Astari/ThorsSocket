@@ -26,6 +26,10 @@ namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SSocketIntegrationTest, ConnectToServer)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     SocketSetUp         socketSetup;
     ((void)socketSetup);
     SSLctx              ctxClient{SSLMethodType::Client, CertificateInfo{CLIENT_CERT, CLIENT_KEY}};
@@ -52,6 +56,10 @@ TEST(SSocketIntegrationTest, ConnectToServer)
 
 TEST(SSocketIntegrationTest, ConnectToServerLocal)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     SSLctx              ctxServer{SSLMethodType::Server,
                                     CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
@@ -78,6 +86,10 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
 
 TEST(SSocketIntegrationTest, ConnectToSSocket)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
@@ -98,6 +110,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     SSLctx              ctxServer{SSLMethodType::Server,
                                         CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
@@ -125,6 +141,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -158,6 +178,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockingRead)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -194,6 +218,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -223,6 +251,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
@@ -285,6 +317,10 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+    GTEST_SKIP();
+#endif
+
     std::string const message = "This is a line of text\n";
     ServerStart     server;
 
