@@ -1,6 +1,7 @@
 #include "ConnectionUtil.h"
 
 #include <map>
+#include <fcntl.h>
 #include <string.h>
 
 #ifdef __WINNT__
@@ -39,6 +40,7 @@ int thorShutdownSocket(SOCKET fd)
 {
     return ::shutdown(fd, SD_SEND);
 }
+
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 char const* getErrNoStrWin(int error)
 {
@@ -62,6 +64,7 @@ char const* getErrNoStrWin(int error)
     char const* msg = (find == errorString.end()) ? "Unknown" : find->second;
     return msg;
 }
+
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 char const* getErrMsgWin(int error)
 {

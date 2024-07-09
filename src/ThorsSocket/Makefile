@@ -1,4 +1,4 @@
-THORSANVIL_ROOT             = $(abspath ../..)
+THORSANVIL_ROOT             ?= $(abspath ../..)
 COVERAGE_REQUIRED			= 70
 
 EXCLUDE_HEADERS				= $(wildcard Connection*.h)
@@ -14,6 +14,6 @@ UNITTEST_CXXFLAGS			= -Wno-deprecated-declarations -Wno-writable-strings
 
 UNITTEST_LDLIBS				+= $(LDLIBS_$(PLATFORM))
 LDLIBS						+= $(LDLIBS_$(PLATFORM))
-FILE_WARNING_FLAGS          += -Wno-ignored-attributes
+FILE_WARNING_FLAGS          += -Wno-ignored-attributes -Wno-missing-braces
 
 include $(THORSANVIL_ROOT)/build/tools/Makefile

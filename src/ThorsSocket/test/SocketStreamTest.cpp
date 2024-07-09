@@ -27,7 +27,7 @@ TEST(SocketStreamTest, ReadNormalInTwoChunks)
 
     char data[16];
     stream.read(data, 8);
-    SocketStreamBuffer& buffer = dynamic_cast<SocketStreamBuffer&>(*stream.rdbuf());
+    //SocketStreamBuffer& buffer = dynamic_cast<SocketStreamBuffer&>(*stream.rdbuf());
     //buffer.resizeInputBuffer(16000);
     stream.read(data + 8, 8);
 
@@ -44,6 +44,7 @@ TEST(SocketStreamTest, ReadNormalButHugeChunk)
 TEST(SocketStreamTest, MoveASocketStream)
 {
     SocketSetUp     setupSocket;
+    ((void)setupSocket);
 
     SocketStream  streamOriginal({"test/data/SocketStreamTest-ReadNormal", Open::Append});
     SocketStream  stream(std::move(streamOriginal));
@@ -60,13 +61,12 @@ TEST(SocketStreamTest, ReadFromSlowStreamToGetEAGAIN)
 #else
     SocketStream    stream(PipeInfo{});
     Socket&         socket = stream.getSocket();
-    int             read = socket.socketId(Mode::Read);
     int             write = socket.socketId(Mode::Write);
 
     int testData   = 5;
     int resultData = 0;
 
-    std::thread slowStream([&testData, &read, &write](){
+    std::thread slowStream([&testData, &write](){
         for(std::size_t loop=0;loop < sizeof(testData); ++loop) {
             usleep(10000);
             ::write(write, reinterpret_cast<char const*>(&testData)+loop, 1);
@@ -174,7 +174,6 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
 #else
     SocketStream  stream(PipeInfo{});
 
-    int sysres;
     int const blocks   = 4;
     int const actCount = 46;
     int const bufSize  = 524288 / (blocks * actCount);
@@ -187,9 +186,8 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
 
     Socket&     socket = stream.getSocket();
     int         read   = socket.socketId(Mode::Read);
-    int         write  = socket.socketId(Mode::Write);
 
-    std::thread slowStream([&resultData, &read, &write]() {
+    std::thread slowStream([&resultData, &read]() {
         int rTotal = 0;
         for(int blockLoop = 0; blockLoop < blocks; ++blockLoop)
         {
@@ -213,6 +211,7 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
                 }
             }
         }
+        ASSERT_EQ(524216, rTotal);
     });
 
     std::size_t total = 0;
@@ -227,6 +226,9 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
     }
     stream.flush();
     slowStream.join();
+
+    ASSERT_EQ(524216, total);
+    ASSERT_EQ(0, gCount);
 
     for(int loop = 0; loop < bufSize; ++loop) {
         ASSERT_EQ(testData[loop], resultData[loop]);

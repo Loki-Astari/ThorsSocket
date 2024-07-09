@@ -3,6 +3,8 @@
 
 #include <thread>
 #include "Socket.h"
+#include "ConnectionSocket.h"
+#include "ConnectionSSocket.h"
 
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;
@@ -40,7 +42,7 @@ struct SocketServerInfo
 {
     using Connection = SocketServerAccept;
 
-    SocketServerInfo(SOCKET_TYPE fd, SocketAcceptRequest const& request)
+    SocketServerInfo(SOCKET_TYPE fd, SocketAcceptRequest const& /*request*/)
         : fd(fd)
     {}
 

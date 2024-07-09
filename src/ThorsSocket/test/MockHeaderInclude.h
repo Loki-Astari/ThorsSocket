@@ -9,8 +9,6 @@
 #include <utility>
 
 #include "ConnectionUtil.h"
-#include "ConnectionSSocket.h"
-#include "SecureSocketUtil.h"
 
 // PART-1-End
 namespace ThorsAnvil::BuildTools::Mock
