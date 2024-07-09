@@ -796,6 +796,7 @@ with_standard_version
 with_crypto_root
 with_thorserialize_header_only_root
 with_thorserialize_root
+enable_test_with_integration
 enable_shared
 enable_static
 with_pic
@@ -1454,6 +1455,13 @@ Optional Features:
   --enable-dark-mode      If your background is black some text that was grey
                           is turned yellow
 
+  --disable-test-with-integration
+                          You can not do integration tests in all
+                          environments. All integration tests to be disabled.
+                          To tests that you may want to disable add: #if
+                          defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+                          GTEST_SKIP(); #endif
+
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-static[=PKGS]  build static libraries [default=yes]
   --enable-fast-install[=PKGS]
@@ -1471,7 +1479,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-standard-version=<version>
                           Use the specified version <version> of the C++
-                          standard. Default 17
+                          standard. Default 20
 
   --with-crypto-root=<location>
                           Define the root directory of package CRYPTO
@@ -4179,7 +4187,7 @@ fi
 
     if test "x20" == "x"
 then :
-  askedLangFeature=17
+  askedLangFeature=20
 else case e in #(
   e) askedLangFeature=20
      ;;
@@ -5120,6 +5128,34 @@ fi
             LDFLAGS="${ORIG_LDFLAGS}"
 
 
+fi
+
+
+
+
+    # Check whether --enable-test-with-integration was given.
+if test ${enable_test_with_integration+y}
+then :
+  enableval=$enable_test_with_integration;
+fi
+
+
+    if test "x${enable_test_with_integration}" == "xno"
+then :
+
+
+printf "%s\n" "#define THOR_DISABLE_TEST_WITH_INTEGRATION 1" >>confdefs.h
+
+            subconfigure="${subconfigure} --disable-test-with-integration";
+
+else case e in #(
+  e)
+
+printf "%s\n" "#define THOR_DISABLE_TEST_WITH_INTEGRATION 0" >>confdefs.h
+
+
+     ;;
+esac
 fi
 
 
