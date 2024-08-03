@@ -18239,14 +18239,7 @@ fi
             echo "================ DONE ================="
             echo
             popd
-
-    export BUILDING_${third}=1
-
-printf "%s\n" "#define THOR_PACKAGE_NAME \${third}" >>confdefs.h
-
-    THOR_PACKAGE_NAME=${third}
-
-
+            ## AX_THOR_BUILDING(${third})
         done
         popd
     fi

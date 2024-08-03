@@ -4,6 +4,8 @@
 
 #ifndef  THORS_SOCKET_CONFIG_H
 #define  THORS_SOCKET_CONFIG_H
+#ifndef  THORS_PACKAGE_INFO_CONFIG_H
+#define  THORS_PACKAGE_INFO_CONFIG_H
 
     
 
@@ -79,10 +81,8 @@
 #undef STDC_HEADERS
 
 /* Enable to use header only libraries */
-#undef THORS_SOCKET_HEADER_ONLY
 
 /* For header only convert to inline */
-#undef THORS_SOCKET_HEADER_ONLY_INCLUDE
 
 /* Disable integration tests */
 #undef THOR_DISABLE_TEST_WITH_INTEGRATION
@@ -95,6 +95,16 @@
 
 
 
-#endif
 
     
+#endif
+
+
+/* Enable to use header only libraries */
+#undef THORS_SOCKET_HEADER_ONLY
+
+/* For header only convert to inline */
+#undef THORS_SOCKET_HEADER_ONLY_INCLUDE
+
+
+#endif
