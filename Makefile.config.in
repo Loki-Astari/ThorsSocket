@@ -7,6 +7,9 @@ ExampleMakeFileVariable=@ExampleMakeFileVariable@
 crypto_ROOT_DIR=@crypto_ROOT_DIR@
 crypto_ROOT_LIB=@crypto_ROOT_LIB@
 
++ZLIB_ROOT_DIR=@ZLIB_ROOT_DIR@
++ZLIB_ROOT_LIB=@ZLIB_ROOT_LIB@
+
 ThorSerialize_ROOT_DIR=@ThorSerialize_ROOT_DIR@
 ThorSerialize_ROOT_LIB=@ThorSerialize_ROOT_LIB@
 ThorSerializeHeaderOnly_ROOT_DIR=@ThorSerializeHeaderOnly_ROOT_DIR@

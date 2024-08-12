@@ -255,7 +255,7 @@ class ServerStart
         //Socket  socket = server.accept<T>(std::forward<Args>(args)...);
         Socket  socket = server.accept<T>(std::move(serverRequest));
         action(socket);
-    };
+    }
 
     public:
         template<typename T, typename F>

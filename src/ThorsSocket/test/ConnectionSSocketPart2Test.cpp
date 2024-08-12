@@ -38,7 +38,7 @@ TEST(ConnectionSSocketTestPart2, Write_OK)
     SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestNoThrow([&](){
-        char    buffer[12];
+        char    buffer[12] = {};
         IOData  result = socket.writeToStream(buffer, 12);
 
         ASSERT_EQ(result.dataSize,     8);
@@ -76,7 +76,7 @@ void testReadFailureException(int errorCode)
     SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestThrow<Exception>([&](){
-        char    buffer[12];
+        char    buffer[12] = {};
         socket.readFromStream(buffer, 12);
     })
     .expectCallTA(SSL_read).toReturn(-1)
@@ -91,7 +91,7 @@ void testWriteFailure(IOData expected, int errorCode)
     SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestNoThrow([&](){
-        char    buffer[12];
+        char    buffer[12] = {};
         IOData result = socket.writeToStream(buffer, 12);
 
         ASSERT_EQ(result.dataSize,     expected.dataSize);
@@ -110,7 +110,7 @@ void testWriteFailureException(int errorCode)
     SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
 
     TA_TestThrow<Exception>([&](){
-        char    buffer[12];
+        char    buffer[12] ={};
         socket.writeToStream(buffer, 12);
     })
     .expectCallTA(SSL_write).toReturn(-1)

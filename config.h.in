@@ -51,6 +51,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* We have found package ZLIB */
+#undef HAVE_ZLIB
+
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
@@ -83,6 +86,9 @@
 /* Enable to use header only libraries */
 
 /* For header only convert to inline */
+
+/* Set up to build on Conan */
+#undef THOR_CONAN
 
 /* Disable integration tests */
 #undef THOR_DISABLE_TEST_WITH_INTEGRATION

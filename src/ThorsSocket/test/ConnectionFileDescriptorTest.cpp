@@ -50,7 +50,7 @@ void testSocketWriteFailure(int error)
     FileDescriptorProxy     file(12);
 
     TA_TestThrow<Exception>([&](){
-        char buffer[12];
+        char buffer[12] = {};
         errno = error;  // TODO needs to be set in read
         file.writeToStream(buffer, 12);
     })
@@ -64,7 +64,7 @@ void testSocketWriteReturnError(int error, IOData expected)
     FileDescriptorProxy     file(12);
 
     TA_TestNoThrow([&](){
-        char buffer[12];
+        char buffer[12] = {};
         errno = error;  // TODO needs to be set in read
         IOData result = file.writeToStream(buffer, 12);
 
@@ -99,7 +99,7 @@ TEST(ConnectionFileDescriptorTest, WriteOK)
     FileDescriptorProxy     file(12);
 
     TA_TestNoThrow([&](){
-        char buffer[12];
+        char buffer[12] = {};
         IOData result = file.writeToStream(buffer, 12);
 
         ASSERT_EQ(12,    result.dataSize);
