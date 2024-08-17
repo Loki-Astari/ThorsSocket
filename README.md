@@ -25,10 +25,10 @@ This library provides a Socket and Secure Socket that implement the `std::iostre
 
 Can be installed via brew on Mac and Linux
 
-    brew install thors-serializer
+    brew install thors-mongo
 
-* Mac: https://formulae.brew.sh/formula/thors-serializer
-* Linux: https://formulae.brew.sh/formula-linux/thors-serializer
+* Mac: https://formulae.brew.sh/formula/thors-mongo
+* Linux: https://formulae.brew.sh/formula-linux/thors-mongo
 
 ## Header Only
 
