@@ -7,6 +7,7 @@ TARGET                      = ThorsSocket.slib
 NAMESPACE					= ThorsAnvil::ThorsSocket
 
 LDLIBS_EXTERN_BUILD			= crypto ThorSerialize ZLIB
+LINK_LIBS					+= ThorsLogging
 LDLIBS_MSYS_NT				= -lws2_32 -lwsock32
 LDLIBS_MINGW64_NT			= -lws2_32 -lwsock32
 
