@@ -43,6 +43,10 @@ struct SocketInfo
     std::string_view    host;
     int                 port;
 };
+struct ServerInfo
+{
+    int                 port;
+};
 
 struct OpenSocketInfo
 {
@@ -50,6 +54,11 @@ struct OpenSocketInfo
 };
 
 struct SSocketInfo: public SocketInfo
+{
+    SSLctx const&       ctx;
+    CertificateInfo&&   certificate = CertificateInfo{};
+};
+struct SServerInfo: public ServerInfo
 {
     SSLctx const&       ctx;
     CertificateInfo&&   certificate = CertificateInfo{};

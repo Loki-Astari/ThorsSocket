@@ -9,22 +9,32 @@
 namespace ThorsAnvil::ThorsSocket
 {
 
-class Connection
+class ConnectionBase
 {
     public:
-        Connection()            {}
-        virtual ~Connection()   {}
-        Connection(Connection const&)                               = delete;
-        Connection& operator=(Connection const&)                    = delete;
+        ConnectionBase()            {}
+        virtual ~ConnectionBase()   {}
+        ConnectionBase(ConnectionBase const&)                       = delete;
+        ConnectionBase& operator=(ConnectionBase const&)            = delete;
 
         virtual bool isConnected()                          const   = 0;
         virtual int  socketId(Mode)                         const   = 0;
         virtual void close()                                        = 0;
-        virtual void tryFlushBuffer()                               = 0;
         virtual void release()                                      = 0;
+};
 
+class ConnectionClient: public ConnectionBase
+{
+    public:
+        virtual void   tryFlushBuffer()                                     = 0;
         virtual IOData readFromStream(char* buffer, std::size_t size)       = 0;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  = 0;
+};
+
+class ConnectionServer: public ConnectionBase
+{
+    public:
+        virtual std::unique_ptr<ConnectionClient> accept(Blocking blocking) = 0;
 };
 
 }

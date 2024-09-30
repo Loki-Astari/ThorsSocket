@@ -1,5 +1,6 @@
 #include "ConnectionSSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
+#include <iostream>
 
 #include <openssl/err.h>
 
@@ -7,30 +8,45 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo, Blocking blocking)
-    : Socket(ssocketInfo, blocking)
-    , ssl(nullptr)
+SSocketStandard::SSocketStandard(SServerInfo const& ssocketInfo, int fd)
+    : ssl(nullptr)
 {
-    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate));
+    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate), fd);
+    initSSocketServer();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketBase::SSocketBase(OpenSSocketInfo const& ssocketInfo)
-    : Socket(ssocketInfo)
+SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
+    : ssl(nullptr)
 {
-    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate));
+    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate), fd);
+    initSSocketClient();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate)
+SSocketStandard::SSocketStandard(OpenSSocketInfo const& ssocketInfo, int fd)
+    : ssl(nullptr)
+{
+    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate), fd);
+    initSSocketClient();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SSocketStandard::~SSocketStandard()
+{
+    close();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketStandard::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate, int fd)
 {
     ssl = MOCK_FUNC(SSL_new)(ctx.ctx);
     if (!ssl)
     {
         int saveErrno = ERR_get_error();
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
-            "SSocketBase",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+            "initSSocket",
             " :Failed on SSL_new.",
             " errno = ", errno, " ", getSSErrNoStr(saveErrno),
             " msg >", ERR_error_string(saveErrno, nullptr), "<"
@@ -40,13 +56,13 @@ void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate)
     certificate.apply(ssl);
 
     int ret;
-    if ((ret = MOCK_FUNC(SSL_set_fd)(ssl, socketId(Mode::Read))) != 1)
+    if ((ret = MOCK_FUNC(SSL_set_fd)(ssl, fd)) != 1)
     {
         int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, ret);
         MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
-            "SSocketBase",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+            "initSSocket",
             " :Failed on SSL_set_fd.",
             " errno = ", errno, " ", getSSErrNoStr(saveErrno),
             " msg >", ERR_error_string(saveErrno, nullptr), "<"
@@ -55,21 +71,12 @@ void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketClient::SSocketClient(SSocketInfo const& ssocketInfo, Blocking blocking)
-    : SSocketBase(ssocketInfo, blocking)
+void SSocketStandard::initSSocketServer()
 {
-    initSSocketClient();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketClient::SSocketClient(OpenSSocketInfo const& ssocketInfo)
-    : SSocketBase(ssocketInfo)
-{
-    initSSocketClient();
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketClient::initSSocketClient()
+void SSocketStandard::initSSocketClient()
 {
     int ret;
     do
@@ -97,8 +104,8 @@ void SSocketClient::initSSocketClient()
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
-            "SSocketBase",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+            "initSSocketClient",
             " :Failed on SSL_connect.",
             " errno = ", errno, " ", getSSErrNoStr(saveErrno),
             " msg >", ERR_error_string(saveErrno, nullptr), "<"
@@ -111,8 +118,8 @@ void SSocketClient::initSSocketClient()
     {
         int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, ret);
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
-            "SSocketBase",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+            "initSSocketClient",
             " :Failed on SSL_get1_peer_certificate.",
             " errno = ", errno, " ", getSSErrNoStr(saveErrno),
             " msg >", ERR_error_string(saveErrno, nullptr), "<"
@@ -121,20 +128,74 @@ void SSocketClient::initSSocketClient()
     MOCK_FUNC(X509_free)(cert);
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketBase::~SSocketBase()
+void SSocketStandard::close()
 {
-    close();
+    if (ssl)
+    {
+        // Close the file descriptor
+        MOCK_FUNC(SSL_shutdown)(ssl);
+        MOCK_FUNC(SSL_free)(ssl);
+        ssl = nullptr;
+    }
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketBase::tryFlushBuffer()
+char const* SSocketStandard::getSSErrNoStr(int)
+{
+    return "";
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+bool SSocketStandard::isConnected() const
+{
+    return ssl != nullptr;
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SSL* SSocketStandard::getSSL()   const
+{
+    return ssl;
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SSocketClient::SSocketClient(SSocketInfo const& ssocketInfo, Blocking blocking)
+    : SocketClient(ssocketInfo, blocking)
+    , secureSocketInfo(ssocketInfo, socketId(Mode::Read))
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SSocketClient::SSocketClient(OpenSSocketInfo const& ssocketInfo)
+    : SocketClient(ssocketInfo)
+    , secureSocketInfo(ssocketInfo, socketId(Mode::Read))
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SSocketClient::~SSocketClient()
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+bool SSocketClient::isConnected() const
+{
+    return secureSocketInfo.isConnected();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketClient::close()
+{
+    secureSocketInfo.close();
+    SocketClient::close();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketClient::tryFlushBuffer()
 {
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
+IOData SSocketClient::readFromStream(char* buffer, std::size_t size)
 {
+    SSL* ssl = secureSocketInfo.getSSL();
+
     int ret = MOCK_FUNC(SSL_read)(ssl, buffer, size);
     if (ret <= 0)
     {
@@ -151,10 +212,10 @@ IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
             case SSL_ERROR_SSL:
             {
                     ThorsLogAndThrowCritical(
-                        "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
+                        "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " readFromStream",
                         " :SocketCritical exception thrown.",
-                        " errno = ", errorCode, " ", getSSErrNoStr(errorCode),
+                        " errno = ", errorCode, " ", secureSocketInfo.getSSErrNoStr(errorCode),
                         " msg >", ERR_error_string(errorCode, nullptr), "<"
                     );
             }
@@ -165,10 +226,10 @@ IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
             default:
             {
                     ThorsLogAndThrowLogical(
-                        "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
+                        "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " readFromStream",
                         " :UnknownCritical exception thrown.",
-                        " errno = ", errorCode, " ", getSSErrNoStr(errorCode),
+                        " errno = ", errorCode, " ", secureSocketInfo.getSSErrNoStr(errorCode),
                         " msg >", ERR_error_string(errorCode, nullptr), "<"
                     );
             }
@@ -178,8 +239,10 @@ IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
+IOData SSocketClient::writeToStream(char const* buffer, std::size_t size)
 {
+    SSL* ssl = secureSocketInfo.getSSL();
+
     int ret = MOCK_FUNC(SSL_write)(ssl, buffer, size);
     if (ret <= 0)
     {
@@ -196,10 +259,10 @@ IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
             case SSL_ERROR_SSL:
             {
                     ThorsLogAndThrowCritical(
-                        "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
+                        "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " writeToStream",
                         " :SocketCritical exception thrown.",
-                        " errno = ", errorCode, " ", getSSErrNoStr(errorCode),
+                        " errno = ", errorCode, " ", secureSocketInfo.getSSErrNoStr(errorCode),
                         " msg >", ERR_error_string(errorCode, nullptr), "<"
                     );
             }
@@ -210,10 +273,10 @@ IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
             default:
             {
                     ThorsLogAndThrowLogical(
-                        "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
+                        "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " writeToStream",
                         " :SocketUnknown exception thrown.",
-                        " errno = ", errorCode, " ", getSSErrNoStr(errorCode),
+                        " errno = ", errorCode, " ", secureSocketInfo.getSSErrNoStr(errorCode),
                         " msg >", ERR_error_string(errorCode, nullptr), "<"
                     );
             }
@@ -222,21 +285,31 @@ IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
     return {static_cast<std::size_t>(ret), true, false};
 }
 
+
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketBase::close()
+SSocketServer::SSocketServer(SServerInfo const& ssocketInfo, Blocking blocking)
+    : SocketServer(ssocketInfo, blocking)
+    , secureSocketInfo(ssocketInfo, socketId(Mode::Read))
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SSocketServer::~SSocketServer()
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+bool SSocketServer::isConnected() const
 {
-    if (ssl)
-    {
-        // Close the file descriptor
-        MOCK_FUNC(SSL_shutdown)(ssl);
-        MOCK_FUNC(SSL_free)(ssl);
-        ssl = nullptr;
-    }
-    Socket::close();
+    return secureSocketInfo.isConnected();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-bool SSocketBase::isConnected() const
+void SSocketServer::close()
 {
-    return ssl != nullptr;
+    secureSocketInfo.close();
+    SocketServer::close();
+}
+
+std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SSocketServer::accept(Blocking /*blocking*/)
+{
+    return nullptr;
 }

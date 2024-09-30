@@ -15,6 +15,13 @@ Socket::Socket()
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
+Socket::Socket(std::unique_ptr<ConnectionClient>&& connection, YieldFunc&& readYield, YieldFunc&& writeYield)
+    : connection(std::move(connection))
+    , readYield(std::move(readYield))
+    , writeYield(std::move(writeYield))
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(FileInfo const& fileInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
     : connection(std::make_unique<ConnectionType::SimpleFile>(fileInfo, blocking))
     , readYield(std::move(readYield))
@@ -30,7 +37,7 @@ Socket::Socket(PipeInfo const& pipeInfo, Blocking blocking, YieldFunc&& readYiel
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(SocketInfo const& socketInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
-    : connection(std::make_unique<ConnectionType::Socket>(socketInfo, blocking))
+    : connection(std::make_unique<ConnectionType::SocketClient>(socketInfo, blocking))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
 {}
@@ -44,7 +51,7 @@ Socket::Socket(SSocketInfo const& ssocketInfo, Blocking blocking, YieldFunc&& re
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(OpenSocketInfo const& socketInfo, YieldFunc&& readYield, YieldFunc&& writeYield)
-    : connection(std::make_unique<ConnectionType::Socket>(socketInfo))
+    : connection(std::make_unique<ConnectionType::SocketClient>(socketInfo))
     , readYield(std::move(readYield))
     , writeYield(std::move(writeYield))
 {}

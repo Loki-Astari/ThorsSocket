@@ -14,24 +14,46 @@ using SocketAddrIn  = struct ::sockaddr_in;
 using SocketAddr    = struct ::sockaddr;
 using HostEnt       = struct ::hostent;
 
-#ifdef __WINNT__
-class Socket: public Connection
-#else
-class Socket: public ConnectionType::FileDescriptor
-#endif
+class SocketStandard
 {
     SOCKET_TYPE fd;
     public:
-        Socket(SocketInfo const& socketInfo, Blocking blocking);
-        Socket(OpenSocketInfo const& socketInfo);
-        virtual ~Socket();
+        SocketStandard(ServerInfo const& socketInfo, Blocking blocking);
+        SocketStandard(SocketInfo const& socketInfo, Blocking blocking);
+        SocketStandard(OpenSocketInfo const& socketInfo);
+        virtual ~SocketStandard();
+
+        bool isConnected()          const;
+        int  socketId(Mode rw)      const;
+        void close();
+        void release();
+
+        int getFD()                 const;
+    private:
+        void createSocket();
+        void setUpBlocking(Blocking blocking);
+        void setUpServerSocket(ServerInfo const& socketInfo);
+        void setUpClientSocket(SocketInfo const& socketInfo);
+};
+
+#ifdef __WINNT__
+class SocketClient: public ConnectionClient
+#else
+class SocketClient: public ConnectionType::FileDescriptor
+#endif
+{
+    SocketStandard  socketInfo;
+    public:
+        SocketClient(SocketInfo const& socketInfo, Blocking blocking);
+        SocketClient(OpenSocketInfo const& socketInfo);
+        virtual ~SocketClient();
 
         virtual bool isConnected()                          const   override;
         virtual int  socketId(Mode rw)                      const   override;
         virtual void close()                                        override;
-        virtual void tryFlushBuffer()                               override;
         virtual void release()                                      override;
 
+        virtual void tryFlushBuffer()                               override;
 #if __WINNT__
         virtual IOData readFromStream(char* buffer, std::size_t size)       override;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  override;
@@ -39,6 +61,21 @@ class Socket: public ConnectionType::FileDescriptor
         virtual int getReadFD()                             const   override;
         virtual int getWriteFD()                            const   override;
 #endif
+};
+
+class SocketServer: public ConnectionServer
+{
+    SocketStandard  socketInfo;
+    public:
+        SocketServer(ServerInfo const& socketInfo, Blocking blocking);
+        virtual ~SocketServer();
+
+        virtual bool isConnected()                          const   override;
+        virtual int  socketId(Mode rw)                      const   override;
+        virtual void close()                                        override;
+        virtual void release()                                      override;
+
+        virtual std::unique_ptr<ConnectionClient> accept(Blocking blocking)          override;
 };
 
 }

@@ -2,7 +2,7 @@
 #include "Socket.h"
 #include "Connection.h"
 
-using ThorsAnvil::ThorsSocket::Connection;
+using ThorsAnvil::ThorsSocket::ConnectionClient;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Mode;
@@ -34,7 +34,7 @@ struct TestConnectionInfo
         {}
 };
 
-class TestConnection: public Connection
+class TestConnection: public ConnectionClient
 {
     bool    firstRead;
     bool    firstWrite;

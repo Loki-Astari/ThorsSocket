@@ -18,6 +18,7 @@ namespace ThorsAnvil::ThorsSocket
     namespace ConnectionType
     {
         class SSocketBase;
+        class SSocketStandard;
     }
 
 extern "C" int certificateInfo_PasswdCB(char* buf, int size, int /*rwflag*/, void* userdata);
@@ -78,6 +79,7 @@ class SSLctx
 {
     private:
         friend class ConnectionType::SSocketBase;
+        friend class ConnectionType::SSocketStandard;
         SSL_CTX*            ctx;
     public:
         template<typename... Args>

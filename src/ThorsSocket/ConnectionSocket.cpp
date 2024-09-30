@@ -5,8 +5,29 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(SocketInfo const& socketInfo, Blocking blocking)
+SocketStandard::SocketStandard(ServerInfo const& socketInfo, Blocking blocking)
     : fd(thorInvalidFD())
+{
+    createSocket();
+    setUpServerSocket(socketInfo);
+    setUpBlocking(blocking);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStandard::SocketStandard(SocketInfo const& socketInfo, Blocking blocking)
+    : fd(thorInvalidFD())
+{
+    createSocket();
+    setUpClientSocket(socketInfo);
+    setUpBlocking(blocking);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStandard::SocketStandard(OpenSocketInfo const& socketInfo)
+    : fd(socketInfo.fd)
+{}
+
+void SocketStandard::createSocket()
 {
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-socket
     fd  = MOCK_FUNC(socket)(AF_INET, SOCK_STREAM, 0);
@@ -14,14 +35,41 @@ Socket::Socket(SocketInfo const& socketInfo, Blocking blocking)
     {
         int saveErrno = thorGetSocketError();
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
-            "Socket",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+            "createSocket",
             " :Failed on ::socket.",
             " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
             " msg >", getErrMsgSocket(saveErrno), "<"
         );
     }
+}
 
+void SocketStandard::setUpBlocking(Blocking blocking)
+{
+    if (blocking == Blocking::No)
+    {
+        if (MOCK_FUNC(thorSetSocketNonBlocking)(fd) == -1)
+        {
+            int saveErrno = thorGetSocketError();
+            MOCK_FUNC(thorCloseSocket)(fd);
+
+            ThorsLogAndThrow(
+                "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+                "setUpBlocking",
+                " :Failed on ::thorSetSocketNonBlocking.",
+                " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
+                " msg >", getErrMsgSocket(saveErrno), "<"
+            );
+        }
+    }
+}
+
+void SocketStandard::setUpServerSocket(ServerInfo const& /*socketInfo*/)
+{
+}
+
+void SocketStandard::setUpClientSocket(SocketInfo const& socketInfo)
+{
     HostEnt* serv = nullptr;
     do
     {
@@ -36,8 +84,8 @@ Socket::Socket(SocketInfo const& socketInfo, Blocking blocking)
         MOCK_FUNC(thorCloseSocket)(fd);
 
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
-            "Socket",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+            "setUpClientSocket",
             " :Failed on ::gethostbyname.",
             " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
             " msg >", getErrMsgSocket(saveErrno), "<"
@@ -60,57 +108,35 @@ Socket::Socket(SocketInfo const& socketInfo, Blocking blocking)
         MOCK_FUNC(thorCloseSocket)(fd);
 
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
-            "Socket",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+            "setUpClientSocket",
             " :Failed on ::connect.",
             " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
             " msg >", getErrMsgSocket(saveErrno), "<"
         );
     }
-
-    if (blocking == Blocking::No)
-    {
-        if (MOCK_FUNC(thorSetSocketNonBlocking)(fd) == -1)
-        {
-            int saveErrno = thorGetSocketError();
-            MOCK_FUNC(thorCloseSocket)(fd);
-
-            ThorsLogAndThrow(
-                "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
-                "Socket",
-                " :Failed on ::thorSetSocketNonBlocking.",
-                " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
-                " msg >", getErrMsgSocket(saveErrno), "<"
-            );
-        }
-    }
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(OpenSocketInfo const& socketInfo)
-    : fd(socketInfo.fd)
-{}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::~Socket()
+SocketStandard::~SocketStandard()
 {
     close();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-bool Socket::isConnected() const
+bool SocketStandard::isConnected() const
 {
     return fd != thorInvalidFD();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int Socket::socketId(Mode /*rw*/) const
+int SocketStandard::socketId(Mode /*rw*/) const
 {
     return static_cast<int>(fd);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void Socket::close()
+void SocketStandard::close()
 {
     if (fd != thorInvalidFD()) {
         MOCK_FUNC(thorCloseSocket)(fd);
@@ -119,14 +145,64 @@ void Socket::close()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void Socket::tryFlushBuffer()
+void SocketStandard::release()
 {
-    int result = MOCK_FUNC(thorShutdownSocket)(fd);
+    fd = thorInvalidFD();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+int SocketStandard::getFD() const
+{
+    return fd;
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketClient::SocketClient(SocketInfo const& socketInfo, Blocking blocking)
+    : socketInfo(socketInfo, blocking)
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketClient::SocketClient(OpenSocketInfo const& socketInfo)
+    : socketInfo(socketInfo)
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketClient::~SocketClient()
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+bool SocketClient::isConnected() const
+{
+    return socketInfo.isConnected();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+int SocketClient::socketId(Mode rw) const
+{
+    return socketInfo.socketId(rw);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SocketClient::close()
+{
+    return socketInfo.close();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SocketClient::release()
+{
+    return socketInfo.release();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SocketClient::tryFlushBuffer()
+{
+    int result = MOCK_FUNC(thorShutdownSocket)(socketInfo.getFD());
     if (result != 0)
     {
         int saveErrno = thorGetSocketError();
         ThorsLogAndThrow(
-            "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
+            "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
             "tryFlushBuffer",
             " :Win Failed on ::shutdown.",
             " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
@@ -135,16 +211,11 @@ void Socket::tryFlushBuffer()
     }
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-void Socket::release()
-{
-    fd = thorInvalidFD();
-}
 #ifdef __WINNT__
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-IOData Socket::readFromStream(char* buffer, std::size_t size)
+IOData SocketClient::readFromStream(char* buffer, std::size_t size)
 {
-    int chunkRead = MOCK_FUNC(recv)(fd, buffer, size, 0);
+    int chunkRead = MOCK_FUNC(recv)(socketInfo.getFD(), buffer, size, 0);
     if (chunkRead == 0) {
         return {0, false, false};
     }
@@ -171,7 +242,7 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
             case WSAEINVAL:
             {
                 ThorsLogAndThrowCritical(
-                    "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
                     "readFromStream",
                     " :Win Failed on ::recv with SocketCritical",
                     " errno = ", saveErrno, " ", getErrNoStrWin(saveErrno),
@@ -182,7 +253,7 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
             default:
             {
                 ThorsLogAndThrowLogical(
-                    "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
                     "readFromStream",
                     " :Win Failed on ::recv with SocketUnknown",
                     " errno = ", saveErrno, " ", getErrNoStrWin(saveErrno),
@@ -195,10 +266,10 @@ IOData Socket::readFromStream(char* buffer, std::size_t size)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-IOData Socket::writeToStream(char const* buffer, std::size_t size)
+IOData SocketClient::writeToStream(char const* buffer, std::size_t size)
 {
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-send
-    int chunkWritten = MOCK_FUNC(send)(fd, buffer, size, 0);
+    int chunkWritten = MOCK_FUNC(send)(socketInfo.getFD(), buffer, size, 0);
     if (chunkWritten == SOCKET_ERROR)
     {
         // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-send
@@ -224,7 +295,7 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
             case WSAEINVAL:
             {
                 ThorsLogAndThrowCritical(
-                    "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
                     "writeToStream",
                     " :Win Failed on ::send with SocketCritical",
                     " errno = ", saveErrno, " ", getErrNoStrWin(saveErrno),
@@ -236,7 +307,7 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
             default:
             {
                 ThorsLogAndThrowLogical(
-                    "ThorsAnvil::ThorsSocket::ConnectionType::Socket",
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
                     "writeToStream",
                     " :Win Failed on ::send with SocketUnknown",
                     " errno = ", saveErrno, " ", getErrNoStrWin(saveErrno),
@@ -251,15 +322,53 @@ IOData Socket::writeToStream(char const* buffer, std::size_t size)
 #else
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int Socket::getReadFD() const
+int SocketClient::getReadFD() const
 {
-    return fd;
+    return socketInfo.getFD();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int Socket::getWriteFD() const
+int SocketClient::getWriteFD() const
 {
-    return fd;
+    return socketInfo.getFD();
 }
 
 #endif
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketServer::SocketServer(ServerInfo const& socketInfo, Blocking blocking)
+    : socketInfo(socketInfo, blocking)
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketServer::~SocketServer()
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+bool SocketServer::isConnected() const
+{
+    return socketInfo.isConnected();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+int SocketServer::socketId(Mode rw) const
+{
+    return socketInfo.socketId(rw);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SocketServer::close()
+{
+    return socketInfo.close();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SocketServer::release()
+{
+    return socketInfo.release();
+}
+
+std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking /*blocking*/)
+{
+    return nullptr;
+}

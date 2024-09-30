@@ -11,27 +11,32 @@
 namespace ThorsAnvil::ThorsSocket
 {
 
-class Connection;
+class ConnectionClient;
 enum class TestMarker {True};
 
 using YieldFunc     = std::function<bool()>;
 
+class Server;
 class Socket
 {
-    std::unique_ptr<Connection>     connection;
-    YieldFunc                       readYield;
-    YieldFunc                       writeYield;
+    std::unique_ptr<ConnectionClient>   connection;
+    YieldFunc                           readYield;
+    YieldFunc                           writeYield;
 
+    friend class Server;
+    Socket(std::unique_ptr<ConnectionClient>&& connection, YieldFunc&& readYield, YieldFunc&& writeYield);
     public:
         Socket();
         Socket(FileInfo const& file, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
         Socket(PipeInfo const& pipe, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
         Socket(SocketInfo const& socket, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
         Socket(SSocketInfo const& socket, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
-        // --
+        ~Socket();
+
+        // -- Testing Only functions.
         Socket(OpenSocketInfo const& socket, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
         Socket(OpenSSocketInfo const& socket, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
-        ~Socket();
+
 
         // Good for testing only.
         template<typename T>

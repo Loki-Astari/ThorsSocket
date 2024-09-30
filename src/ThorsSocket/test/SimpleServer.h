@@ -12,13 +12,39 @@ using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::CertificateInfo;
 using ThorsAnvil::ThorsSocket::OpenSocketInfo;
 using ThorsAnvil::ThorsSocket::OpenSSocketInfo;
-using ConSocket = ThorsAnvil::ThorsSocket::ConnectionType::Socket;
+using ConSocket = ThorsAnvil::ThorsSocket::ConnectionType::SocketClient;
 using ConSSocket = ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase;
 
 struct SocketServerInfo;
 struct SSocketServerInfo;
 class SocketServerAccept;
 class SSocketServerAccept;
+
+namespace ThorsAnvil::ThorsSocket::ConnectionType
+{
+
+class SSocketBase: public SocketClient
+{
+    protected:
+        SSL*        ssl;
+        SSocketBase(SSocketInfo const& socketInfo, Blocking blocking);
+        SSocketBase(OpenSSocketInfo const& socketInfo);
+    public:
+        virtual ~SSocketBase();
+        virtual void tryFlushBuffer()                               override;
+
+        virtual IOData readFromStream(char* buffer, std::size_t size)        override;
+        virtual IOData writeToStream(char const* buffer, std::size_t size)   override;
+
+        virtual void close()                                        override;
+        virtual bool isConnected()                          const   override;
+
+        char const* getSSErrNoStr(int)  {return "";}
+    private:
+        void initSSocket(SSLctx const& ctx, CertificateInfo&& info);
+};
+
+}
 
 struct SocketAcceptRequest
 {

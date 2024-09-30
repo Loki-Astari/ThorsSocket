@@ -11,7 +11,7 @@
 #define CLIENT_KEY      "test/data/client/client.key"
 
 
-using ThorsAnvil::ThorsSocket::Connection;
+using ThorsAnvil::ThorsSocket::ConnectionClient;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Mode;
