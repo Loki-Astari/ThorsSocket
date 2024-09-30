@@ -33,11 +33,6 @@ class Socket
         Socket(SSocketInfo const& socket, Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
         ~Socket();
 
-        // -- Testing Only functions.
-        Socket(OpenSocketInfo const& socket, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
-        Socket(OpenSSocketInfo const& socket, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
-
-
         // Good for testing only.
         template<typename T>
         Socket(TestMarker, T const& socket, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;})

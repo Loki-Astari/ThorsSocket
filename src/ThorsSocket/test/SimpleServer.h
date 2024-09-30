@@ -12,8 +12,9 @@ using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::CertificateInfo;
 using ThorsAnvil::ThorsSocket::OpenSocketInfo;
 using ThorsAnvil::ThorsSocket::OpenSSocketInfo;
-using ConSocket = ThorsAnvil::ThorsSocket::ConnectionType::SocketClient;
-using ConSSocket = ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase;
+using ThorsAnvil::ThorsSocket::ConnectionType::SocketClient;
+using ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase;
+using ThorsAnvil::ThorsSocket::ConnectionType::SocketServer;
 
 struct SocketServerInfo;
 struct SSocketServerInfo;
@@ -89,18 +90,18 @@ struct SSocketServerInfo
     CertificateInfo&&   certificate;
 };
 
-class SocketServerAccept: public ConSocket
+class SocketServerAccept: public SocketClient
 {
     public:
         SocketServerAccept(SocketServerInfo const& serverInfo)
-            : ConSocket(OpenSocketInfo{serverInfo.fd})
+            : SocketClient(*reinterpret_cast<SocketServer*>(32), OpenSocketInfo{serverInfo.fd}, Blocking::Yes)
         {}
 };
-class SSocketServerAccept: public ConSSocket
+class SSocketServerAccept: public SSocketBase
 {
     public:
         SSocketServerAccept(SSocketServerInfo const& serverInfo)
-            : ConSSocket(OpenSSocketInfo{serverInfo.fd, serverInfo.ctx, std::move(serverInfo.certificate)})
+            : SSocketBase(OpenSSocketInfo{serverInfo.fd, serverInfo.ctx, std::move(serverInfo.certificate)})
         {
             /*Do the SSL Handshake*/
             int status;

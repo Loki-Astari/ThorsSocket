@@ -50,20 +50,6 @@ Socket::Socket(SSocketInfo const& ssocketInfo, Blocking blocking, YieldFunc&& re
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(OpenSocketInfo const& socketInfo, YieldFunc&& readYield, YieldFunc&& writeYield)
-    : connection(std::make_unique<ConnectionType::SocketClient>(socketInfo))
-    , readYield(std::move(readYield))
-    , writeYield(std::move(writeYield))
-{}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(OpenSSocketInfo const& ssocketInfo, YieldFunc&& readYield, YieldFunc&& writeYield)
-    : connection(std::make_unique<ConnectionType::SSocketClient>(ssocketInfo))
-    , readYield(std::move(readYield))
-    , writeYield(std::move(writeYield))
-{}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket::Socket(Socket&& move) noexcept
     : connection(std::exchange(move.connection, nullptr))
     , readYield(std::exchange(move.readYield, [](){return false;}))

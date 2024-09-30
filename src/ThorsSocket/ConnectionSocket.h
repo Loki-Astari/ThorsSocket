@@ -36,6 +36,7 @@ class SocketStandard
         void setUpClientSocket(SocketInfo const& socketInfo);
 };
 
+class SocketServer;
 #ifdef __WINNT__
 class SocketClient: public ConnectionClient
 #else
@@ -44,8 +45,10 @@ class SocketClient: public ConnectionType::FileDescriptor
 {
     SocketStandard  socketInfo;
     public:
+        // Normal Client.
         SocketClient(SocketInfo const& socketInfo, Blocking blocking);
-        SocketClient(OpenSocketInfo const& socketInfo, Blocking blocking = Blocking::Yes);
+        // Server Side accept.
+        SocketClient(SocketServer&, OpenSocketInfo const& socketInfo, Blocking blocking);
         virtual ~SocketClient();
 
         virtual bool isConnected()                          const   override;
@@ -76,6 +79,8 @@ class SocketServer: public ConnectionServer
         virtual void release()                                      override;
 
         virtual std::unique_ptr<ConnectionClient> accept(Blocking blocking)          override;
+    protected:
+        int acceptSocket();
 };
 
 }

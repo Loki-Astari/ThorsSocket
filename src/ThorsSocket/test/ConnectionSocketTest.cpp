@@ -5,6 +5,7 @@
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::ConnectionType::SocketClient;
+using ThorsAnvil::ThorsSocket::ConnectionType::SocketServer;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
@@ -113,7 +114,7 @@ TEST(ConnectionSocketTest, CreateBlocking)
 TEST(ConnectionSocketTest, notValidOnMinusOne)
 {
     MockAllDefaultFunctions       defaultMockedFunctions;
-    SocketClient                  socket({THOR_SOCKET_ID(-1)});
+    SocketClient                  socket(*reinterpret_cast<SocketServer*>(32), {THOR_SOCKET_ID(-1)}, Blocking::Yes);
 
     TA_TestNoThrow([&](){
         ASSERT_FALSE(socket.isConnected());
@@ -124,7 +125,7 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
 TEST(ConnectionSocketTest, getSocketIdWorks)
 {
     MockAllDefaultFunctions       defaultMockedFunctions;
-    SocketClient                  socket({12});
+    SocketClient                  socket(*reinterpret_cast<SocketServer*>(32), {12}, Blocking::Yes);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), 12);
@@ -154,7 +155,7 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
     GTEST_SKIP();
 #else
     MockAllDefaultFunctions       defaultMockedFunctions;
-    SocketClient                  socket({33});
+    SocketClient                  socket(*reinterpret_cast<SocketServer*>(32), {33}, Blocking::Yes);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
@@ -171,7 +172,7 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
     GTEST_SKIP();
 #else
     MockAllDefaultFunctions       defaultMockedFunctions;
-    SocketClient                  socket({34});
+    SocketClient                  socket(*reinterpret_cast<SocketServer*>(32), {34}, Blocking::Yes);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());

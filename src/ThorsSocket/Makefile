@@ -1,7 +1,7 @@
 THORSANVIL_ROOT             ?= $(abspath ../..)
 COVERAGE_REQUIRED			= 70
 
-EXCLUDE_HEADERS				= $(wildcard Connection*.h)
+EXCLUDE_HEADERS				= $(wildcard Connection[A-Z]*.h)
 
 TARGET                      = ThorsSocket.slib
 NAMESPACE					= ThorsAnvil::ThorsSocket

@@ -13,7 +13,7 @@ SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo, Blocking blocking)
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketBase::SSocketBase(OpenSSocketInfo const& ssocketInfo)
-    : SocketClient(ssocketInfo)
+    : SocketClient(*reinterpret_cast<SocketServer*>(32), ssocketInfo, Blocking::Yes)
 {
     initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate));
 }

@@ -8,14 +8,6 @@ using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketStandard::SSocketStandard(SServerInfo const& ssocketInfo, int fd)
-    : ssl(nullptr)
-{
-    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate), fd);
-    initSSocketServer();
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
     : ssl(nullptr)
 {
@@ -28,7 +20,7 @@ SSocketStandard::SSocketStandard(OpenSSocketInfo const& ssocketInfo, int fd)
     : ssl(nullptr)
 {
     initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate), fd);
-    initSSocketClient();
+    initSSocketClientAccept();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -68,11 +60,6 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, CertificateInfo&& certifica
             " msg >", ERR_error_string(saveErrno, nullptr), "<"
         );
     }
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketStandard::initSSocketServer()
-{
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -128,6 +115,50 @@ void SSocketStandard::initSSocketClient()
     MOCK_FUNC(X509_free)(cert);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketStandard::initSSocketClientAccept()
+{
+    int status;
+    do
+    {
+        status = SSL_accept(ssl);
+        if (status != 1)
+        {
+            int error = MOCK_FUNC(SSL_get_error)(ssl, status);
+            if (error == SSL_ERROR_WANT_ACCEPT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
+                continue;
+            }
+        }
+        break;
+    }
+    while (true);
+
+    /* Check for error in handshake*/
+    if (status < 1)
+    {
+        int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, status);
+        MOCK_FUNC(SSL_free)(ssl);
+        ThorsLogAndThrow(
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+            "initSSocketClientAccept",
+            " :Failed on SSL_accept.",
+            " errno = ", errno, " ", getSSErrNoStr(saveErrno),
+            " msg >", ERR_error_string(saveErrno, nullptr), "<"
+        );
+    }
+
+    /* Check for Client authentication error */
+    if (SSL_get_verify_result(ssl) != X509_V_OK)
+    {
+        MOCK_FUNC(SSL_free)(ssl);
+        ThorsLogAndThrow(
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+            "initSSocketClientAccept",
+            " :Failed on SSL_get_verify_result."
+        );
+    }
+}
+
 void SSocketStandard::close()
 {
     if (ssl)
@@ -164,8 +195,8 @@ SSocketClient::SSocketClient(SSocketInfo const& ssocketInfo, Blocking blocking)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketClient::SSocketClient(OpenSSocketInfo const& ssocketInfo)
-    : SocketClient(ssocketInfo)
+SSocketClient::SSocketClient(SSocketServer& p, OpenSSocketInfo const& ssocketInfo, Blocking blocking)
+    : SocketClient(p, ssocketInfo, blocking)
     , secureSocketInfo(ssocketInfo, socketId(Mode::Read))
 {}
 
@@ -184,11 +215,6 @@ void SSocketClient::close()
 {
     secureSocketInfo.close();
     SocketClient::close();
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketClient::tryFlushBuffer()
-{
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -289,27 +315,13 @@ IOData SSocketClient::writeToStream(char const* buffer, std::size_t size)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketServer::SSocketServer(SServerInfo const& ssocketInfo, Blocking blocking)
     : SocketServer(ssocketInfo, blocking)
-    , secureSocketInfo(ssocketInfo, socketId(Mode::Read))
+    , ctx(ssocketInfo.ctx)
+    , certificate(ssocketInfo.certificate)
 {}
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketServer::~SSocketServer()
-{}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-bool SSocketServer::isConnected() const
+std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SSocketServer::accept(Blocking blocking)
 {
-    return secureSocketInfo.isConnected();
-}
+    int     acceptedFd = SocketServer::acceptSocket();
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketServer::close()
-{
-    secureSocketInfo.close();
-    SocketServer::close();
-}
-
-std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SSocketServer::accept(Blocking /*blocking*/)
-{
-    return nullptr;
+    return std::make_unique<SSocketClient>(*this, OpenSSocketInfo{acceptedFd, ctx, CertificateInfo{certificate}}, blocking);
 }

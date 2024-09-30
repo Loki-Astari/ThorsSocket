@@ -198,7 +198,7 @@ SocketClient::SocketClient(SocketInfo const& socketInfo, Blocking blocking)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketClient::SocketClient(OpenSocketInfo const& socketInfo, Blocking blocking)
+SocketClient::SocketClient(SocketServer&, OpenSocketInfo const& socketInfo, Blocking blocking)
     : socketInfo(socketInfo, blocking)
 {}
 
@@ -404,7 +404,7 @@ void SocketServer::release()
     return socketInfo.release();
 }
 
-std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking blocking)
+int SocketServer::acceptSocket()
 {
     using SocketStorage = sockaddr_storage;
     using SocketLen     = socklen_t;
@@ -424,5 +424,10 @@ std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(
             " msg >", getErrMsgSocket(saveErrno), "<"
         );
     }
-    return std::make_unique<SocketClient>(OpenSocketInfo{acceptedFd}, blocking);
+    return acceptedFd;
+}
+
+std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking blocking)
+{
+    return std::make_unique<SocketClient>(*this, OpenSocketInfo{acceptSocket()}, blocking);
 }
