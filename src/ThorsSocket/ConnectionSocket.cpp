@@ -23,9 +23,11 @@ SocketStandard::SocketStandard(SocketInfo const& socketInfo, Blocking blocking)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketStandard::SocketStandard(OpenSocketInfo const& socketInfo)
+SocketStandard::SocketStandard(OpenSocketInfo const& socketInfo, Blocking blocking)
     : fd(socketInfo.fd)
-{}
+{
+    setUpBlocking(blocking);
+}
 
 void SocketStandard::createSocket()
 {
@@ -56,7 +58,7 @@ void SocketStandard::setUpBlocking(Blocking blocking)
             ThorsLogAndThrow(
                 "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
                 "setUpBlocking",
-                " :Failed on ::thorSetSocketNonBlocking.",
+                " :Failed on ::thorSetSocketNonBlocking",
                 " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
                 " msg >", getErrMsgSocket(saveErrno), "<"
             );
@@ -64,8 +66,42 @@ void SocketStandard::setUpBlocking(Blocking blocking)
     }
 }
 
-void SocketStandard::setUpServerSocket(ServerInfo const& /*socketInfo*/)
+void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
 {
+    SocketAddrIn        serverAddr;
+    bzero(reinterpret_cast<void*>(&serverAddr), sizeof(SocketAddrIn));
+    serverAddr.sin_family       = AF_INET;
+    serverAddr.sin_port         = htons(socketInfo.port);
+    serverAddr.sin_addr.s_addr  = INADDR_ANY;
+    int status = ::bind(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr));
+    if (status == -1)
+    {
+        int saveErrno = thorGetSocketError();
+        MOCK_FUNC(thorCloseSocket)(fd);
+
+        ThorsLogAndThrow(
+                "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+                "setUpServerSocket",
+                " :Failed on ::bind",
+                " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
+                " msg >", getErrMsgSocket(saveErrno), "<"
+                );
+    }
+
+    status = ::listen(fd, 5);
+    if (status == -1)
+    {
+        int saveErrno = thorGetSocketError();
+        MOCK_FUNC(thorCloseSocket)(fd);
+
+        ThorsLogAndThrow(
+                "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+                "setUpServerSocket",
+                " :Failed on ::listen",
+                " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
+                " msg >", getErrMsgSocket(saveErrno), "<"
+                );
+    }
 }
 
 void SocketStandard::setUpClientSocket(SocketInfo const& socketInfo)
@@ -162,8 +198,8 @@ SocketClient::SocketClient(SocketInfo const& socketInfo, Blocking blocking)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketClient::SocketClient(OpenSocketInfo const& socketInfo)
-    : socketInfo(socketInfo)
+SocketClient::SocketClient(OpenSocketInfo const& socketInfo, Blocking blocking)
+    : socketInfo(socketInfo, blocking)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -368,7 +404,25 @@ void SocketServer::release()
     return socketInfo.release();
 }
 
-std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking /*blocking*/)
+std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking blocking)
 {
-    return nullptr;
+    using SocketStorage = sockaddr_storage;
+    using SocketLen     = socklen_t;
+
+    SocketStorage   serverStorage;
+    SocketLen       addr_size   = sizeof serverStorage;
+
+    SOCKET_TYPE acceptedFd = ::accept(socketInfo.getFD(), reinterpret_cast<SocketAddr*>(&serverStorage), &addr_size);
+    if (acceptedFd == -1)
+    {
+        int saveErrno = thorGetSocketError();
+        ThorsLogAndThrow(
+            "ThorsAnvil::ThorsSocket::ConnectionType::SocketServer",
+            "accept",
+            " :Failed on ::accept.",
+            " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
+            " msg >", getErrMsgSocket(saveErrno), "<"
+        );
+    }
+    return std::make_unique<SocketClient>(OpenSocketInfo{acceptedFd}, blocking);
 }

@@ -20,7 +20,7 @@ class SocketStandard
     public:
         SocketStandard(ServerInfo const& socketInfo, Blocking blocking);
         SocketStandard(SocketInfo const& socketInfo, Blocking blocking);
-        SocketStandard(OpenSocketInfo const& socketInfo);
+        SocketStandard(OpenSocketInfo const& socketInfo, Blocking blocking);
         virtual ~SocketStandard();
 
         bool isConnected()          const;
@@ -45,7 +45,7 @@ class SocketClient: public ConnectionType::FileDescriptor
     SocketStandard  socketInfo;
     public:
         SocketClient(SocketInfo const& socketInfo, Blocking blocking);
-        SocketClient(OpenSocketInfo const& socketInfo);
+        SocketClient(OpenSocketInfo const& socketInfo, Blocking blocking = Blocking::Yes);
         virtual ~SocketClient();
 
         virtual bool isConnected()                          const   override;
