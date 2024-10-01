@@ -26,7 +26,7 @@ class SSocketStandard
 
         SSL* getSSL() const;
     private:
-        void initSSocket(SSLctx const& ctx, CertificateInfo&& info, int fd);
+        void initSSocket(SSLctx const& ctx, int fd);
         void initSSocketClient();
         void initSSocketClientAccept();
 };
@@ -52,7 +52,6 @@ class SSocketClient: public SocketClient
 class SSocketServer: public SocketServer
 {
     SSLctx const&       ctx;
-    CertificateInfo     certificate;
 
     public:
         SSocketServer(SServerInfo const& socketInfo, Blocking blocking);

@@ -114,11 +114,12 @@ struct CertificateInfo
 
         std::string     certificateFileName;
         std::string     keyFileName;
+        bool            hasPasswordGetter;
         GetPasswordFunc getPassword;
 
     public:
-        CertificateInfo();
-        CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword = [](int){return "";});
+        CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName);
+        CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword);
 
         void apply(SSL_CTX* ctx)   const;
         void apply(SSL* ssl)       const;

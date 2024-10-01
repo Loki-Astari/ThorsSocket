@@ -197,27 +197,10 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
     .run();
 }
 
-TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstruct)
-{
-    TA_TestNoThrow([](){
-        CertificateInfo     ca;
-    })
-    .run();
-}
-
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
 {
     TA_TestNoThrow([](){
         CertificateInfo     ca("File1", "File2", [](int){return "password";});;
-    })
-    .run();
-}
-
-TEST(ConnectionSSocketUtilTest, CertificateInfoDefaultConstructNoAction)
-{
-    TA_TestNoThrow([](){
-        CertificateInfo     ca;
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .run();
 }

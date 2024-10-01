@@ -42,7 +42,7 @@ class SSocketBase: public SocketClient
 
         char const* getSSErrNoStr(int)  {return "";}
     private:
-        void initSSocket(SSLctx const& ctx, CertificateInfo&& info);
+        void initSSocket(SSLctx const& ctx);
 };
 
 }
@@ -58,12 +58,10 @@ struct SSocketAcceptRequest
 {
     using ServerInfo   = SSocketServerInfo;
 
-    SSocketAcceptRequest(SSLctx const& ctx, CertificateInfo&& certificate = CertificateInfo{})
+    SSocketAcceptRequest(SSLctx const& ctx)
         : ctx(ctx)
-        , certificate(std::move(certificate))
     {}
     SSLctx const&        ctx;
-    CertificateInfo&&   certificate;
 };
 struct SocketServerInfo
 {
@@ -82,12 +80,10 @@ struct SSocketServerInfo
     SSocketServerInfo(SOCKET_TYPE fd, SSocketAcceptRequest const& request)
         : fd(fd)
         , ctx(request.ctx)
-        , certificate(std::move(request.certificate))
     {}
 
     SOCKET_TYPE         fd;
     SSLctx const&       ctx;
-    CertificateInfo&&   certificate;
 };
 
 class SocketServerAccept: public SocketClient
@@ -101,7 +97,7 @@ class SSocketServerAccept: public SSocketBase
 {
     public:
         SSocketServerAccept(SSocketServerInfo const& serverInfo)
-            : SSocketBase(OpenSSocketInfo{serverInfo.fd, serverInfo.ctx, std::move(serverInfo.certificate)})
+            : SSocketBase(OpenSSocketInfo{serverInfo.fd, serverInfo.ctx})
         {
             /*Do the SSL Handshake*/
             int status;

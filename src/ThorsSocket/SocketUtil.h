@@ -36,13 +36,16 @@ struct FileInfo
     std::string_view    fileName;
     Open                open;
 };
+
 struct PipeInfo
 {};
+
 struct SocketInfo
 {
     std::string_view    host;
     int                 port;
 };
+
 struct ServerInfo
 {
     int                 port;
@@ -56,18 +59,16 @@ struct OpenSocketInfo
 struct SSocketInfo: public SocketInfo
 {
     SSLctx const&       ctx;
-    CertificateInfo&&   certificate = CertificateInfo{};
 };
+
 struct SServerInfo: public ServerInfo
 {
     SSLctx const&       ctx;
-    CertificateInfo&&   certificate = CertificateInfo{};
 };
 
 struct OpenSSocketInfo: public OpenSocketInfo
 {
     SSLctx const&       ctx;
-    CertificateInfo&&   certificate = CertificateInfo{};
 };
 
 }

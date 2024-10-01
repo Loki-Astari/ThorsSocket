@@ -8,14 +8,14 @@ SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo, Blocking blocking)
     : SocketClient(ssocketInfo, blocking)
     , ssl(nullptr)
 {
-    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate));
+    initSSocket(ssocketInfo.ctx);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketBase::SSocketBase(OpenSSocketInfo const& ssocketInfo)
     : SocketClient(*reinterpret_cast<SocketServer*>(32), ssocketInfo, Blocking::Yes)
 {
-    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate));
+    initSSocket(ssocketInfo.ctx);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -25,7 +25,7 @@ SSocketBase::~SSocketBase()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate)
+void SSocketBase::initSSocket(SSLctx const& ctx)
 {
     ssl = MOCK_FUNC(SSL_new)(ctx.ctx);
     if (!ssl)
@@ -39,8 +39,6 @@ void SSocketBase::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate)
             " msg >", ERR_error_string(saveErrno, nullptr), "<"
         );
     }
-
-    certificate.apply(ssl);
 
     int ret;
     if ((ret = MOCK_FUNC(SSL_set_fd)(ssl, socketId(Mode::Read))) != 1)

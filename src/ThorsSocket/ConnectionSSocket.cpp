@@ -11,7 +11,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
     : ssl(nullptr)
 {
-    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate), fd);
+    initSSocket(ssocketInfo.ctx, fd);
     initSSocketClient();
 }
 
@@ -19,7 +19,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketStandard::SSocketStandard(OpenSSocketInfo const& ssocketInfo, int fd)
     : ssl(nullptr)
 {
-    initSSocket(ssocketInfo.ctx, std::move(ssocketInfo.certificate), fd);
+    initSSocket(ssocketInfo.ctx, fd);
     initSSocketClientAccept();
 }
 
@@ -30,7 +30,7 @@ SSocketStandard::~SSocketStandard()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketStandard::initSSocket(SSLctx const& ctx, CertificateInfo&& certificate, int fd)
+void SSocketStandard::initSSocket(SSLctx const& ctx, int fd)
 {
     ssl = MOCK_FUNC(SSL_new)(ctx.ctx);
     if (!ssl)
@@ -44,8 +44,6 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, CertificateInfo&& certifica
             " msg >", ERR_error_string(saveErrno, nullptr), "<"
         );
     }
-
-    certificate.apply(ssl);
 
     int ret;
     if ((ret = MOCK_FUNC(SSL_set_fd)(ssl, fd)) != 1)
@@ -316,12 +314,11 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketServer::SSocketServer(SServerInfo const& ssocketInfo, Blocking blocking)
     : SocketServer(ssocketInfo, blocking)
     , ctx(ssocketInfo.ctx)
-    , certificate(ssocketInfo.certificate)
 {}
 
 std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SSocketServer::accept(Blocking blocking)
 {
     int     acceptedFd = SocketServer::acceptSocket();
 
-    return std::make_unique<SSocketClient>(*this, OpenSSocketInfo{acceptedFd, ctx, CertificateInfo{certificate}}, blocking);
+    return std::make_unique<SSocketClient>(*this, OpenSSocketInfo{acceptedFd, ctx}, blocking);
 }
