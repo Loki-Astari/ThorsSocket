@@ -233,3 +233,199 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
 
 #endif
 }
+
+TEST(SocketStreamTest, SockeStreamBufDefault)
+{
+    SocketStreamBuffer  buffer;
+    EXPECT_FALSE(buffer.getSocket().isConnected());
+}
+
+TEST(SocketStreamTest, SockeStreamDefault)
+{
+    SocketStream        stream;
+    EXPECT_FALSE(stream.getSocket().isConnected());
+}
+
+TEST(SocketStreamTest, SockeStreamBufMove)
+{
+    SocketStreamBuffer  dst;
+    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+
+    EXPECT_TRUE(src.getSocket().isConnected());
+
+    dst = std::move(src);
+    EXPECT_TRUE(dst.getSocket().isConnected());
+    EXPECT_FALSE(src.getSocket().isConnected());
+}
+
+TEST(SocketStreamTest, SockeStreamBufMoveConstruct)
+{
+    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+
+    EXPECT_TRUE(src.getSocket().isConnected());
+
+    SocketStreamBuffer  dst{std::move(src)};
+    EXPECT_TRUE(dst.getSocket().isConnected());
+    EXPECT_FALSE(src.getSocket().isConnected());
+}
+
+TEST(SocketStreamTest, SockeStreamMove)
+{
+    SocketStream        dst;
+    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+
+    EXPECT_TRUE(src.getSocket().isConnected());
+
+    dst = std::move(src);
+    EXPECT_TRUE(dst.getSocket().isConnected());
+    EXPECT_FALSE(src.getSocket().isConnected());
+}
+
+TEST(SocketStreamTest, SockeStreamMoveConstruct)
+{
+    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+
+    EXPECT_TRUE(src.getSocket().isConnected());
+
+    SocketStream        dst{std::move(src)};
+    EXPECT_TRUE(dst.getSocket().isConnected());
+    EXPECT_FALSE(src.getSocket().isConnected());
+}
+
+TEST(SocketStreamTest, SockeStreamBufReadAfterMove)
+{
+    SocketStreamBuffer  dst;
+    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+
+    char buffer[5] = {0};
+    src.sgetn(buffer, 4);
+
+    using namespace std::string_literals;
+    EXPECT_EQ("1234"s, buffer);
+
+    dst = std::move(src);
+    dst.sgetn(buffer, 4);
+    EXPECT_EQ("5678"s, buffer);
+}
+
+TEST(SocketStreamTest, SockeStreamBufReadAfterMoveConstruct)
+{
+    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+
+    char buffer[5] = {0};
+    src.sgetn(buffer, 4);
+
+    using namespace std::string_literals;
+    EXPECT_EQ("1234"s, buffer);
+
+    SocketStreamBuffer  dst{std::move(src)};
+    dst.sgetn(buffer, 4);
+    EXPECT_EQ("5678"s, buffer);
+}
+
+TEST(SocketStreamTest, SockeStreamReadAfterMove)
+{
+    SocketStream        dst;
+    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+
+    EXPECT_TRUE(src.getSocket().isConnected());
+    char buffer[6] = {0};
+    src.read(buffer, 5);
+
+    using namespace std::string_literals;
+    EXPECT_EQ("12345"s, buffer);
+
+    dst = std::move(src);
+    dst.read(buffer, 5);
+    EXPECT_EQ("67890"s, buffer);
+}
+
+TEST(SocketStreamTest, SockeStreamReadAfterMoveConstruct)
+{
+    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+
+    EXPECT_TRUE(src.getSocket().isConnected());
+    char buffer[6] = {0};
+    src.read(buffer, 5);
+
+    using namespace std::string_literals;
+    EXPECT_EQ("12345"s, buffer);
+
+    SocketStream        dst{std::move(src)};
+    dst.read(buffer, 5);
+    EXPECT_EQ("67890"s, buffer);
+}
+
+TEST(SocketStreamTest, SockeStreamBufWriteAfterMove)
+{
+    {
+        SocketStreamBuffer  dst;
+        SocketStreamBuffer  src({"/tmp/test-SockeStreamBufWriteAfterMove", Open::Truncate});
+
+        src.sputn("Test String Part1", 17);
+
+        dst = std::move(src);
+        dst.sputn(": Some more text.", 17);
+    }
+    std::ifstream file("/tmp/test-SockeStreamBufWriteAfterMove");
+    std::string line;
+    std::getline(file, line);
+
+    using namespace std::string_literals;
+    EXPECT_EQ("Test String Part1: Some more text."s, line);
+}
+
+TEST(SocketStreamTest, SockeStreamBufWriteAfterMoveConstruct)
+{
+    {
+        SocketStreamBuffer  src({"/tmp/test-SockeStreamBufWriteAfterMove", Open::Truncate});
+
+        src.sputn("Test String Part1", 17);
+
+        SocketStreamBuffer  dst{std::move(src)};
+        dst.sputn(": Some more text.", 17);
+    }
+    std::ifstream file("/tmp/test-SockeStreamBufWriteAfterMove");
+    std::string line;
+    std::getline(file, line);
+
+    using namespace std::string_literals;
+    EXPECT_EQ("Test String Part1: Some more text."s, line);
+}
+
+TEST(SocketStreamTest, SockeStreamWriteAfterMove)
+{
+    {
+        SocketStream    dst;
+        SocketStream    src({"/tmp/test-SockeStreamWriteAfterMove", Open::Truncate});
+
+        src.write("Test String Part1", 17);
+
+        dst = std::move(src);
+        dst.write(": Some more text.", 17);
+    }
+    std::ifstream file("/tmp/test-SockeStreamWriteAfterMove");
+    std::string line;
+    std::getline(file, line);
+
+    using namespace std::string_literals;
+    EXPECT_EQ("Test String Part1: Some more text."s, line);
+}
+
+TEST(SocketStreamTest, SockeStreamWriteAfterMoveConstruct)
+{
+    {
+        SocketStream    src({"/tmp/test-SockeStreamWriteAfterMove", Open::Truncate});
+
+        src.write("Test String Part1", 17);
+
+        SocketStream    dst{std::move(src)};
+        dst.write(": Some more text.", 17);
+    }
+    std::ifstream file("/tmp/test-SockeStreamWriteAfterMove");
+    std::string line;
+    std::getline(file, line);
+
+    using namespace std::string_literals;
+    EXPECT_EQ("Test String Part1: Some more text."s, line);
+}

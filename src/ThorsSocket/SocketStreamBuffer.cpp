@@ -5,55 +5,26 @@ using namespace ThorsAnvil::ThorsSocket;
 
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketStreamBuffer::SocketStreamBuffer(PipeInfo const& info)
+SocketStreamBuffer::SocketStreamBuffer()
     : std::streambuf{}
-    , socket(info, Blocking::No)
-    , inputBuffer(4 * 1024)
-    , outputBuffer(4 * 1024)
+    , socket{}
+    , inputBuffer(0)
+    , outputBuffer(0)
     , inCount(0)
     , outCount(0)
-{
-    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
-    setp(&inputBuffer[0], &inputBuffer[0] + inputBuffer.size() - 1);
-}
+{}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketStreamBuffer::SocketStreamBuffer(FileInfo const& info)
+SocketStreamBuffer::SocketStreamBuffer(Socket&& socket)
     : std::streambuf{}
-    , socket(info, Blocking::No)
+    , socket(std::move(socket))
     , inputBuffer(4 * 1024)
     , outputBuffer(4 * 1024)
     , inCount(0)
     , outCount(0)
 {
     setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
-    setp(&inputBuffer[0], &inputBuffer[0] + inputBuffer.size() - 1);
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketStreamBuffer::SocketStreamBuffer(SocketInfo const& info)
-    : std::streambuf{}
-    , socket(info, Blocking::No)
-    , inputBuffer(4 * 1024)
-    , outputBuffer(4 * 1024)
-    , inCount(0)
-    , outCount(0)
-{
-    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
-    setp(&inputBuffer[0], &inputBuffer[0] + inputBuffer.size() - 1);
-}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketStreamBuffer::SocketStreamBuffer(SSocketInfo const& info)
-    : std::streambuf{}
-    , socket(info, Blocking::No)
-    , inputBuffer(4 * 1024)
-    , outputBuffer(4 * 1024)
-    , inCount(0)
-    , outCount(0)
-{
-    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
-    setp(&inputBuffer[0], &inputBuffer[0] + inputBuffer.size() - 1);
+    setp(&outputBuffer[0], &outputBuffer[0] + outputBuffer.size() - 1);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -68,6 +39,82 @@ SocketStreamBuffer::SocketStreamBuffer(SocketStreamBuffer&& move) noexcept
     setg(move.eback(), move.gptr(), move.egptr());
     setp(move.pbase(), move.epptr());
     pbump(move.pptr() - move.pbase());
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStreamBuffer& SocketStreamBuffer::operator=(SocketStreamBuffer&& move) noexcept
+{
+    SocketStreamBuffer  tmp(std::move(move));
+    if (socket.isConnected()) {
+        socket.close();
+    }
+    swap(tmp);
+    return *this;
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SocketStreamBuffer::swap(SocketStreamBuffer& rhs) noexcept
+{
+    std::streambuf::swap(static_cast<std::streambuf&>(rhs));
+
+    using std::swap;
+    swap(socket,        rhs.socket);
+    swap(inputBuffer,   rhs.inputBuffer);
+    swap(outputBuffer,  rhs.outputBuffer);
+    swap(inCount,       rhs.inCount);
+    swap(outCount,      rhs.outCount);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStreamBuffer::SocketStreamBuffer(PipeInfo const& info)
+    : std::streambuf{}
+    , socket(info, Blocking::No)
+    , inputBuffer(4 * 1024)
+    , outputBuffer(4 * 1024)
+    , inCount(0)
+    , outCount(0)
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&outputBuffer[0], &outputBuffer[0] + outputBuffer.size() - 1);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStreamBuffer::SocketStreamBuffer(FileInfo const& info)
+    : std::streambuf{}
+    , socket(info, Blocking::No)
+    , inputBuffer(4 * 1024)
+    , outputBuffer(4 * 1024)
+    , inCount(0)
+    , outCount(0)
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&outputBuffer[0], &outputBuffer[0] + outputBuffer.size() - 1);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStreamBuffer::SocketStreamBuffer(SocketInfo const& info)
+    : std::streambuf{}
+    , socket(info, Blocking::No)
+    , inputBuffer(4 * 1024)
+    , outputBuffer(4 * 1024)
+    , inCount(0)
+    , outCount(0)
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&outputBuffer[0], &outputBuffer[0] + outputBuffer.size() - 1);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStreamBuffer::SocketStreamBuffer(SSocketInfo const& info)
+    : std::streambuf{}
+    , socket(info, Blocking::No)
+    , inputBuffer(4 * 1024)
+    , outputBuffer(4 * 1024)
+    , inCount(0)
+    , outCount(0)
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&outputBuffer[0], &outputBuffer[0] + outputBuffer.size() - 1);
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -321,7 +368,7 @@ void SocketStreamBuffer::reserveOutputSize(std::size_t size)
     if (outputBuffer.size() < newSizeNeeded)
     {
         outputBuffer.resize(newSizeNeeded);
-        setp(&inputBuffer[0], &inputBuffer[end-current]);
+        setp(&outputBuffer[0], &outputBuffer[end-current]);
         pbump(current - begin);
     }
 }

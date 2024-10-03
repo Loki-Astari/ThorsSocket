@@ -16,16 +16,22 @@ class SocketStream: public std::iostream
     Buffer  buffer;
 
     public:
+        // Create from a socket.
+        SocketStream();
+        SocketStream(Socket&& socket);
+        SocketStream(SocketStream&& move) noexcept;
+        SocketStream& operator=(SocketStream&& move) noexcept;
+
+        // Manual Creation.
         SocketStream(PipeInfo const& info);
         SocketStream(FileInfo const& info);
         SocketStream(SocketInfo const& info);
         SocketStream(SSocketInfo const& info);
-        SocketStream(SocketStream const&)                       = delete;
-        SocketStream(SocketStream&& move) noexcept;
         ~SocketStream()                                         = default;
 
+        // No copying allowed
+        SocketStream(SocketStream const&)                       = delete;
         SocketStream& operator=(SocketStream const&)            = delete;
-        SocketStream& operator=(SocketStream&& move) noexcept   = delete;
 
         // Usefult for testing
         Socket&         getSocket()         {return buffer.getSocket();}
