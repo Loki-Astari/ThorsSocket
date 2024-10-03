@@ -9,8 +9,6 @@
 namespace ThorsAnvil::ThorsSocket
 {
 
-using YieldFunc     = std::function<bool()>;
-
 class Server
 {
     std::unique_ptr<ConnectionServer>   connection;
@@ -39,7 +37,7 @@ class Server
         void close();
         void release();
 
-        Socket accept(Blocking blocking = Blocking::Yes, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
+        Socket accept(Blocking blocking = Blocking::Yes, AcceptFunc&& acceptOK = [](){}, YieldFunc&& readYield = [](){return false;}, YieldFunc&& writeYield = [](){return false;});
     private:
 };
 inline

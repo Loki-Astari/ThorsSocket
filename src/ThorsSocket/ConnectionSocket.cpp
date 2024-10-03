@@ -404,7 +404,7 @@ void SocketServer::release()
     return socketInfo.release();
 }
 
-int SocketServer::acceptSocket()
+int SocketServer::acceptSocket(AcceptFunc&& accept)
 {
     using SocketStorage = sockaddr_storage;
     using SocketLen     = socklen_t;
@@ -424,10 +424,14 @@ int SocketServer::acceptSocket()
             " msg >", getErrMsgSocket(saveErrno), "<"
         );
     }
+    else
+    {
+        accept();
+    }
     return acceptedFd;
 }
 
-std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking blocking)
+std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking blocking, AcceptFunc&& accept)
 {
-    return std::make_unique<SocketClient>(*this, OpenSocketInfo{acceptSocket()}, blocking);
+    return std::make_unique<SocketClient>(*this, OpenSocketInfo{acceptSocket(std::move(accept))}, blocking);
 }

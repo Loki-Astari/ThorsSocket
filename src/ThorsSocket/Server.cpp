@@ -75,8 +75,8 @@ void Server::release()
     connection->release();
 }
 
-Socket Server::accept(Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+Socket Server::accept(Blocking blocking, AcceptFunc&& accept, YieldFunc&& readYield, YieldFunc&& writeYield)
 {
-    std::unique_ptr<ConnectionClient>   data = connection->accept(blocking);
+    std::unique_ptr<ConnectionClient>   data = connection->accept(blocking, std::move(accept));
     return Socket(std::move(data), std::move(readYield), std::move(writeYield));
 }

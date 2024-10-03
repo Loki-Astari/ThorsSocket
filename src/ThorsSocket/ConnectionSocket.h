@@ -78,9 +78,9 @@ class SocketServer: public ConnectionServer
         virtual void close()                                        override;
         virtual void release()                                      override;
 
-        virtual std::unique_ptr<ConnectionClient> accept(Blocking blocking)          override;
+        virtual std::unique_ptr<ConnectionClient> accept(Blocking blocking, AcceptFunc&& accept = [](){})          override;
     protected:
-        int acceptSocket();
+        int acceptSocket(AcceptFunc&& accept);
 };
 
 }
