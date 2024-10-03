@@ -257,7 +257,7 @@ void SSocketStandard::initSSocketClientAccept()
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
-        ThorsLogAndThrow(
+        ThorsLog(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClientAccept",
             " :Failed on SSL_accept() ",
@@ -270,7 +270,7 @@ void SSocketStandard::initSSocketClientAccept()
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
-        ThorsLogAndThrow(
+        ThorsLog(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClientAccept",
             " :Failed on SSL_get_verify_result(): ",
