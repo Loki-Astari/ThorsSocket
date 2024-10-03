@@ -22,7 +22,7 @@ class SSocketStandard
         bool isConnected() const;
         void close();
 
-        char const* getSSErrNoStr(int);
+        std::string buildSSErrorMessage(int);
 
         SSL* getSSL() const;
     private:
