@@ -133,11 +133,11 @@ SocketStreamBuffer::~SocketStreamBuffer()
     // Logging so we know what happened.
     catch (std::exception const& e)
     {
-        ThorsCatchMessage("ThorsAnvil::ThorsSocket::SocketStreamBufferBase", "~SocketStreamBufferBase", e.what());
+        ThorsCatchMessage("ThorsAnvil::ThorsSocket::SocketStreamBuffer", "~SocketStreamBuffer", e.what());
     }
     catch (...)
     {
-        ThorsCatchMessage("ThorsAnvil::ThorsSocket::SocketStreamBufferBase", "~SocketStreamBufferBase", "UNKNOWN");
+        ThorsCatchMessage("ThorsAnvil::ThorsSocket::SocketStreamBuffer", "~SocketStreamBuffer", "UNKNOWN");
     }
 }
 
