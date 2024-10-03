@@ -5,14 +5,14 @@ namespace ThorsAnvil::ThorsSocket
 {
 
 template<typename Buffer>
-SocketStream<Buffer>::SocketStream()
+BaseSocketStream<Buffer>::BaseSocketStream()
     : std::iostream(nullptr)
 {
     rdbuf(&buffer);
 }
 
 template<typename Buffer>
-SocketStream<Buffer>::SocketStream(Socket&& socket)
+BaseSocketStream<Buffer>::BaseSocketStream(Socket&& socket)
     : std::iostream(nullptr)
     , buffer(std::move(socket))
 {
@@ -20,7 +20,7 @@ SocketStream<Buffer>::SocketStream(Socket&& socket)
 }
 
 template<typename Buffer>
-SocketStream<Buffer>::SocketStream(SocketStream&& move) noexcept
+BaseSocketStream<Buffer>::BaseSocketStream(BaseSocketStream&& move) noexcept
     : std::iostream(nullptr)
     , buffer(std::move(move.buffer))
 {
@@ -28,7 +28,7 @@ SocketStream<Buffer>::SocketStream(SocketStream&& move) noexcept
 }
 
 template<typename Buffer>
-SocketStream<Buffer>& SocketStream<Buffer>::operator=(SocketStream&& move) noexcept
+BaseSocketStream<Buffer>& BaseSocketStream<Buffer>::operator=(BaseSocketStream&& move) noexcept
 {
     std::iostream::operator=(std::move(move));
     buffer = std::move(move.buffer);
@@ -38,7 +38,7 @@ SocketStream<Buffer>& SocketStream<Buffer>::operator=(SocketStream&& move) noexc
 
 
 template<typename Buffer>
-SocketStream<Buffer>::SocketStream(PipeInfo const& info)
+BaseSocketStream<Buffer>::BaseSocketStream(PipeInfo const& info)
     : std::iostream(nullptr)
     , buffer(info)
 {
@@ -46,7 +46,7 @@ SocketStream<Buffer>::SocketStream(PipeInfo const& info)
 }
 
 template<typename Buffer>
-SocketStream<Buffer>::SocketStream(FileInfo const& info)
+BaseSocketStream<Buffer>::BaseSocketStream(FileInfo const& info)
     : std::iostream(nullptr)
     , buffer(info)
 {
@@ -54,7 +54,7 @@ SocketStream<Buffer>::SocketStream(FileInfo const& info)
 }
 
 template<typename Buffer>
-SocketStream<Buffer>::SocketStream(SocketInfo const& info)
+BaseSocketStream<Buffer>::BaseSocketStream(SocketInfo const& info)
     : std::iostream(nullptr)
     , buffer(info)
 {
@@ -62,7 +62,7 @@ SocketStream<Buffer>::SocketStream(SocketInfo const& info)
 }
 
 template<typename Buffer>
-SocketStream<Buffer>::SocketStream(SSocketInfo const& info)
+BaseSocketStream<Buffer>::BaseSocketStream(SSocketInfo const& info)
     : std::iostream(nullptr)
     , buffer(info)
 {
