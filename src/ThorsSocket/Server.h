@@ -32,6 +32,10 @@ class Server
 
         bool isConnected()                  const;
         int  socketId(Mode rw)              const;      // Only useful for unit tests
+
+        // Used by the Event Handler mechanism
+        int  socketId()                     const   {return socketId(Mode::Read);}
+
         void close();
         void release();
 

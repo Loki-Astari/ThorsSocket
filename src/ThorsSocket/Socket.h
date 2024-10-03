@@ -52,6 +52,9 @@ class Socket
         bool isConnected()                  const;
         int  socketId(Mode rw)              const;      // Only useful for unit tests
 
+        // Used by the Event Handler mechanism
+        int  socketId()                     const   {return socketId(Mode::Read);}
+
         IOData getMessageData(void* buffer, std::size_t size);
         IOData tryGetMessageData(void* buffer, std::size_t size);
         IOData putMessageData(void const* buffer, std::size_t size);
