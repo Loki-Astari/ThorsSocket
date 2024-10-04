@@ -120,14 +120,12 @@ SocketStreamBuffer::SocketStreamBuffer(SSocketInfo const& info)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStreamBuffer::~SocketStreamBuffer()
 {
-    if (pbase() == nullptr)
-    {
-        return;
-    }
     // Force the buffer to be output to the socket
     try
     {
-        overflow();
+        if (socket.isConnected()) {
+            overflow();
+        }
     }
     // Catch and drop any exceptions.
     // Logging so we know what happened.
