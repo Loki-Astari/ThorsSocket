@@ -64,6 +64,7 @@ class Socket
 
         void close();
         void release();
+        void externalyClosed();
     private:
         IOData getMessageDataFromStream(void* b, std::size_t size, bool waitWhenBlocking);
         IOData putMessageDataToStream(void const* b, std::size_t size, bool waitWhenBlocking);

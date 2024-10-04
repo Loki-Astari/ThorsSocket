@@ -10,6 +10,7 @@ using ThorsAnvil::ThorsSocket::IOData;
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
     : ssl(nullptr)
+    , connectionFailed(false)
 {
     initSSocket(ssocketInfo.ctx, fd);
     initSSocketClient();
@@ -18,6 +19,7 @@ SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketStandard::SSocketStandard(OpenSSocketInfo const& ssocketInfo, int fd)
     : ssl(nullptr)
+    , connectionFailed(false)
 {
     initSSocket(ssocketInfo.ctx, fd);
     initSSocketClientAccept();
@@ -199,6 +201,7 @@ void SSocketStandard::initSSocketClient()
             //
             // TODO: Opportunity for yield()?
             error = MOCK_FUNC(SSL_get_error)(ssl, ret);
+            checkConnectionOK(error);
             if (error == SSL_ERROR_WANT_CONNECT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
                 continue;
             }
@@ -244,6 +247,7 @@ void SSocketStandard::initSSocketClientAccept()
         if (status != 1)
         {
             error = MOCK_FUNC(SSL_get_error)(ssl, status);
+            checkConnectionOK(error);
             if (error == SSL_ERROR_WANT_ACCEPT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
                 continue;
             }
@@ -284,10 +288,33 @@ void SSocketStandard::close()
     if (ssl)
     {
         // Close the file descriptor
-        MOCK_FUNC(SSL_shutdown)(ssl);
+        if (!connectionFailed)
+        {
+            int result = MOCK_FUNC(SSL_shutdown)(ssl);
+            if (result == 0)
+            {
+                // Shutdown not complete.
+                std::cerr << "---->SHUTDOWN: Not complete\n";
+            }
+            if (result == -1)
+            {
+                int errorCode = SSL_get_error(ssl, result);
+                checkConnectionOK(errorCode);
+                // Don't call again if
+                // SSL_get_error(3) has returned SSL_ERROR_SYSCALL or SSL_ERROR_SSL.
+                std::cerr << "---->SHUTDOWN: " << result << "\n";
+                std::cerr << "Err: >" << buildSSErrorMessage(errorCode) << "\n";
+            }
+        }
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
     }
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketStandard::externalyClosed()
+{
+    connectionFailed = true;
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -300,6 +327,12 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSL* SSocketStandard::getSSL()   const
 {
     return ssl;
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketStandard::checkConnectionOK(int errorCode)
+{
+    connectionFailed = connectionFailed || errorCode == SSL_ERROR_SYSCALL || errorCode == SSL_ERROR_SSL;
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -332,6 +365,12 @@ void SSocketClient::close()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketClient::externalyClosed()
+{
+    secureSocketInfo.externalyClosed();
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData SSocketClient::readFromStream(char* buffer, std::size_t size)
 {
     SSL* ssl = secureSocketInfo.getSSL();
@@ -340,6 +379,7 @@ IOData SSocketClient::readFromStream(char* buffer, std::size_t size)
     if (ret <= 0)
     {
         int errorCode = MOCK_FUNC(SSL_get_error)(ssl, ret);
+        secureSocketInfo.checkConnectionOK(errorCode);
         switch (errorCode)
         {
             case SSL_ERROR_NONE:                return {0, true, false};
@@ -387,6 +427,7 @@ IOData SSocketClient::writeToStream(char const* buffer, std::size_t size)
     if (ret <= 0)
     {
         int errorCode = MOCK_FUNC(SSL_get_error)(ssl, ret);
+        secureSocketInfo.checkConnectionOK(errorCode);
         switch (errorCode)
         {
             case SSL_ERROR_NONE:                return {0, true, false};

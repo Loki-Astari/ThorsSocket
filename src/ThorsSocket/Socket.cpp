@@ -232,3 +232,12 @@ void Socket::release()
     }
     connection->release();
 }
+
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void Socket::externalyClosed()
+{
+    if (connection.get() != nullptr) {
+        connection->externalyClosed();
+    }
+}
