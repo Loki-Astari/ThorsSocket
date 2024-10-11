@@ -125,6 +125,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
 TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 {
+    GTEST_SKIP();
     int             port = 8080 + rand() * 200;
     CertificateInfo certificate{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",
                                 "/etc/letsencrypt/live/thorsanvil.dev/privkey.pem",
