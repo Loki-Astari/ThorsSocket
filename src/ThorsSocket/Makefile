@@ -15,7 +15,7 @@ UNITTEST_CXXFLAGS			= -Wno-deprecated-declarations -Wno-writable-strings
 
 UNITTEST_LDLIBS				+= $(LDLIBS_$(PLATFORM))
 LDLIBS						+= $(LDLIBS_$(PLATFORM))
-FILE_WARNING_FLAGS          += -Wno-ignored-attributes -Wno-missing-braces
+FILE_WARNING_FLAGS          += -Wno-ignored-attributes -Wno-missing-braces -Wno-unused-variable
 CONAN_FILE_WARNING_FLAGS	=  -Wno-missing-field-initializers
 
 include $(THORSANVIL_ROOT)/build/tools/Makefile
