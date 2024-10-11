@@ -71,8 +71,7 @@ void SocketStandard::setUpBlocking(Blocking blocking)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
 {
-    SocketAddrIn        serverAddr;
-    bzero(reinterpret_cast<void*>(&serverAddr), sizeof(SocketAddrIn));
+    SocketAddrIn        serverAddr{};
     serverAddr.sin_family       = AF_INET;
     serverAddr.sin_port         = htons(socketInfo.port);
     serverAddr.sin_addr.s_addr  = INADDR_ANY;
@@ -418,7 +417,7 @@ int SocketServer::acceptSocket(AcceptFunc&& accept)
     SocketLen       addr_size   = sizeof serverStorage;
 
     SOCKET_TYPE acceptedFd = ::accept(socketInfo.getFD(), reinterpret_cast<SocketAddr*>(&serverStorage), &addr_size);
-    if (acceptedFd == -1)
+    if (acceptedFd == static_cast<SOCKET_TYPE>(-1))
     {
         int saveErrno = thorGetSocketError();
         ThorsLogAndThrow(
@@ -439,5 +438,5 @@ int SocketServer::acceptSocket(AcceptFunc&& accept)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking blocking, AcceptFunc&& accept)
 {
-    return std::make_unique<SocketClient>(*this, OpenSocketInfo{acceptSocket(std::move(accept))}, blocking);
+    return std::make_unique<SocketClient>(*this, OpenSocketInfo{static_cast<SOCKET_TYPE>(acceptSocket(std::move(accept)))}, blocking);
 }

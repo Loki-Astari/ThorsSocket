@@ -57,7 +57,7 @@ class SocketClient: public ConnectionType::FileDescriptor
         virtual void release()                                      override;
 
         virtual void tryFlushBuffer()                               override;
-#if __WINNT__
+#ifdef __WINNT__
         virtual IOData readFromStream(char* buffer, std::size_t size)       override;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  override;
 #else

@@ -493,5 +493,5 @@ std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SSocketServer::accept
 {
     int     acceptedFd = SocketServer::acceptSocket(std::move(accept));
 
-    return std::make_unique<SSocketClient>(*this, OpenSSocketInfo{acceptedFd, ctx}, blocking);
+    return std::make_unique<SSocketClient>(*this, OpenSSocketInfo{static_cast<SOCKET_TYPE>(acceptedFd), ctx}, blocking);
 }

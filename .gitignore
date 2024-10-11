@@ -2,6 +2,7 @@
 *.lex.cpp
 .*.swp
 *.gcov
+.windows.fix
 
 unittest
 

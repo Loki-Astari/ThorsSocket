@@ -16,8 +16,33 @@ using ThorsAnvil::ThorsSocket::ServerInfo;
 #define CLIENT_CERT     "test/data/client/client.crt"
 #define CLIENT_KEY      "test/data/client/client.key"
 
+class SocketSetUp
+{
+#ifdef  __WINNT__
+    public:
+        SocketSetUp()
+        {
+            WSADATA wsaData;
+            WORD wVersionRequested = MAKEWORD(2, 2);
+            int err = WSAStartup(wVersionRequested, &wsaData);
+            if (err != 0) {
+                printf("WSAStartup failed with error: %d\n", err);
+                throw std::runtime_error("Failed to set up Sockets");
+            }
+        }
+        ~SocketSetUp()
+        {
+            WSACleanup();
+        }
+#endif
+};
+
+
+
 TEST(ServerTest, ServerCreate)
 {
+    SocketSetUp     setup;
+
     srand(time(nullptr));
     int port = 8080 + rand() * 200;
     Server  server{ServerInfo{port}, Blocking::Yes, [](){return false;}, [](){return false;}};
@@ -25,6 +50,7 @@ TEST(ServerTest, ServerCreate)
 
 TEST(ServerTest, serverAcceptConnection)
 {
+    SocketSetUp     setup;
     int port = 8080 + rand() * 200;
 
     std::string     message = "TestMessage";
@@ -72,6 +98,7 @@ using ThorsAnvil::ThorsSocket::SServerInfo;
 
 TEST(ServerTest, SecureServerCreate)
 {
+    SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     SSLctx          ctx{SSLMethodType::Server};
     Server          server{SServerInfo{port, ctx}, Blocking::Yes, [](){return false;}, [](){return false;}};
@@ -79,6 +106,7 @@ TEST(ServerTest, SecureServerCreate)
 
 TEST(ServerTest, SecureserverAcceptConnection)
 {
+    SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     CertificateInfo certificate{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}};
     SSLctx          ctx{SSLMethodType::Server, certificate};
@@ -126,6 +154,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 {
     GTEST_SKIP();
+    SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     CertificateInfo certificate{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",
                                 "/etc/letsencrypt/live/thorsanvil.dev/privkey.pem",

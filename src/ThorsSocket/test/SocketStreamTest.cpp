@@ -360,14 +360,14 @@ TEST(SocketStreamTest, SockeStreamBufWriteAfterMove)
 {
     {
         SocketStreamBuffer  dst;
-        SocketStreamBuffer  src({"/tmp/test-SockeStreamBufWriteAfterMove", Open::Truncate});
+        SocketStreamBuffer  src({"test/data/test-SockeStreamBufWriteAfterMove", Open::Truncate});
 
         src.sputn("Test String Part1", 17);
 
         dst = std::move(src);
         dst.sputn(": Some more text.", 17);
     }
-    std::ifstream file("/tmp/test-SockeStreamBufWriteAfterMove");
+    std::ifstream file("test/data/test-SockeStreamBufWriteAfterMove");
     std::string line;
     std::getline(file, line);
 
@@ -378,14 +378,14 @@ TEST(SocketStreamTest, SockeStreamBufWriteAfterMove)
 TEST(SocketStreamTest, SockeStreamBufWriteAfterMoveConstruct)
 {
     {
-        SocketStreamBuffer  src({"/tmp/test-SockeStreamBufWriteAfterMove", Open::Truncate});
+        SocketStreamBuffer  src({"test/data/test-SockeStreamBufWriteAfterMove", Open::Truncate});
 
         src.sputn("Test String Part1", 17);
 
         SocketStreamBuffer  dst{std::move(src)};
         dst.sputn(": Some more text.", 17);
     }
-    std::ifstream file("/tmp/test-SockeStreamBufWriteAfterMove");
+    std::ifstream file("test/data/test-SockeStreamBufWriteAfterMove");
     std::string line;
     std::getline(file, line);
 
@@ -397,14 +397,14 @@ TEST(SocketStreamTest, SockeStreamWriteAfterMove)
 {
     {
         SocketStream    dst;
-        SocketStream    src({"/tmp/test-SockeStreamWriteAfterMove", Open::Truncate});
+        SocketStream    src({"test/data/test-SockeStreamWriteAfterMove", Open::Truncate});
 
         src.write("Test String Part1", 17);
 
         dst = std::move(src);
         dst.write(": Some more text.", 17);
     }
-    std::ifstream file("/tmp/test-SockeStreamWriteAfterMove");
+    std::ifstream file("test/data/test-SockeStreamWriteAfterMove");
     std::string line;
     std::getline(file, line);
 
@@ -415,14 +415,14 @@ TEST(SocketStreamTest, SockeStreamWriteAfterMove)
 TEST(SocketStreamTest, SockeStreamWriteAfterMoveConstruct)
 {
     {
-        SocketStream    src({"/tmp/test-SockeStreamWriteAfterMove", Open::Truncate});
+        SocketStream    src({"test/data/test-SockeStreamWriteAfterMove", Open::Truncate});
 
         src.write("Test String Part1", 17);
 
         SocketStream    dst{std::move(src)};
         dst.write(": Some more text.", 17);
     }
-    std::ifstream file("/tmp/test-SockeStreamWriteAfterMove");
+    std::ifstream file("test/data/test-SockeStreamWriteAfterMove");
     std::string line;
     std::getline(file, line);
 
