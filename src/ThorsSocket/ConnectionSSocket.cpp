@@ -290,20 +290,31 @@ void SSocketStandard::close()
         // Close the file descriptor
         if (!connectionFailed)
         {
-            int result = MOCK_FUNC(SSL_shutdown)(ssl);
-            if (result == 0)
+            while (true)
             {
-                // Shutdown not complete.
-                std::cerr << "---->SHUTDOWN: Not complete\n";
-            }
-            if (result == -1)
-            {
+                int result = MOCK_FUNC(SSL_shutdown)(ssl);
+                if (result == 1) {
+                    break;
+                }
+                if (result == 0) {
+                    continue;
+                }
                 int errorCode = SSL_get_error(ssl, result);
-                checkConnectionOK(errorCode);
-                // Don't call again if
-                // SSL_get_error(3) has returned SSL_ERROR_SYSCALL or SSL_ERROR_SSL.
-                std::cerr << "---->SHUTDOWN: " << result << "\n";
-                std::cerr << "Err: >" << buildSSErrorMessage(errorCode) << "\n";
+                if (errorCode == SSL_ERROR_WANT_READ)
+                {
+                    // If this is a non-blocking socket.
+                    // Then this will busy loop waiting for a reply to confirm shutdown.
+                    // TODO make this nicer.
+                    continue;
+                }
+
+                ThorsLog(
+                    "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+                    "close",
+                    " :Failed on SSL_shutdown(): ",
+                    buildSSErrorMessage(errorCode)
+                );
+                break;
             }
         }
         MOCK_FUNC(SSL_free)(ssl);

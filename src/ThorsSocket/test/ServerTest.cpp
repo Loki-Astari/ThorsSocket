@@ -117,6 +117,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
     char    buffer[50] = {0};
     socket.getMessageData(buffer, message.size());
+    socket.close();
     EXPECT_EQ(message, buffer);
 
     backgound.join();
@@ -168,6 +169,7 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 
     char    buffer[50] = {0};
     socket.getMessageData(buffer, message.size());
+    socket.close();
     EXPECT_EQ(message, buffer);
 
     backgound.join();
