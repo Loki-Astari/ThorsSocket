@@ -5,6 +5,7 @@
 #include "SocketUtil.h"
 
 #include <cstddef>
+#include <memory>
 
 namespace ThorsAnvil::ThorsSocket
 {
