@@ -19,6 +19,7 @@ Server::Server(SServerInfo const& ssocketInfo, Blocking blocking, YieldFunc&& re
     , writeYield(std::move(writeYield))
 {}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Server::Server(Server&& move) noexcept
     : connection(std::move(move.connection))
     , readYield(std::move(move.readYield))
@@ -81,6 +82,7 @@ void Server::release()
     connection->release();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 Socket Server::accept(Blocking blocking, AcceptFunc&& accept, YieldFunc&& readYield, YieldFunc&& writeYield)
 {
     std::unique_ptr<ConnectionClient>   data = connection->accept(blocking, std::move(accept));

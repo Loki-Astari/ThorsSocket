@@ -1,3 +1,4 @@
+#define THOR_LOGGING_DEFAULT_LOG_LEVEL  0
 #include <gtest/gtest.h>
 #include "test/ConnectionTest.h"
 #include "SecureSocketUtil.h"

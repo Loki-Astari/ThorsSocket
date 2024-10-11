@@ -49,7 +49,7 @@ void swap(Server& lhs, Server& rhs)
 }
 
 #if THORS_SOCKET_HEADER_ONLY
-#include "Server.sourc"
+#include "Server.source"
 #endif
 
 #endif

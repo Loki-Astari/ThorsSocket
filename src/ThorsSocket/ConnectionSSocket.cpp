@@ -31,13 +31,16 @@ SSocketStandard::~SSocketStandard()
     close();
 }
 
-extern "C" int printErrors(const char* s, std::size_t len, void* messageData)
+extern "C"
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+int printErrors(const char* s, std::size_t len, void* messageData)
 {
     std::stringstream&  message = *reinterpret_cast<std::stringstream*>(messageData);
     message << "ERR: " << std::string_view(s, len) << "\n";
     return 0;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::string SSocketStandard::buildSSErrorMessage(int sslError)
 {
     std::stringstream   message;
@@ -283,6 +286,7 @@ void SSocketStandard::initSSocketClientAccept()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SSocketStandard::close()
 {
     if (ssl)
@@ -484,6 +488,7 @@ SSocketServer::SSocketServer(SServerInfo const& ssocketInfo, Blocking blocking)
     , ctx(ssocketInfo.ctx)
 {}
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SSocketServer::accept(Blocking blocking, AcceptFunc&& accept)
 {
     int     acceptedFd = SocketServer::acceptSocket(std::move(accept));

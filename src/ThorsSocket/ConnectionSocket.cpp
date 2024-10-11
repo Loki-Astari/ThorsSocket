@@ -29,6 +29,7 @@ SocketStandard::SocketStandard(OpenSocketInfo const& socketInfo, Blocking blocki
     setUpBlocking(blocking);
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::createSocket()
 {
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-socket
@@ -46,6 +47,7 @@ void SocketStandard::createSocket()
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpBlocking(Blocking blocking)
 {
     if (blocking == Blocking::No)
@@ -66,6 +68,7 @@ void SocketStandard::setUpBlocking(Blocking blocking)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
 {
     SocketAddrIn        serverAddr;
@@ -104,6 +107,7 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpClientSocket(SocketInfo const& socketInfo)
 {
     HostEnt* serv = nullptr;
@@ -404,6 +408,7 @@ void SocketServer::release()
     return socketInfo.release();
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int SocketServer::acceptSocket(AcceptFunc&& accept)
 {
     using SocketStorage = sockaddr_storage;
@@ -431,6 +436,7 @@ int SocketServer::acceptSocket(AcceptFunc&& accept)
     return acceptedFd;
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SocketServer::accept(Blocking blocking, AcceptFunc&& accept)
 {
     return std::make_unique<SocketClient>(*this, OpenSocketInfo{acceptSocket(std::move(accept))}, blocking);
