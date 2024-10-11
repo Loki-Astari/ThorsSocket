@@ -19,6 +19,12 @@ Server::Server(SServerInfo const& ssocketInfo, Blocking blocking, YieldFunc&& re
     , writeYield(std::move(writeYield))
 {}
 
+Server::Server(Server&& move) noexcept
+    : connection(std::move(move.connection))
+    , readYield(std::move(move.readYield))
+    , writeYield(std::move(move.writeYield))
+{}
+
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 Server::~Server()
 {}
