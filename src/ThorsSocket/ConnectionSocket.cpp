@@ -422,6 +422,7 @@ void SocketServer::waitForFileDescriptor(int fd)
     }
 }
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 bool SocketServer::wouldBlock(int errorCode)
 {
 #ifdef __WINNT__
