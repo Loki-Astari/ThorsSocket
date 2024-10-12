@@ -102,7 +102,7 @@ class TestConnection: public ConnectionClient
 
 TEST(SocketTest, SocketBuilderBuild)
 {
-    Socket                      socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}, [](){return false;}, [](){return false;}};
+    Socket                      socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
 }
 
 TEST(SocketTest, SocketConstruct)
@@ -112,9 +112,9 @@ TEST(SocketTest, SocketConstruct)
 
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 11, IOData{0, true, true}, IOData{0, true, true}},
-                        [&yieldRCount](){++yieldRCount;return true;},
-                        [&yieldWCount](){++yieldWCount;return true;}};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 11, IOData{0, true, true}, IOData{0, true, true}}};
+    socket.setReadYield([&yieldRCount](){++yieldRCount;return true;});
+    socket.setWriteYield([&yieldWCount](){++yieldWCount;return true;});
     ASSERT_TRUE(socket.isConnected());
     ASSERT_EQ(socket.socketId(Mode::Read), 11);
     ASSERT_EQ(socket.socketId(Mode::Write), 11);
@@ -141,9 +141,9 @@ TEST(SocketTest, SocketConstructMove)
 
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, true}, IOData{0, true, true}},
-                        [&yieldRCount](){++yieldRCount;return true;},
-                        [&yieldWCount](){++yieldWCount;return true;}};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, true}, IOData{0, true, true}}};
+    socket.setReadYield([&yieldRCount](){++yieldRCount;return true;});
+    socket.setWriteYield([&yieldWCount](){++yieldWCount;return true;});
 
     Socket move = std::move(socket);
 
@@ -172,9 +172,9 @@ TEST(SocketTest, SocketAssignMove)
 
                         // returning WouldBlock forces Socket to call the yield functions.
                         // This allows us to check if they have been correctly moved.
-    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 21, IOData{0, true, true}, IOData{0, true, true}},
-                        [&yieldRCount](){++yieldRCount;return true;},
-                        [&yieldWCount](){++yieldWCount;return true;}};
+    Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 21, IOData{0, true, true}, IOData{0, true, true}}};
+    socket.setReadYield([&yieldRCount](){++yieldRCount;return true;});
+    socket.setWriteYield([&yieldWCount](){++yieldWCount;return true;});
     Socket move{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
 
     move = std::move(socket);

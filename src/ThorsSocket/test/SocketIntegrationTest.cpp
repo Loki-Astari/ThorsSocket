@@ -102,8 +102,8 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
 
     int yieldCount = 0;
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::No,
-                        [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);return true;}};
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::No};
+    socket.setReadYield([&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);return true;});
 
     std::string reply;
     reply.resize(message.size());
@@ -180,15 +180,14 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     });
 
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::No,
-                        [](){return false;},
-                        [&mutex, &cond, &finished]()
+    Socket  socket{{"127.0.0.1", 8092}, Blocking::No};
+    socket.setWriteYield([&mutex, &cond, &finished]()
                         {
                             std::unique_lock<std::mutex> lock(mutex);
                             finished = true;
                             cond.notify_all();
                             return true;
-                        }};
+                        });
 
     std::size_t readFromServer = 0;
 
