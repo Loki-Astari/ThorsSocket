@@ -53,7 +53,7 @@ TEST(ServerTest, ServerCreate)
 
     srand(time(nullptr));
     int port = 8080 + rand() * 200;
-    Server  server{ServerInfo{port}, Blocking::Yes, [](){return false;}, [](){return false;}};
+    Server  server{ServerInfo{port}, Blocking::Yes};
 }
 
 TEST(ServerTest, serverAcceptConnection)
@@ -70,7 +70,7 @@ TEST(ServerTest, serverAcceptConnection)
 
     std::thread  backgound([&]()
     {
-        Server  server{ServerInfo{port}, Blocking::Yes, [](){return false;}, [](){return false;}};
+        Server  server{ServerInfo{port}, Blocking::Yes};
 
         {
             std::unique_lock        lock(mutex);
@@ -111,7 +111,7 @@ TEST(ServerTest, SecureServerCreate)
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     SSLctx          ctx{SSLMethodType::Server};
-    Server          server{SServerInfo{port, ctx}, Blocking::Yes, [](){return false;}, [](){return false;}};
+    Server          server{SServerInfo{port, ctx}};
 }
 
 TEST(ServerTest, SecureserverAcceptConnection)
@@ -130,7 +130,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
     std::thread  backgound([&]()
     {
-        Server  server{SServerInfo{port, ctx}, Blocking::Yes, [](){return false;}, [](){return false;}};
+        Server  server{SServerInfo{port, ctx}};
 
         {
             std::unique_lock        lock(mutex);
@@ -185,7 +185,7 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 
     std::thread  backgound([&]()
     {
-        Server  server{SServerInfo{port, ctx}, Blocking::Yes, [](){return false;}, [](){return false;}};
+        Server  server{SServerInfo{port, ctx}, Blocking::Yes};
 
         {
             std::unique_lock        lock(mutex);
