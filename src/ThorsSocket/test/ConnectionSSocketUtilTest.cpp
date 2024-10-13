@@ -606,7 +606,7 @@ class X1
 {
 	public:
 		X1() 	{std::cerr << "Construct X1\n";}
-~		~X1()	{std::cerr << "Destroy   X1\n";}
+		~X1()	{std::cerr << "Destroy   X1\n";}
 };
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
