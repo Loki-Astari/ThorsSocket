@@ -602,8 +602,15 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
     .run();
 }
 
+class X1
+{
+	public:
+		X1() 	{std::cerr << "Construct X1\n";}
+~		~X1()	{std::cerr << "Destroy   X1\n";}
+};
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoAddClientDirFailCTX\n";
     TA_TestThrow([](){
         ClientCAListInfo            list;
@@ -620,6 +627,7 @@ std::cerr << "ClientCAListInfoAddClientDirFailCTX DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoAddClientStoreFailCTX\n";
     TA_TestThrow([](){
         ClientCAListInfo  list;
@@ -636,6 +644,7 @@ std::cerr << "ClientCAListInfoAddClientStoreFailCTX DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
@@ -647,6 +656,7 @@ std::cerr << "ClientCAListInfoSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoValidateClientSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
@@ -660,6 +670,7 @@ std::cerr << "ClientCAListInfoValidateClientSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoAddClientFileSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
@@ -675,6 +686,7 @@ std::cerr << "ClientCAListInfoAddClientFileSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoAddClientDirSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
@@ -690,6 +702,7 @@ std::cerr << "ClientCAListInfoAddClientDirSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoAddClientStoreSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
@@ -705,6 +718,7 @@ std::cerr << "ClientCAListInfoAddClientStoreSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoValidateClientFailSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
@@ -718,6 +732,7 @@ std::cerr << "ClientCAListInfoValidateClientFailSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoAddClientFileFailSSL\n";
     TA_TestThrow([](){
         ClientCAListInfo            list;
@@ -734,6 +749,7 @@ std::cerr << "ClientCAListInfoAddClientFileFailSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoAddClientDirFailSSL\n";
     TA_TestThrow([](){
         ClientCAListInfo            list;
@@ -750,6 +766,7 @@ std::cerr << "ClientCAListInfoAddClientDirFailSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
 {
+	X1	mark;
 std::cerr << "ClientCAListInfoAddClientStoreFailSSL\n";
     TA_TestThrow([](){
         ClientCAListInfo            list;
