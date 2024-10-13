@@ -604,6 +604,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
+std::cerr << "ClientCAListInfoAddClientDirFailCTX\n";
     TA_TestThrow([](){
         ClientCAListInfo            list;
         list.dir.items.push_back("File 1");
@@ -614,10 +615,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
+std::cerr << "ClientCAListInfoAddClientDirFailCTX DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 {
+std::cerr << "ClientCAListInfoAddClientStoreFailCTX\n";
     TA_TestThrow([](){
         ClientCAListInfo  list;
         list.store.items.push_back("File 1");
@@ -628,19 +631,23 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
+std::cerr << "ClientCAListInfoAddClientStoreFailCTX DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 {
+std::cerr << "ClientCAListInfoSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
     .run();
+std::cerr << "ClientCAListInfoSSL DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 {
+std::cerr << "ClientCAListInfoValidateClientSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.verifyClientCA = true;
@@ -648,10 +655,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
     })
     .expectCallTA(SSL_set_verify).toReturn(1)
     .run();
+std::cerr << "ClientCAListInfoValidateClientSSL DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 {
+std::cerr << "ClientCAListInfoAddClientFileSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.file.items.push_back("File 1");
@@ -661,10 +670,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
     .run();
+std::cerr << "ClientCAListInfoAddClientFileSSL DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 {
+std::cerr << "ClientCAListInfoAddClientDirSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.dir.items.push_back("File 1");
@@ -674,10 +685,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
     .run();
+std::cerr << "ClientCAListInfoAddClientDirSSL DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 {
+std::cerr << "ClientCAListInfoAddClientStoreSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.store.items.push_back("File 1");
@@ -687,10 +700,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
     .run();
+std::cerr << "ClientCAListInfoAddClientStoreSSL DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 {
+std::cerr << "ClientCAListInfoValidateClientFailSSL\n";
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.verifyClientCA = true;
@@ -698,10 +713,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
     })
     .expectCallTA(SSL_set_verify).toReturn(0)
     .run();
+std::cerr << "ClientCAListInfoValidateClientFailSSL DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 {
+std::cerr << "ClientCAListInfoAddClientFileFailSSL\n";
     TA_TestThrow([](){
         ClientCAListInfo            list;
         list.file.items.push_back("File 1");
@@ -712,10 +729,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
+std::cerr << "ClientCAListInfoAddClientFileFailSSL DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 {
+std::cerr << "ClientCAListInfoAddClientDirFailSSL\n";
     TA_TestThrow([](){
         ClientCAListInfo            list;
         list.dir.items.push_back("File 1");
@@ -726,10 +745,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
+std::cerr << "ClientCAListInfoAddClientDirFailSSL DONE\n";
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
 {
+std::cerr << "ClientCAListInfoAddClientStoreFailSSL\n";
     TA_TestThrow([](){
         ClientCAListInfo            list;
         list.store.items.push_back("File 1");
@@ -740,4 +761,5 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
+std::cerr << "ClientCAListInfoAddClientStoreFailSSL DONE\n";
 }
