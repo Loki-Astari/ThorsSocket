@@ -49,7 +49,6 @@ class SocketSetUp
 TEST(ServerTest, ServerCreate)
 {
     Mark  marker;
-    Mark  marker;
     SocketSetUp     setup;
 
     srand(time(nullptr));
@@ -59,7 +58,6 @@ TEST(ServerTest, ServerCreate)
 
 TEST(ServerTest, serverAcceptConnection)
 {
-    Mark  marker;
     Mark  marker;
     SocketSetUp     setup;
     int port = 8080 + rand() * 200;
