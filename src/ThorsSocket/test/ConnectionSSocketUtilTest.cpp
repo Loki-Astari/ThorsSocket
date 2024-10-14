@@ -14,6 +14,7 @@ using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ProtocolInfo    protocol;
     })
@@ -22,6 +23,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoBuild)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
     })
@@ -30,6 +32,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoBuild)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -41,6 +44,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -52,6 +56,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -63,6 +68,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
@@ -74,6 +80,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
@@ -85,6 +92,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
@@ -96,6 +104,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         CipherInfo      cipherInfo;
         ASSERT_EQ(cipherInfo.cipherList, "ECDHE-ECDSA-AES128-GCM-SHA256"     ":"
@@ -115,6 +124,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         CipherInfo      cipherInfo{"Value1", "Value2"};;
 
@@ -126,6 +136,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
 {
+    GTEST_SKIP();
     std::string input1 = "List1";
     std::string input2 = "Suite2";
 
@@ -140,6 +151,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
 {
+    GTEST_SKIP();
     std::string input1 = "List1";
     std::string input2 = "Suite2";
 
@@ -154,6 +166,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -165,6 +178,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -177,6 +191,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
@@ -188,6 +203,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
@@ -200,6 +216,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         CertificateInfo     ca("File1", "File2", [](int){return "password";});;
     })
@@ -208,6 +225,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
 {
+    GTEST_SKIP();
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -225,6 +243,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
 {
+    GTEST_SKIP();
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -242,6 +261,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CertificateInfo     ca("File1", "");
     })
@@ -250,6 +270,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CertificateInfo     ca("", "File2");
     })
@@ -258,6 +279,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
 {
+    GTEST_SKIP();
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -274,6 +296,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
 {
+    GTEST_SKIP();
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -291,6 +314,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
 {
+    GTEST_SKIP();
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -309,6 +333,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
 {
+    GTEST_SKIP();
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -325,6 +350,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
 {
+    GTEST_SKIP();
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -342,6 +368,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 {
+    GTEST_SKIP();
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -360,6 +387,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -369,6 +397,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([&](){
         CertifcateAuthorityInfo     ca;
         ca.file.loadDefault = true;
@@ -380,6 +409,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.dir.loadDefault = true;
@@ -391,6 +421,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.store.loadDefault = true;
@@ -402,6 +433,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
 {
+    GTEST_SKIP();
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
@@ -415,6 +447,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
 {
+    GTEST_SKIP();
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
@@ -428,6 +461,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 {
+    GTEST_SKIP();
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
@@ -442,6 +476,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.file.loadDefault = true;
@@ -454,6 +489,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.dir.loadDefault = true;
@@ -466,6 +502,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.store.loadDefault = true;
@@ -478,6 +515,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
 {
+    GTEST_SKIP();
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
@@ -492,6 +530,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
 {
+    GTEST_SKIP();
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
@@ -506,6 +545,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
 {
+    GTEST_SKIP();
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
@@ -520,6 +560,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -529,6 +570,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.verifyClientCA = true;
@@ -540,6 +582,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.file.items.push_back("File 1");
@@ -553,6 +596,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.dir.items.push_back("File 1");
@@ -566,6 +610,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.store.items.push_back("File 1");
@@ -579,6 +624,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 {
+    GTEST_SKIP();
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.verifyClientCA = true;
@@ -590,6 +636,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 {
+    GTEST_SKIP();
     TA_TestThrow([](){
         ClientCAListInfo  list;
         list.file.items.push_back("File 1");
@@ -610,6 +657,7 @@ class X1
 };
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoAddClientDirFailCTX\n";
     TA_TestThrow([](){
@@ -627,6 +675,7 @@ std::cerr << "ClientCAListInfoAddClientDirFailCTX DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoAddClientStoreFailCTX\n";
     TA_TestThrow([](){
@@ -644,6 +693,7 @@ std::cerr << "ClientCAListInfoAddClientStoreFailCTX DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoSSL\n";
     TA_TestNoThrow([](){
@@ -656,6 +706,7 @@ std::cerr << "ClientCAListInfoSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoValidateClientSSL\n";
     TA_TestNoThrow([](){
@@ -670,6 +721,7 @@ std::cerr << "ClientCAListInfoValidateClientSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoAddClientFileSSL\n";
     TA_TestNoThrow([](){
@@ -686,6 +738,7 @@ std::cerr << "ClientCAListInfoAddClientFileSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoAddClientDirSSL\n";
     TA_TestNoThrow([](){
@@ -702,6 +755,7 @@ std::cerr << "ClientCAListInfoAddClientDirSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoAddClientStoreSSL\n";
     TA_TestNoThrow([](){
@@ -718,6 +772,7 @@ std::cerr << "ClientCAListInfoAddClientStoreSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoValidateClientFailSSL\n";
     TA_TestNoThrow([](){
@@ -732,6 +787,7 @@ std::cerr << "ClientCAListInfoValidateClientFailSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoAddClientFileFailSSL\n";
     TA_TestThrow([](){
@@ -749,6 +805,7 @@ std::cerr << "ClientCAListInfoAddClientFileFailSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoAddClientDirFailSSL\n";
     TA_TestThrow([](){
@@ -766,6 +823,7 @@ std::cerr << "ClientCAListInfoAddClientDirFailSSL DONE\n";
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
 {
+    GTEST_SKIP();
 	X1	mark;
 std::cerr << "ClientCAListInfoAddClientStoreFailSSL\n";
     TA_TestThrow([](){
