@@ -41,15 +41,19 @@ class SocketSetUp
 
 TEST(ServerTest, ServerCreate)
 {
+	std::cerr << "ServerCreate\n";
+std::cerr << "ServerCreate\n";
     SocketSetUp     setup;
 
     srand(time(nullptr));
     int port = 8080 + rand() * 200;
     Server  server{ServerInfo{port}, Blocking::Yes};
+	std::cerr << "ServerCreate DONE\n";
 }
 
 TEST(ServerTest, serverAcceptConnection)
 {
+	std::cerr << "serverAcceptConnection\n";
     SocketSetUp     setup;
     int port = 8080 + rand() * 200;
 
@@ -88,6 +92,7 @@ TEST(ServerTest, serverAcceptConnection)
     EXPECT_EQ(message, buffer);
 
     backgound.join();
+	std::cerr << "serverAcceptConnection DONE\n";
 }
 
 using ThorsAnvil::ThorsSocket::SSLctx;
@@ -98,14 +103,17 @@ using ThorsAnvil::ThorsSocket::SServerInfo;
 
 TEST(ServerTest, SecureServerCreate)
 {
+	std::cerr << "SecureServerCreate\n";
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     SSLctx          ctx{SSLMethodType::Server};
     Server          server{SServerInfo{port, ctx}};
+	std::cerr << "SecureServerCreate DONE\n";
 }
 
 TEST(ServerTest, SecureserverAcceptConnection)
 {
+	std::cerr << "SecureserverAcceptConnection\n";
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     CertificateInfo certificate{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}};
@@ -149,10 +157,12 @@ TEST(ServerTest, SecureserverAcceptConnection)
     EXPECT_EQ(message, buffer);
 
     backgound.join();
+	std::cerr << "SecureserverAcceptConnection DONE\n";
 }
 
 TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 {
+	std::cerr << "SecureserverAcceptConnectionNoPassword\n";
     GTEST_SKIP();
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
@@ -203,5 +213,6 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
     EXPECT_EQ(message, buffer);
 
     backgound.join();
+	std::cerr << "SecureserverAcceptConnectionNoPassword DONE\n";
 }
 

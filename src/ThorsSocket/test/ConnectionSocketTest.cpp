@@ -35,8 +35,17 @@ TEST(ConnectionSocketTest, SocketCallFails)
     .run();
 }
 
+class X2
+{
+	public:
+		X2() 	{std::cerr << "Construct X2\n";}
+		~X2()	{std::cerr << "Destroy   X2\n";}
+};
 TEST(ConnectionSocketTest, GetHostCallFails)
 {
+	X2	mark;
+	std::cerr << "GetHostCallFails\n";
+
 #ifndef __WINNT__
     // Can't set h_errno (not a variable on windows)
     // So can't force a retry.
@@ -52,10 +61,13 @@ TEST(ConnectionSocketTest, GetHostCallFails)
         .expectCallTA(gethostbyname).inject().toReturn(nullptr)
         .expectCallTA(thorCloseSocket)
     .run();
+	std::cerr << "GetHostCallFails DONE\n";
 }
 
 TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 {
+	X2	mark;
+	std::cerr << "GetHostCallFailsTryAgain\n";
 #ifdef  __WINNT__
     // Can't set h_errno (not a variable on windows)
     // So can't force a retry.
@@ -80,10 +92,13 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
         .expectCallTA(gethostbyname).inject()
     .run();
 #endif
+	std::cerr << "GetHostCallFailsTryAgain DONE\n";
 }
 
 TEST(ConnectionSocketTest, ConnectCallFailes)
 {
+	X2	mark;
+	std::cerr << "ConnectCallFailes\n";
     TA_TestThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
@@ -91,28 +106,37 @@ TEST(ConnectionSocketTest, ConnectCallFailes)
         .expectCallTA(connect).inject().toReturn(-1)
         .expectCallTA(thorCloseSocket).toReturn(0)
     .run();
+	std::cerr << "ConnectCallFailes DONE\n";
 }
 
 TEST(ConnectionSocketTest, CreateNonBlocking)
 {
+	X2	mark;
+	std::cerr << "CreateNonBlocking\n";
     TA_TestNoThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::Yes);
     })
     .expectObjectTA(Socket_Blocking)
     .run();
+	std::cerr << "CreateNonBlocking DONE\n";
 }
 
 TEST(ConnectionSocketTest, CreateBlocking)
 {
+	X2	mark;
+	std::cerr << "CreateBlocking\n";
     TA_TestNoThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
     .run();
+	std::cerr << "CreateBlocking DONE\n";
 }
 
 TEST(ConnectionSocketTest, notValidOnMinusOne)
 {
+	X2	mark;
+	std::cerr << "notValidOnMinusOne\n";
     MockAllDefaultFunctions       defaultMockedFunctions;
     SocketClient                  socket(*reinterpret_cast<SocketServer*>(32), {THOR_SOCKET_ID(-1)}, Blocking::Yes);
 
@@ -120,10 +144,13 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
         ASSERT_FALSE(socket.isConnected());
     })
     .run();
+	std::cerr << "notValidOnMinusOne DONE\n";
 }
 
 TEST(ConnectionSocketTest, getSocketIdWorks)
 {
+	X2	mark;
+	std::cerr << "getSocketIdWorks\n";
     MockAllDefaultFunctions       defaultMockedFunctions;
     SocketClient                  socket(*reinterpret_cast<SocketServer*>(32), {12}, Blocking::Yes);
 
@@ -132,10 +159,13 @@ TEST(ConnectionSocketTest, getSocketIdWorks)
         ASSERT_EQ(socket.socketId(Mode::Write), 12);
     })
     .run();
+	std::cerr << "getSocketIdWorks DONE\n";
 }
 
 TEST(ConnectionSocketTest, Close)
 {
+	X2	mark;
+	std::cerr << "Close\n";
     MockAllDefaultFunctions       defaultMockedFunctions;
     SocketClient                socket({"github.com",80}, Blocking::No);
 
@@ -145,10 +175,13 @@ TEST(ConnectionSocketTest, Close)
     })
     .expectCallTA(thorCloseSocket).toReturn(0)
     .run();
+	std::cerr << "Close DONE\n";
 }
 
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 {
+	X2	mark;
+	std::cerr << "ReadFDSameAsSocketId\n";
 #ifdef __WINNT__
     // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
     // So these tests have no meaning.
@@ -162,10 +195,13 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
     })
     .run();
 #endif
+	std::cerr << "ReadFDSameAsSocketId DONE\n";
 }
 
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 {
+	X2	mark;
+	std::cerr << "WriteFDSameAsSocketId\n";
 #ifdef __WINNT__
     // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
     // So these tests have no meaning.
@@ -179,20 +215,26 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
     })
     .run();
 #endif
+	std::cerr << "WriteFDSameAsSocketId DONE\n";
 }
 
 TEST(ConnectionSocketTest, SetNonBlockingFails)
 {
+	X2	mark;
+	std::cerr << "SetNonBlockingFails\n";
     TA_TestThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(thorSetSocketNonBlocking).inject().toReturn(-1)
     .run();
+	std::cerr << "SetNonBlockingFails DONE\n";
 }
 
 TEST(ConnectionSocketTest, ShutdownFails)
 {
+	X2	mark;
+	std::cerr << "ShutdownFails\n";
     TA_TestNoThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
         socket.tryFlushBuffer();
@@ -200,4 +242,5 @@ TEST(ConnectionSocketTest, ShutdownFails)
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(thorShutdownSocket).toReturn(0)
     .run();
+	std::cerr << "ShutdownFails DONE\n";
 }
