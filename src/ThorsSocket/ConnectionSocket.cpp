@@ -42,11 +42,16 @@ std::cerr << "SocketStandard::SocketStandard 3S\n";
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::createSocket()
 {
+    std::cerr << "Create Socket\n";
     // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-socket
+    std::cerr << "Create Socket 1\n";
     fd  = MOCK_FUNC(socket)(AF_INET, SOCK_STREAM, 0);
+    std::cerr << "Create Socket 2\n";
     if (fd == thorInvalidFD())
     {
+        std::cerr << "Create Socket 3\n";
         int saveErrno = thorGetSocketError();
+        std::cerr << "Create Socket 4\n";
         ThorsLogAndThrow(
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
             "createSocket",
@@ -54,7 +59,9 @@ void SocketStandard::createSocket()
             " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
             " msg >", getErrMsgSocket(saveErrno), "<"
         );
+        std::cerr << "Create Socket 5\n";
     }
+    std::cerr << "Create Socket DONE\n";
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
