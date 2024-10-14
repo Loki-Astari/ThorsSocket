@@ -16,31 +16,41 @@ extern TA_Object Socket_Blocking;
 extern TA_Object Socket_NonBlocking;
 }
 
-TEST(ConnectionSocketTest, Construct)
-{
-    TA_TestNoThrow([](){
-        SocketClient                 socket({"github.com",80}, Blocking::No);
-    })
-    .expectObjectTA(Socket_NonBlocking)
-    .run();
-}
-
-TEST(ConnectionSocketTest, SocketCallFails)
-{
-    TA_TestThrow([](){
-        SocketClient                socket({"github.com",80}, Blocking::No);
-    })
-    .expectObjectTA(Socket_NonBlocking)
-        .expectCallTA(socket).inject().toReturn(-1)
-    .run();
-}
-
 class X2
 {
 	public:
 		X2() 	{std::cerr << "Construct X2\n";}
 		~X2()	{std::cerr << "Destroy   X2\n";}
 };
+TEST(ConnectionSocketTest, Construct)
+{
+    X2  mark;
+    std::cerr << "Construct\n";
+    TA_TestNoThrow([](){
+        std::cerr << "Construct 1\n";
+        SocketClient                 socket({"github.com",80}, Blocking::No);
+        std::cerr << "Construct 2\n";
+    })
+    .expectObjectTA(Socket_NonBlocking)
+    .run();
+    std::cerr << "Construct DON\n";
+}
+
+TEST(ConnectionSocketTest, SocketCallFails)
+{
+    X2  mark;
+    std::cerr << "SocketCallFails\n";
+    TA_TestThrow([](){
+        std::cerr << "SocketCallFails 1\n";
+        SocketClient                socket({"github.com",80}, Blocking::No);
+        std::cerr << "SocketCallFails 2\n";
+    })
+    .expectObjectTA(Socket_NonBlocking)
+        .expectCallTA(socket).inject().toReturn(-1)
+    .run();
+    std::cerr << "SocketCallFails DONE\n";
+}
+
 TEST(ConnectionSocketTest, GetHostCallFails)
 {
 	X2	mark;
