@@ -8,25 +8,35 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStandard::SocketStandard(ServerInfo const& socketInfo, Blocking blocking)
     : fd(thorInvalidFD())
 {
+std::cerr << "SocketStandard::SocketStandard 1\n";
     createSocket();
+std::cerr << "SocketStandard::SocketStandard 1A\n";
     setUpServerSocket(socketInfo);
+std::cerr << "SocketStandard::SocketStandard 1B\n";
     setUpBlocking(blocking);
+std::cerr << "SocketStandard::SocketStandard 1C\n";
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStandard::SocketStandard(SocketInfo const& socketInfo, Blocking blocking)
     : fd(thorInvalidFD())
 {
+std::cerr << "SocketStandard::SocketStandard 2\n";
     createSocket();
+std::cerr << "SocketStandard::SocketStandard 2A\n";
     setUpClientSocket(socketInfo);
+std::cerr << "SocketStandard::SocketStandard 2B\n";
     setUpBlocking(blocking);
+std::cerr << "SocketStandard::SocketStandard 2C\n";
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStandard::SocketStandard(OpenSocketInfo const& socketInfo, Blocking blocking)
     : fd(socketInfo.fd)
 {
+std::cerr << "SocketStandard::SocketStandard 3\n";
     setUpBlocking(blocking);
+std::cerr << "SocketStandard::SocketStandard 3S\n";
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -198,16 +208,22 @@ int SocketStandard::getFD() const
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketClient::SocketClient(SocketInfo const& socketInfo, Blocking blocking)
     : socketInfo(socketInfo, blocking)
-{}
+{
+	std::cerr << "SocketClient::SocketClient 1\n";
+}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketClient::SocketClient(SocketServer&, OpenSocketInfo const& socketInfo, Blocking blocking)
     : socketInfo(socketInfo, blocking)
-{}
+{
+	std::cerr << "SocketClient::SocketClient 2\n";
+}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketClient::~SocketClient()
-{}
+{
+	std::cerr << "SocketClient::SocketClient DESTROY\n";
+}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 bool SocketClient::isConnected() const

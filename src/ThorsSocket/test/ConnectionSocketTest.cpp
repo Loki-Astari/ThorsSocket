@@ -51,11 +51,14 @@ TEST(ConnectionSocketTest, GetHostCallFails)
     // So can't force a retry.
     h_errno = NO_DATA;
 #endif
+	std::cerr << "GetHostCallFails 1\n";
     TA_TestThrow([](){
 #ifndef __WINNT__
         h_errno = HOST_NOT_FOUND; // TODO put inside function
 #endif
+		std::cerr << "GetHostCallFails 2\n";
         SocketClient                socket({"github.com",80}, Blocking::No);
+		std::cerr << "GetHostCallFails 3\n";
     })
     .expectObjectTA(Socket_NonBlocking)
         .expectCallTA(gethostbyname).inject().toReturn(nullptr)
