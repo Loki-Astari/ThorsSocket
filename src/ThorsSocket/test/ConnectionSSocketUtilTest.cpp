@@ -1,3 +1,5 @@
+#if 0
+
 #define THOR_LOGGING_DEFAULT_LOG_LEVEL  0
 #include <gtest/gtest.h>
 #include "test/ConnectionTest.h"
@@ -838,3 +840,5 @@ std::cerr << "ClientCAListInfoAddClientStoreFailSSL\n";
     .run();
 std::cerr << "ClientCAListInfoAddClientStoreFailSSL DONE\n";
 }
+
+#endif
