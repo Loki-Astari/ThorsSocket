@@ -2,6 +2,13 @@
 #include "test/ConnectionTest.h"
 #include "ConnectionSocket.h"
 
+#include <iostream>
+struct Mark
+{
+    Mark() {std::cerr << "Mark\n";}
+    ~Mark(){std::cerr << "Mark Done\n";}
+};
+
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::ConnectionType::SocketClient;
@@ -18,6 +25,7 @@ extern TA_Object Socket_NonBlocking;
 
 TEST(ConnectionSocketTest, Construct)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         SocketClient                 socket({"github.com",80}, Blocking::No);
     })
@@ -27,6 +35,7 @@ TEST(ConnectionSocketTest, Construct)
 
 TEST(ConnectionSocketTest, SocketCallFails)
 {
+    Mark  marker;
     TA_TestThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
@@ -37,6 +46,7 @@ TEST(ConnectionSocketTest, SocketCallFails)
 
 TEST(ConnectionSocketTest, GetHostCallFails)
 {
+    Mark  marker;
 #ifndef __WINNT__
     // Can't set h_errno (not a variable on windows)
     // So can't force a retry.
@@ -56,6 +66,7 @@ TEST(ConnectionSocketTest, GetHostCallFails)
 
 TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 {
+    Mark  marker;
 #ifdef  __WINNT__
     // Can't set h_errno (not a variable on windows)
     // So can't force a retry.
@@ -84,6 +95,7 @@ TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
 
 TEST(ConnectionSocketTest, ConnectCallFailes)
 {
+    Mark  marker;
     TA_TestThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
@@ -95,6 +107,7 @@ TEST(ConnectionSocketTest, ConnectCallFailes)
 
 TEST(ConnectionSocketTest, CreateNonBlocking)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::Yes);
     })
@@ -104,6 +117,7 @@ TEST(ConnectionSocketTest, CreateNonBlocking)
 
 TEST(ConnectionSocketTest, CreateBlocking)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
@@ -113,6 +127,7 @@ TEST(ConnectionSocketTest, CreateBlocking)
 
 TEST(ConnectionSocketTest, notValidOnMinusOne)
 {
+    Mark  marker;
     MockAllDefaultFunctions       defaultMockedFunctions;
     SocketClient                  socket(*reinterpret_cast<SocketServer*>(32), {THOR_SOCKET_ID(-1)}, Blocking::Yes);
 
@@ -124,6 +139,7 @@ TEST(ConnectionSocketTest, notValidOnMinusOne)
 
 TEST(ConnectionSocketTest, getSocketIdWorks)
 {
+    Mark  marker;
     MockAllDefaultFunctions       defaultMockedFunctions;
     SocketClient                  socket(*reinterpret_cast<SocketServer*>(32), {12}, Blocking::Yes);
 
@@ -136,6 +152,7 @@ TEST(ConnectionSocketTest, getSocketIdWorks)
 
 TEST(ConnectionSocketTest, Close)
 {
+    Mark  marker;
     MockAllDefaultFunctions       defaultMockedFunctions;
     SocketClient                socket({"github.com",80}, Blocking::No);
 
@@ -149,6 +166,7 @@ TEST(ConnectionSocketTest, Close)
 
 TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 {
+    Mark  marker;
 #ifdef __WINNT__
     // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
     // So these tests have no meaning.
@@ -166,6 +184,7 @@ TEST(ConnectionSocketTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 {
+    Mark  marker;
 #ifdef __WINNT__
     // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
     // So these tests have no meaning.
@@ -183,6 +202,7 @@ TEST(ConnectionSocketTest, WriteFDSameAsSocketId)
 
 TEST(ConnectionSocketTest, SetNonBlockingFails)
 {
+    Mark  marker;
     TA_TestThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
@@ -193,6 +213,7 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
 
 TEST(ConnectionSocketTest, ShutdownFails)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
         socket.tryFlushBuffer();

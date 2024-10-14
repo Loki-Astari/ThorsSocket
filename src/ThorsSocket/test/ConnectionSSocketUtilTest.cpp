@@ -3,6 +3,13 @@
 #include "test/ConnectionTest.h"
 #include "SecureSocketUtil.h"
 
+#include <iostream>
+struct Mark
+{
+    Mark() {std::cerr << "Mark\n";}
+    ~Mark(){std::cerr << "Mark Done\n";}
+};
+
 using ThorsAnvil::ThorsSocket::Protocol;
 using ThorsAnvil::ThorsSocket::ProtocolInfo;
 using ThorsAnvil::ThorsSocket::CipherInfo;
@@ -14,6 +21,7 @@ using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ProtocolInfo    protocol;
     })
@@ -22,6 +30,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoDefaultBuild)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoBuild)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
     })
@@ -30,6 +39,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoBuild)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -41,6 +51,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -52,6 +63,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -63,6 +75,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
@@ -74,6 +87,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSL)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
@@ -85,6 +99,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMinFailed)
 
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
         protocol.apply(reinterpret_cast<SSL*>(0x08));
@@ -96,6 +111,7 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetSSLMaxFailed)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         CipherInfo      cipherInfo;
         ASSERT_EQ(cipherInfo.cipherList, "ECDHE-ECDSA-AES128-GCM-SHA256"     ":"
@@ -115,6 +131,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstruct)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         CipherInfo      cipherInfo{"Value1", "Value2"};;
 
@@ -126,6 +143,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoConstructWithAlternativeValues)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
 {
+    Mark  marker;
     std::string input1 = "List1";
     std::string input2 = "Suite2";
 
@@ -140,6 +158,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
 {
+    Mark  marker;
     std::string input1 = "List1";
     std::string input2 = "Suite2";
 
@@ -154,6 +173,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -165,6 +185,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -177,6 +198,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
@@ -188,6 +210,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLListFail)
 
 TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CipherInfo      cipherInfo{"List1", "Suite2"};
         cipherInfo.apply(reinterpret_cast<SSL*>(0x08));
@@ -200,6 +223,7 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSLSuiteFail)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         CertificateInfo     ca("File1", "File2", [](int){return "password";});;
     })
@@ -208,6 +232,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstruct)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
 {
+    Mark  marker;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -225,6 +250,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
 {
+    Mark  marker;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -242,6 +268,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLDone)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CertificateInfo     ca("File1", "");
     })
@@ -250,6 +277,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CertificateInfo     ca("", "File2");
     })
@@ -258,6 +286,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoConstructionInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
 {
+    Mark  marker;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -274,6 +303,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
 {
+    Mark  marker;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -291,6 +321,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
 {
+    Mark  marker;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -309,6 +340,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
 {
+    Mark  marker;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -325,6 +357,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCert)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
 {
+    Mark  marker;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -342,6 +375,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidKey)
 
 TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 {
+    Mark  marker;
     std::string certFile = "certFile1";
     std::string keyFile  = "keyFile2";
 
@@ -360,6 +394,7 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -369,6 +404,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 {
+    Mark  marker;
     TA_TestNoThrow([&](){
         CertifcateAuthorityInfo     ca;
         ca.file.loadDefault = true;
@@ -380,6 +416,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.dir.loadDefault = true;
@@ -391,6 +428,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.store.loadDefault = true;
@@ -402,6 +440,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
 {
+    Mark  marker;
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
@@ -415,6 +454,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
 {
+    Mark  marker;
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
@@ -428,6 +468,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 {
+    Mark  marker;
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
@@ -442,6 +483,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.file.loadDefault = true;
@@ -454,6 +496,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.dir.loadDefault = true;
@@ -466,6 +509,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 {
+    Mark  marker;
     TA_TestThrow([](){
         CertifcateAuthorityInfo     ca;
         ca.store.loadDefault = true;
@@ -478,6 +522,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
 {
+    Mark  marker;
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
@@ -492,6 +537,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
 {
+    Mark  marker;
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
@@ -506,6 +552,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
 
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
 {
+    Mark  marker;
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
@@ -520,6 +567,7 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
@@ -529,6 +577,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.verifyClientCA = true;
@@ -540,6 +589,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.file.items.push_back("File 1");
@@ -553,6 +603,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.dir.items.push_back("File 1");
@@ -566,6 +617,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.store.items.push_back("File 1");
@@ -579,6 +631,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.verifyClientCA = true;
@@ -590,6 +643,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ClientCAListInfo  list;
         list.file.items.push_back("File 1");
@@ -604,6 +658,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ClientCAListInfo            list;
         list.dir.items.push_back("File 1");
@@ -618,6 +673,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ClientCAListInfo  list;
         list.store.items.push_back("File 1");
@@ -632,6 +688,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
         list.apply(reinterpret_cast<SSL*>(0x08));
@@ -641,6 +698,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.verifyClientCA = true;
@@ -652,6 +710,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.file.items.push_back("File 1");
@@ -665,6 +724,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.dir.items.push_back("File 1");
@@ -678,6 +738,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.store.items.push_back("File 1");
@@ -691,6 +752,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
         list.verifyClientCA = true;
@@ -702,6 +764,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ClientCAListInfo            list;
         list.file.items.push_back("File 1");
@@ -716,6 +779,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ClientCAListInfo            list;
         list.dir.items.push_back("File 1");
@@ -730,6 +794,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
 {
+    Mark  marker;
     TA_TestThrow([](){
         ClientCAListInfo            list;
         list.store.items.push_back("File 1");

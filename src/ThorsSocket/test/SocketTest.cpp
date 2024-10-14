@@ -2,6 +2,13 @@
 #include "Socket.h"
 #include "Connection.h"
 
+#include <iostream>
+struct Mark
+{
+    Mark() {std::cerr << "Mark\n";}
+    ~Mark(){std::cerr << "Mark Done\n";}
+};
+
 using ThorsAnvil::ThorsSocket::ConnectionClient;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
@@ -102,11 +109,13 @@ class TestConnection: public ConnectionClient
 
 TEST(SocketTest, SocketBuilderBuild)
 {
+    Mark  marker;
     Socket                      socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}, [](){return false;}, [](){return false;}};
 }
 
 TEST(SocketTest, SocketConstruct)
 {
+    Mark  marker;
     int yieldRCount = 0;
     int yieldWCount = 0;
 
@@ -129,6 +138,7 @@ TEST(SocketTest, SocketConstruct)
 }
 TEST(SocketTest, SocketConstructFaild)
 {
+    Mark  marker;
     auto action = [](){Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{false}};};
     ASSERT_NO_THROW(
         action();
@@ -136,6 +146,7 @@ TEST(SocketTest, SocketConstructFaild)
 }
 TEST(SocketTest, SocketConstructMove)
 {
+    Mark  marker;
     int yieldRCount = 0;
     int yieldWCount = 0;
 
@@ -167,6 +178,7 @@ TEST(SocketTest, SocketConstructMove)
 }
 TEST(SocketTest, SocketAssignMove)
 {
+    Mark  marker;
     int yieldRCount = 0;
     int yieldWCount = 0;
 
@@ -194,6 +206,7 @@ TEST(SocketTest, SocketAssignMove)
 }
 TEST(SocketTest, SocketSwap)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 21}};
     Socket move{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 22}};
 
@@ -207,6 +220,7 @@ TEST(SocketTest, SocketSwap)
 }
 TEST(SocketTest, SocketSwapUsingFunction)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 21}};
     Socket move{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 22}};
 
@@ -220,6 +234,7 @@ TEST(SocketTest, SocketSwapUsingFunction)
 }
 TEST(SocketTest, SocketCheckIdThrowsWhenNotConnected)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13}};
 
     ASSERT_EQ(socket.socketId(Mode::Read), 13);
@@ -235,6 +250,7 @@ TEST(SocketTest, SocketCheckIdThrowsWhenNotConnected)
 
 TEST(SocketTest, SocketReadOK)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13}};
 
     char buffer[12];
@@ -245,6 +261,7 @@ TEST(SocketTest, SocketReadOK)
 }
 TEST(SocketTest, SocketReadCriticalBug)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{static_cast<std::size_t>(-1), true, false}}};
 
     auto action = [&socket]() {
@@ -259,6 +276,7 @@ TEST(SocketTest, SocketReadCriticalBug)
 }
 TEST(SocketTest, SocketReadInterupt)
 {
+    Mark  marker;
     int readCount   = 0;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{0, true, false}, &readCount}};
 
@@ -271,6 +289,7 @@ TEST(SocketTest, SocketReadInterupt)
 }
 TEST(SocketTest, SocketReadConnectionClosed)
 {
+    Mark  marker;
     int readCount   = 0;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, false, false}, IOData{0, true, false}, &readCount}};
 
@@ -283,6 +302,7 @@ TEST(SocketTest, SocketReadConnectionClosed)
 }
 TEST(SocketTest, SocketReadUnknown)
 {
+    Mark  marker;
     int readCount   = 0;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{static_cast<std::size_t>(-2), true, false}, IOData{0, true, false}, &readCount}};
 
@@ -299,6 +319,7 @@ TEST(SocketTest, SocketReadUnknown)
 
 TEST(SocketTest, SocketWriteOK)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13}};
 
     char buffer[12];
@@ -309,6 +330,7 @@ TEST(SocketTest, SocketWriteOK)
 }
 TEST(SocketTest, SocketWriteCriticalBug)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{static_cast<std::size_t>(-1), true, false}}};
 
     auto action = [&socket]() {
@@ -323,6 +345,7 @@ TEST(SocketTest, SocketWriteCriticalBug)
 }
 TEST(SocketTest, SocketWriteInterupt)
 {
+    Mark  marker;
     int writeCount   = 0;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{0, true, false}, nullptr, &writeCount}};
 
@@ -335,6 +358,7 @@ TEST(SocketTest, SocketWriteInterupt)
 }
 TEST(SocketTest, SocketWriteConnectionClosed)
 {
+    Mark  marker;
     int writeCount   = 0;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{0, false, false}, nullptr, &writeCount}};
 
@@ -347,6 +371,7 @@ TEST(SocketTest, SocketWriteConnectionClosed)
 }
 TEST(SocketTest, SocketWriteUnknown)
 {
+    Mark  marker;
     int writeCount   = 0;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{true, 13, IOData{0, true, false}, IOData{static_cast<std::size_t>(-2), true, false}, nullptr, &writeCount}};
 
@@ -363,12 +388,14 @@ TEST(SocketTest, SocketWriteUnknown)
 
 TEST(SocketTest, CloseNormalSocket)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
 
     socket.close();
 }
 TEST(SocketTest, CloseNotConnectedSocket)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
     Socket move = std::move(socket);
 
@@ -383,12 +410,14 @@ TEST(SocketTest, CloseNotConnectedSocket)
 }
 TEST(SocketTest, TryFlushNormal)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
 
     socket.tryFlushBuffer();
 }
 TEST(SocketTest, TryFlushNotConnectedSocket)
 {
+    Mark  marker;
     Socket socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
     Socket move = std::move(socket);
 

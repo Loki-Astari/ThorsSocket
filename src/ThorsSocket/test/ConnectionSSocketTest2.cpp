@@ -2,6 +2,13 @@
 #include "test/ConnectionTest.h"
 #include "ConnectionSSocket.h"
 
+#include <iostream>
+struct Mark
+{
+    Mark() {std::cerr << "Mark\n";}
+    ~Mark(){std::cerr << "Mark Done\n";}
+};
+
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::SSLctx;
@@ -23,6 +30,7 @@ extern TA_Object   Socket_NonBlocking;
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 {
+    Mark  marker;
     TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocketClient       socket({"github.com", 443, ctx}, Blocking::No);
@@ -36,6 +44,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 {
+    Mark  marker;
     TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocketClient       socket({"github.com", 443, ctx}, Blocking::No);
@@ -50,6 +59,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 
 TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 {
+    Mark  marker;
     TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocketClient       socket({"github.com", 443, ctx}, Blocking::No);
@@ -64,6 +74,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 
 TEST(ConnectionSSocketTest, getSocketIdWorks)
 {
+    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
@@ -76,6 +87,7 @@ TEST(ConnectionSSocketTest, getSocketIdWorks)
 
 TEST(ConnectionSSocketTest, Close)
 {
+    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
@@ -92,6 +104,7 @@ TEST(ConnectionSSocketTest, Close)
 
 TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 {
+    Mark  marker;
 #ifdef __WINNT__
     // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
     // So these tests have no meaning.
@@ -110,6 +123,7 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 {
+    Mark  marker;
 #ifdef __WINNT__
     // On Windows ConnectionSocket inherits from Connection (not ConnectionFileDescriptor)
     // So these tests have no meaning.

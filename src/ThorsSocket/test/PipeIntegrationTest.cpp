@@ -4,6 +4,13 @@
 
 #include <thread>
 
+#include <iostream>
+struct Mark
+{
+    Mark() {std::cerr << "Mark\n";}
+    ~Mark(){std::cerr << "Mark Done\n";}
+};
+
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
@@ -27,6 +34,7 @@ class PipeServerStart
 
 TEST(PipeIntegrationTest, ConnectToPipe)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -40,6 +48,7 @@ TEST(PipeIntegrationTest, ConnectToPipe)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -64,6 +73,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -93,6 +103,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -132,6 +143,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -158,6 +170,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -229,6 +242,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif

@@ -2,6 +2,13 @@
 #include "test/ConnectionTest.h"
 #include "ConnectionSSocket.h"
 
+#include <iostream>
+struct Mark
+{
+    Mark() {std::cerr << "Mark\n";}
+    ~Mark(){std::cerr << "Mark Done\n";}
+};
+
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::SSLctx;
@@ -14,6 +21,7 @@ using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 
 TEST(ConnectionSSocketTestPart2, Read_OK)
 {
+    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
@@ -33,6 +41,7 @@ TEST(ConnectionSSocketTestPart2, Read_OK)
 
 TEST(ConnectionSSocketTestPart2, Write_OK)
 {
+    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
     SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);

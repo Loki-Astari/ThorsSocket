@@ -3,6 +3,13 @@
 #include "ConnectionSSocket.h"
 #include "Socket.h"
 
+#include <iostream>
+struct Mark
+{
+    Mark() {std::cerr << "Mark\n";}
+    ~Mark(){std::cerr << "Mark Done\n";}
+};
+
 #define CERT_FILE       "test/data/server/server.crt"
 #define KEY_FILE        "test/data/server/server.key"
 #define KEY_PASSWD      "TheLongDarkNight"
@@ -26,6 +33,7 @@ namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SSocketIntegrationTest, ConnectToServer)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -56,6 +64,7 @@ TEST(SSocketIntegrationTest, ConnectToServer)
 
 TEST(SSocketIntegrationTest, ConnectToServerLocal)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -86,6 +95,7 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
 
 TEST(SSocketIntegrationTest, ConnectToSSocket)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -110,6 +120,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -141,6 +152,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -178,6 +190,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockingRead)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -218,6 +231,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -251,6 +265,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -317,6 +332,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
 {
+    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif

@@ -1,6 +1,13 @@
 #include <gtest/gtest.h>
 #include "ConnectionPipe.h"
 
+#include <iostream>
+struct Mark
+{
+    Mark() {std::cerr << "Mark\n";}
+    ~Mark(){std::cerr << "Mark Done\n";}
+};
+
 using ThorsAnvil::ThorsSocket::ConnectionType::Pipe;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
@@ -21,6 +28,7 @@ TA_Object   Pipe(
 
 TEST(ConnectionPipeTest, Construct)
 {
+    Mark  marker;
     TA_TestNoThrow([](){
         Pipe                        pipe({}, Blocking::No);
     })
@@ -30,6 +38,7 @@ TEST(ConnectionPipeTest, Construct)
 
 TEST(ConnectionPipeTest, ConstructPipeFail)
 {
+    Mark  marker;
     TA_TestThrow([](){
         Pipe                        pipe({},Blocking::No);
     })
@@ -40,6 +49,7 @@ TEST(ConnectionPipeTest, ConstructPipeFail)
 
 TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailFirst)
 {
+    Mark  marker;
     TA_TestThrow([](){
         Pipe                        pipe({},Blocking::No);
     })
@@ -52,6 +62,7 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailFirst)
 
 TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailSecond)
 {
+    Mark  marker;
     TA_TestThrow([](){
         Pipe                        pipe({},Blocking::No);
     })
@@ -65,6 +76,7 @@ TEST(ConnectionPipeTest, ConstructPipeNonBlockingFailSecond)
 
 TEST(ConnectionPipeTest, notValidOnMinusOne)
 {
+    Mark  marker;
     MockAllDefaultFunctions     defaultMockedFunctions;
     int                         fd[] = {-1, -1};
     Pipe                        pipe(fd);
@@ -77,6 +89,7 @@ TEST(ConnectionPipeTest, notValidOnMinusOne)
 
 TEST(ConnectionPipeTest, getSocketIdWorks)
 {
+    Mark  marker;
     MockAllDefaultFunctions     defaultMockedFunctions;
     int                         fd[] = {12, 13};
     Pipe                        pipe(fd);
@@ -90,6 +103,7 @@ TEST(ConnectionPipeTest, getSocketIdWorks)
 
 TEST(ConnectionPipeTest, Close)
 {
+    Mark  marker;
 #ifdef __WINNT__
     // Windows does not support non blocking pipes
     // So this test will fail.
@@ -110,6 +124,7 @@ TEST(ConnectionPipeTest, Close)
 
 TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
 {
+    Mark  marker;
     MockAllDefaultFunctions     defaultMockedFunctions;
     int                         fd[] = {33, 34};
     Pipe                        pipe(fd);
@@ -122,6 +137,7 @@ TEST(ConnectionPipeTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
 {
+    Mark  marker;
     MockAllDefaultFunctions     defaultMockedFunctions;
     int                         fd[] = {33, 34};
     Pipe                        pipe(fd);
