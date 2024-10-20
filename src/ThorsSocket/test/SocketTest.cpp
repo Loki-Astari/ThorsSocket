@@ -63,14 +63,14 @@ class TestConnection: public ConnectionClient
             , readCount(info.readCount)
             , writeCount(info.writeCount)
         {}
-        virtual bool isConnected()                          const   {return valid;}
-        virtual int  socketId(Mode)                         const   {return id;}
-        virtual void close()                                        {}
-        virtual void tryFlushBuffer()                               {}
-        virtual void release()                                      {}
+        virtual bool isConnected()                          const   override {return valid;}
+        virtual int  socketId(Mode)                         const   override {return id;}
+        virtual void close()                                        override {}
+        virtual void tryFlushBuffer()                               override {}
+        virtual void release()                                      override {}
         virtual std::string_view protocol() const override {return "test";}
 
-        virtual IOData readFromStream(char* /*buffer*/, std::size_t size)
+        virtual IOData readFromStream(char* /*buffer*/, std::size_t size)override 
         {
             if (readCount) {
                 ++(*readCount);
@@ -87,7 +87,7 @@ class TestConnection: public ConnectionClient
             }
             return {size, true, false};
         }
-        virtual IOData writeToStream(char const* /*buffer*/, std::size_t size)
+        virtual IOData writeToStream(char const* /*buffer*/, std::size_t size)override 
         {
             if (writeCount) {
                 ++(*writeCount);
