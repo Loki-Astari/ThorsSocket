@@ -222,3 +222,11 @@ TEST(ConnectionSocketTest, ShutdownFails)
         .expectCallTA(thorShutdownSocket).toReturn(0)
     .run();
 }
+
+TEST(ConnectionSocketTest, Protocol)
+{
+    SocketClient                socket({"github.com",80}, Blocking::No);
+    EXPECT_EQ("http", socket.protocol());
+}
+    
+

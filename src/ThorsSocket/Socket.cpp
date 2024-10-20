@@ -15,38 +15,38 @@ Socket::Socket()
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(std::unique_ptr<ConnectionClient>&& connection, YieldFunc&& readYield, YieldFunc&& writeYield)
+Socket::Socket(std::unique_ptr<ConnectionClient>&& connection)
     : connection(std::move(connection))
-    , readYield(std::move(readYield))
-    , writeYield(std::move(writeYield))
+    , readYield([](){return false;})
+    , writeYield([](){return false;})
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(FileInfo const& fileInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+Socket::Socket(FileInfo const& fileInfo, Blocking blocking)
     : connection(std::make_unique<ConnectionType::SimpleFile>(fileInfo, blocking))
-    , readYield(std::move(readYield))
-    , writeYield(std::move(writeYield))
+    , readYield([](){return false;})
+    , writeYield([](){return false;})
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(PipeInfo const& pipeInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+Socket::Socket(PipeInfo const& pipeInfo, Blocking blocking)
     : connection(std::make_unique<ConnectionType::Pipe>(pipeInfo, blocking))
-    , readYield(std::move(readYield))
-    , writeYield(std::move(writeYield))
+    , readYield([](){return false;})
+    , writeYield([](){return false;})
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(SocketInfo const& socketInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+Socket::Socket(SocketInfo const& socketInfo, Blocking blocking)
     : connection(std::make_unique<ConnectionType::SocketClient>(socketInfo, blocking))
-    , readYield(std::move(readYield))
-    , writeYield(std::move(writeYield))
+    , readYield([](){return false;})
+    , writeYield([](){return false;})
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(SSocketInfo const& ssocketInfo, Blocking blocking, YieldFunc&& readYield, YieldFunc&& writeYield)
+Socket::Socket(SSocketInfo const& ssocketInfo, Blocking blocking)
     : connection(std::make_unique<ConnectionType::SSocketClient>(ssocketInfo, blocking))
-    , readYield(std::move(readYield))
-    , writeYield(std::move(writeYield))
+    , readYield([](){return false;})
+    , writeYield([](){return false;})
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -240,4 +240,10 @@ void Socket::externalyClosed()
     if (connection.get() != nullptr) {
         connection->externalyClosed();
     }
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+std::string_view Socket::protocol()
+{
+    return connection->protocol();
 }

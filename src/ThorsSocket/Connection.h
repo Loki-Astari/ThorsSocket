@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <string_view>
 
 namespace ThorsAnvil::ThorsSocket
 {
@@ -31,12 +32,13 @@ class ConnectionClient: public ConnectionBase
         virtual void   tryFlushBuffer()                                     = 0;
         virtual IOData readFromStream(char* buffer, std::size_t size)       = 0;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  = 0;
+        virtual std::string_view protocol() const                           = 0;
 };
 
 class ConnectionServer: public ConnectionBase
 {
     public:
-        virtual std::unique_ptr<ConnectionClient> accept(Blocking blocking = Blocking::Yes, AcceptFunc&& accept = [](){}) = 0;
+        virtual std::unique_ptr<ConnectionClient> accept(YieldFunc& yield, Blocking blocking = Blocking::Yes) = 0;
 };
 
 }

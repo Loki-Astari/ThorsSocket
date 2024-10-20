@@ -147,3 +147,11 @@ TEST(ConnectionPipeTest, WriteFDSameAsSocketId)
     })
     .run();
 }
+
+TEST(ConnectionPipeTest, Protocol)
+{
+    int                         fd[] = {33, 34};
+    Pipe                        pipe(fd);
+    EXPECT_EQ("pipe", pipe.protocol());
+}
+    

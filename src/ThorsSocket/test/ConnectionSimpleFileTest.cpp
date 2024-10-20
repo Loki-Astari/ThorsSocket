@@ -108,4 +108,9 @@ TEST(ConnectionFileTest, WriteFDSameAsSocketId)
     })
     .run();
 }
-#endif
+
+TEST(ConnectionFileTest, Protocol)
+{
+    SimpleFile                  file(34);
+    EXPECT_EQ("file", file.protocol());
+}

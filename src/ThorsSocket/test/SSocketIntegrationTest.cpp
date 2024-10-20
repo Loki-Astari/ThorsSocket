@@ -216,8 +216,8 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                 };
-    Socket              socket{{"127.0.0.1", 8092, ctxClient}, Blocking::No,
-                                    [&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);return true;}};
+    Socket              socket{{"127.0.0.1", 8092, ctxClient}, Blocking::No};
+    socket.setReadYield([&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);return true;});
 
     std::string reply;
     reply.resize(message.size());
@@ -306,15 +306,14 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{{"127.0.0.1", 8092, ctxClient}, Blocking::No,
-                                    [](){return false;},
-                                    [&mutex, &cond, &finished]()
-                                    {
-                                        std::unique_lock<std::mutex> lock(mutex);
-                                        finished = true;
-                                        cond.notify_all();
-                                        return true;
-                                    }};
+    Socket              socket{{"127.0.0.1", 8092, ctxClient}, Blocking::No};
+    socket.setWriteYield([&mutex, &cond, &finished]()
+                         {
+                            std::unique_lock<std::mutex> lock(mutex);
+                            finished = true;
+                            cond.notify_all();
+                            return true;
+                         });
 
     std::size_t readFromServer = 0;
 

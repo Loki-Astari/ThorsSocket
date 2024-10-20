@@ -57,6 +57,7 @@ class SocketClient: public ConnectionType::FileDescriptor
         virtual void release()                                      override;
 
         virtual void tryFlushBuffer()                               override;
+        virtual std::string_view protocol() const override {return "http";}
 #ifdef __WINNT__
         virtual IOData readFromStream(char* buffer, std::size_t size)       override;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  override;
@@ -78,9 +79,11 @@ class SocketServer: public ConnectionServer
         virtual void close()                                        override;
         virtual void release()                                      override;
 
-        virtual std::unique_ptr<ConnectionClient> accept(Blocking blocking, AcceptFunc&& accept = [](){})          override;
+        virtual std::unique_ptr<ConnectionClient> accept(YieldFunc& yield, Blocking blocking)          override;
     protected:
-        int acceptSocket(AcceptFunc&& accept);
+        int  acceptSocket(YieldFunc& yield);
+        void waitForFileDescriptor(int fd);
+        bool wouldBlock(int errorCode);
 };
 
 }
