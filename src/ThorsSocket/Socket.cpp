@@ -241,3 +241,9 @@ void Socket::externalyClosed()
         connection->externalyClosed();
     }
 }
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+std::string_view Socket::protocol()
+{
+    return connection->protocol();
+}

@@ -179,3 +179,11 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
     .run();
 }
 
+TEST(ConnectionSSocketTest, Protocol)
+{
+    SSLctx              ctx{SSLMethodType::Client};
+    SSocketClient       socket({"github.com",443 , ctx}, Blocking::Yes);
+    EXPECT_EQ("https", socket.protocol());
+}
+    
+

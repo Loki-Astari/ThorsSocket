@@ -68,6 +68,7 @@ class TestConnection: public ConnectionClient
         virtual void close()                                        {}
         virtual void tryFlushBuffer()                               {}
         virtual void release()                                      {}
+        virtual std::string_view protocol() const override {return "test";}
 
         virtual IOData readFromStream(char* /*buffer*/, std::size_t size)
         {
