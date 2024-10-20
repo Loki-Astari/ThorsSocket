@@ -2,11 +2,6 @@
 #include "ConnectionSimpleFile.h"
 
 #include <iostream>
-struct Mark
-{
-    Mark() {std::cerr << "Mark\n";}
-    ~Mark(){std::cerr << "Mark Done\n";}
-};
 
 using ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
 using ThorsAnvil::ThorsSocket::Open;
@@ -28,7 +23,6 @@ TA_Object   File(
 
 TEST(ConnectionFileTest, Construct)
 {
-    Mark  marker;
     TA_TestNoThrow([](){
         SimpleFile                        file({"TestFile", Open::Append}, Blocking::No);
     })
@@ -38,7 +32,6 @@ TEST(ConnectionFileTest, Construct)
 
 TEST(ConnectionFileTest, ConstructOpenFail)
 {
-    Mark  marker;
     TA_TestThrow([](){
         SimpleFile                        file({"TestFile", Open::Append}, Blocking::No);
     })
@@ -49,7 +42,6 @@ TEST(ConnectionFileTest, ConstructOpenFail)
 
 TEST(ConnectionFileTest, notValidOnMinusOne)
 {
-    Mark  marker;
     TA_TestNoThrow([](){
         SimpleFile                        file(-1);
         ASSERT_FALSE(file.isConnected());
@@ -59,7 +51,6 @@ TEST(ConnectionFileTest, notValidOnMinusOne)
 
 TEST(ConnectionFileTest, getSocketIdWorks)
 {
-    Mark  marker;
     MockAllDefaultFunctions     defaultMockedFunctions;
     SimpleFile                  file(12);
 
@@ -72,7 +63,6 @@ TEST(ConnectionFileTest, getSocketIdWorks)
 
 TEST(ConnectionFileTest, Close)
 {
-    Mark  marker;
     MockAllDefaultFunctions     defaultMockedFunctions;
     SimpleFile                  file({"TestFile", Open::Append}, Blocking::No);
 
@@ -86,7 +76,6 @@ TEST(ConnectionFileTest, Close)
 
 TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 {
-    Mark  marker;
     MockAllDefaultFunctions     defaultMockedFunctions;
     SimpleFile                  file(33);
 
@@ -98,7 +87,6 @@ TEST(ConnectionFileTest, ReadFDSameAsSocketId)
 
 TEST(ConnectionFileTest, WriteFDSameAsSocketId)
 {
-    Mark  marker;
     MockAllDefaultFunctions     defaultMockedFunctions;
     SimpleFile                  file(34);
 

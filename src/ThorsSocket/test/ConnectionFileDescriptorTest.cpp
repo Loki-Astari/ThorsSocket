@@ -3,11 +3,6 @@
 #include "ConnectionSimpleFile.h"
 
 #include <iostream>
-struct Mark
-{
-    Mark() {std::cerr << "Mark\n";}
-    ~Mark(){std::cerr << "Mark Done\n";}
-};
 
 using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
@@ -21,7 +16,6 @@ using ThorsAnvil::Logging::LogicalException;
 template<typename Exception>
 void testSocketReadFailure(int error)
 {
-    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
@@ -35,7 +29,6 @@ void testSocketReadFailure(int error)
 }
 void testSocketReadReturnError(int error, IOData expected)
 {
-    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
@@ -55,7 +48,6 @@ void testSocketReadReturnError(int error, IOData expected)
 template<typename Exception>
 void testSocketWriteFailure(int error)
 {
-    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
@@ -70,7 +62,6 @@ void testSocketWriteFailure(int error)
 
 void testSocketWriteReturnError(int error, IOData expected)
 {
-    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
@@ -89,7 +80,6 @@ void testSocketWriteReturnError(int error, IOData expected)
 
 TEST(ConnectionFileDescriptorTest, ReadOK)
 {
-    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 
@@ -107,7 +97,6 @@ TEST(ConnectionFileDescriptorTest, ReadOK)
 
 TEST(ConnectionFileDescriptorTest, WriteOK)
 {
-    Mark  marker;
     MockAllDefaultFunctions defaultMockedFunctions;
     FileDescriptorProxy     file(12);
 

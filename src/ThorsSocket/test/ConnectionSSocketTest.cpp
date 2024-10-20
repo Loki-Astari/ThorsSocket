@@ -1,13 +1,9 @@
 #include <gtest/gtest.h>
 #include "test/ConnectionTest.h"
 #include "ConnectionSSocket.h"
+#include "SimpleServer.h"
 
 #include <iostream>
-struct Mark
-{
-    Mark() {std::cerr << "Mark\n";}
-    ~Mark(){std::cerr << "Mark Done\n";}
-};
 
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
@@ -129,7 +125,6 @@ TA_Object   Socket_NonBlocking(
 
 TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
-    Mark  marker;
     TA_TestNoThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocketClient       socket({"github.com",443 , ctx}, Blocking::Yes);
@@ -142,7 +137,6 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 
 TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 {
-    Mark  marker;
     TA_TestNoThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
         SSocketClient       socket({"github.com",443 , ctx}, Blocking::Yes);
@@ -159,7 +153,6 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 
 TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 {
-    Mark  marker;
     TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
     })
@@ -170,7 +163,6 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_client_methodFailed)
 
 TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 {
-    Mark  marker;
     TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
     })
@@ -181,6 +173,8 @@ TEST(ConnectionSSocketTest, CreateSSLCTX_SSL_TX_newFailed)
 
 TEST(ConnectionSSocketTest, Protocol)
 {
+    SocketSetUp         setup;
+
     SSLctx              ctx{SSLMethodType::Client};
     SSocketClient       socket({"github.com",443 , ctx}, Blocking::Yes);
     EXPECT_EQ("https", socket.protocol());

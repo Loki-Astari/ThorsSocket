@@ -4,11 +4,6 @@
 #include <thread>
 
 #include <iostream>
-struct Mark
-{
-    Mark() {std::cerr << "Mark\n";}
-    ~Mark(){std::cerr << "Mark Done\n";}
-};
 
 using ThorsAnvil::ThorsSocket::Server;
 using ThorsAnvil::ThorsSocket::Socket;
@@ -48,7 +43,6 @@ class SocketSetUp
 
 TEST(ServerTest, ServerCreate)
 {
-    Mark  marker;
     SocketSetUp     setup;
 
     srand(time(nullptr));
@@ -58,7 +52,6 @@ TEST(ServerTest, ServerCreate)
 
 TEST(ServerTest, serverAcceptConnection)
 {
-    Mark  marker;
     SocketSetUp     setup;
     int port = 8080 + rand() * 200;
 
@@ -107,7 +100,6 @@ using ThorsAnvil::ThorsSocket::SServerInfo;
 
 TEST(ServerTest, SecureServerCreate)
 {
-    Mark  marker;
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     SSLctx          ctx{SSLMethodType::Server};
@@ -116,7 +108,6 @@ TEST(ServerTest, SecureServerCreate)
 
 TEST(ServerTest, SecureserverAcceptConnection)
 {
-    Mark  marker;
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     CertificateInfo certificate{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}};
@@ -164,7 +155,6 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
 TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 {
-    Mark  marker;
     GTEST_SKIP();
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;

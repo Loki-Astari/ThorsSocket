@@ -6,11 +6,6 @@
 #include <fstream>
 
 #include <iostream>
-struct Mark
-{
-    Mark() {std::cerr << "Mark\n";}
-    ~Mark(){std::cerr << "Mark Done\n";}
-};
 
 using ThorsAnvil::ThorsSocket::SocketStream;
 using ThorsAnvil::ThorsSocket::SocketStreamBuffer;
@@ -20,7 +15,6 @@ using ThorsAnvil::ThorsSocket::PipeInfo;
 
 TEST(SocketStreamTest, ReadNormal)
 {
-    Mark  marker;
     SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
     char data[16];
@@ -31,7 +25,6 @@ TEST(SocketStreamTest, ReadNormal)
 }
 TEST(SocketStreamTest, ReadNormalInTwoChunks)
 {
-    Mark  marker;
     SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
     char data[16];
@@ -44,7 +37,6 @@ TEST(SocketStreamTest, ReadNormalInTwoChunks)
 }
 TEST(SocketStreamTest, ReadNormalButHugeChunk)
 {
-    Mark  marker;
     SocketStream  stream({"test/data/SocketStreamTest-ReadLarge", Open::Append});
 
     std::vector<char>   data(8000);
@@ -53,7 +45,6 @@ TEST(SocketStreamTest, ReadNormalButHugeChunk)
 }
 TEST(SocketStreamTest, MoveASocketStream)
 {
-    Mark  marker;
     SocketStream  streamOriginal({"test/data/SocketStreamTest-ReadNormal", Open::Append});
     SocketStream  stream(std::move(streamOriginal));
 
@@ -64,7 +55,6 @@ TEST(SocketStreamTest, MoveASocketStream)
 }
 TEST(SocketStreamTest, ReadFromSlowStreamToGetEAGAIN)
 {
-    Mark  marker;
 #ifdef  __WINNT__
     GTEST_SKIP() << "Windows does not support nonblocking pipes";
 #else
@@ -91,7 +81,6 @@ TEST(SocketStreamTest, ReadFromSlowStreamToGetEAGAIN)
 }
 TEST(SocketStreamTest, ReadPastEOF)
 {
-    Mark  marker;
     SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
     char data[16];
@@ -103,7 +92,6 @@ TEST(SocketStreamTest, ReadPastEOF)
 
 TEST(SocketStreamTest, ReadFail)
 {
-    Mark  marker;
     SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
     ::close(stream.getSocket().socketId(Mode::Read));
 
@@ -113,7 +101,6 @@ TEST(SocketStreamTest, ReadFail)
 }
 TEST(SocketStreamTest, WriteNormal)
 {
-    Mark  marker;
     {
         SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", Open::Truncate});
 
@@ -130,7 +117,6 @@ TEST(SocketStreamTest, WriteNormal)
 }
 TEST(SocketStreamTest, WriteNormalMutipleTimes)
 {
-    Mark  marker;
     {
         SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", Open::Truncate});
 
@@ -148,7 +134,6 @@ TEST(SocketStreamTest, WriteNormalMutipleTimes)
 }
 TEST(SocketStreamTest, WriteNormalWithMove)
 {
-    Mark  marker;
     {
         SocketStream  streamOriginal({"test/data/SocketStreamTest-WriteNormal", Open::Truncate});
         SocketStream  stream(std::move(streamOriginal));
@@ -166,7 +151,6 @@ TEST(SocketStreamTest, WriteNormalWithMove)
 }
 TEST(SocketStreamTest, WriteLarge)
 {
-    Mark  marker;
     SocketStream  stream({"test/data/SocketStreamTest-WriteLarge", Open::Truncate});
 
     std::vector<char> data(8000);
@@ -175,7 +159,6 @@ TEST(SocketStreamTest, WriteLarge)
 }
 TEST(SocketStreamTest, WriteFail)
 {
-    Mark  marker;
     SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", Open::Truncate});
     ::close(stream.getSocket().socketId(Mode::Read));
 
@@ -185,7 +168,6 @@ TEST(SocketStreamTest, WriteFail)
 }
 TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
 {
-    Mark  marker;
 #ifdef  __WINNT__
     GTEST_SKIP() << "Windows does not support nonblocking pipes";
 #else
@@ -256,21 +238,18 @@ TEST(SocketStreamTest, WriteToSlowStreamToGetEAGAIN)
 
 TEST(SocketStreamTest, SockeStreamBufDefault)
 {
-    Mark  marker;
     SocketStreamBuffer  buffer;
     EXPECT_FALSE(buffer.getSocket().isConnected());
 }
 
 TEST(SocketStreamTest, SockeStreamDefault)
 {
-    Mark  marker;
     SocketStream        stream;
     EXPECT_FALSE(stream.getSocket().isConnected());
 }
 
 TEST(SocketStreamTest, SockeStreamBufMove)
 {
-    Mark  marker;
     SocketStreamBuffer  dst;
     SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
@@ -283,7 +262,6 @@ TEST(SocketStreamTest, SockeStreamBufMove)
 
 TEST(SocketStreamTest, SockeStreamBufMoveConstruct)
 {
-    Mark  marker;
     SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
     EXPECT_TRUE(src.getSocket().isConnected());
@@ -295,7 +273,6 @@ TEST(SocketStreamTest, SockeStreamBufMoveConstruct)
 
 TEST(SocketStreamTest, SockeStreamMove)
 {
-    Mark  marker;
     SocketStream        dst;
     SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
@@ -308,7 +285,6 @@ TEST(SocketStreamTest, SockeStreamMove)
 
 TEST(SocketStreamTest, SockeStreamMoveConstruct)
 {
-    Mark  marker;
     SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
     EXPECT_TRUE(src.getSocket().isConnected());
@@ -320,7 +296,6 @@ TEST(SocketStreamTest, SockeStreamMoveConstruct)
 
 TEST(SocketStreamTest, SockeStreamBufReadAfterMove)
 {
-    Mark  marker;
     SocketStreamBuffer  dst;
     SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
@@ -337,7 +312,6 @@ TEST(SocketStreamTest, SockeStreamBufReadAfterMove)
 
 TEST(SocketStreamTest, SockeStreamBufReadAfterMoveConstruct)
 {
-    Mark  marker;
     SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
     char buffer[5] = {0};
@@ -353,7 +327,6 @@ TEST(SocketStreamTest, SockeStreamBufReadAfterMoveConstruct)
 
 TEST(SocketStreamTest, SockeStreamReadAfterMove)
 {
-    Mark  marker;
     SocketStream        dst;
     SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
@@ -371,7 +344,6 @@ TEST(SocketStreamTest, SockeStreamReadAfterMove)
 
 TEST(SocketStreamTest, SockeStreamReadAfterMoveConstruct)
 {
-    Mark  marker;
     SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
 
     EXPECT_TRUE(src.getSocket().isConnected());
@@ -388,7 +360,6 @@ TEST(SocketStreamTest, SockeStreamReadAfterMoveConstruct)
 
 TEST(SocketStreamTest, SockeStreamBufWriteAfterMove)
 {
-    Mark  marker;
     {
         SocketStreamBuffer  dst;
         SocketStreamBuffer  src({"test/data/test-SockeStreamBufWriteAfterMove", Open::Truncate});
@@ -408,7 +379,6 @@ TEST(SocketStreamTest, SockeStreamBufWriteAfterMove)
 
 TEST(SocketStreamTest, SockeStreamBufWriteAfterMoveConstruct)
 {
-    Mark  marker;
     {
         SocketStreamBuffer  src({"test/data/test-SockeStreamBufWriteAfterMove", Open::Truncate});
 
@@ -427,7 +397,6 @@ TEST(SocketStreamTest, SockeStreamBufWriteAfterMoveConstruct)
 
 TEST(SocketStreamTest, SockeStreamWriteAfterMove)
 {
-    Mark  marker;
     {
         SocketStream    dst;
         SocketStream    src({"test/data/test-SockeStreamWriteAfterMove", Open::Truncate});
@@ -447,7 +416,6 @@ TEST(SocketStreamTest, SockeStreamWriteAfterMove)
 
 TEST(SocketStreamTest, SockeStreamWriteAfterMoveConstruct)
 {
-    Mark  marker;
     {
         SocketStream    src({"test/data/test-SockeStreamWriteAfterMove", Open::Truncate});
 

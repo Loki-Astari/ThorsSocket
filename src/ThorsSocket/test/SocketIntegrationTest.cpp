@@ -4,11 +4,6 @@
 #include "Socket.h"
 
 #include <iostream>
-struct Mark
-{
-    Mark() {std::cerr << "Mark\n";}
-    ~Mark(){std::cerr << "Mark Done\n";}
-};
 
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
@@ -17,7 +12,6 @@ using ThorsAnvil::ThorsSocket::Mode;
 
 TEST(SocketIntegrationTest, ConnectToSocket)
 {
-    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -33,7 +27,6 @@ TEST(SocketIntegrationTest, ConnectToSocket)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 {
-    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -60,7 +53,6 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
 {
-    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -93,7 +85,6 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingRead)
 {
-    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -129,7 +120,6 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
 {
-    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -158,7 +148,6 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
 
 TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
 {
-    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
@@ -219,7 +208,6 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
 
 TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
 {
-    Mark  marker;
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
     GTEST_SKIP();
 #endif
