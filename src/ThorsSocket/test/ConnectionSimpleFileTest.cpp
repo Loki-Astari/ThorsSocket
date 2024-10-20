@@ -1,4 +1,3 @@
-#if 0
 #include <gtest/gtest.h>
 #include "ConnectionSimpleFile.h"
 
