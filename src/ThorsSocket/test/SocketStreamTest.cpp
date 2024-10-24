@@ -9,13 +9,13 @@
 
 using ThorsAnvil::ThorsSocket::SocketStream;
 using ThorsAnvil::ThorsSocket::SocketStreamBuffer;
-using ThorsAnvil::ThorsSocket::Open;
+using ThorsAnvil::ThorsSocket::FileMode;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::PipeInfo;
 
 TEST(SocketStreamTest, ReadNormal)
 {
-    SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
 
     char data[16];
     std::cout << "Test: Read: " << (void*)data << "\n";
@@ -25,7 +25,7 @@ TEST(SocketStreamTest, ReadNormal)
 }
 TEST(SocketStreamTest, ReadNormalInTwoChunks)
 {
-    SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
 
     char data[16];
     stream.read(data, 8);
@@ -37,7 +37,7 @@ TEST(SocketStreamTest, ReadNormalInTwoChunks)
 }
 TEST(SocketStreamTest, ReadNormalButHugeChunk)
 {
-    SocketStream  stream({"test/data/SocketStreamTest-ReadLarge", Open::Append});
+    SocketStream  stream({"test/data/SocketStreamTest-ReadLarge", FileMode::Read});
 
     std::vector<char>   data(8000);
     stream.read(&data[0], 8000);
@@ -45,7 +45,7 @@ TEST(SocketStreamTest, ReadNormalButHugeChunk)
 }
 TEST(SocketStreamTest, MoveASocketStream)
 {
-    SocketStream  streamOriginal({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream  streamOriginal({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
     SocketStream  stream(std::move(streamOriginal));
 
     char data[16];
@@ -81,7 +81,7 @@ TEST(SocketStreamTest, ReadFromSlowStreamToGetEAGAIN)
 }
 TEST(SocketStreamTest, ReadPastEOF)
 {
-    SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
 
     char data[16];
     stream.read(data,16);
@@ -92,7 +92,7 @@ TEST(SocketStreamTest, ReadPastEOF)
 
 TEST(SocketStreamTest, ReadFail)
 {
-    SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream  stream({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
     ::close(stream.getSocket().socketId(Mode::Read));
 
     char data[16];
@@ -102,7 +102,7 @@ TEST(SocketStreamTest, ReadFail)
 TEST(SocketStreamTest, WriteNormal)
 {
     {
-        SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", Open::Truncate});
+        SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", FileMode::WriteTruncate});
 
         char data[16] = "12345678";
         stream.write(data, 8);
@@ -118,7 +118,7 @@ TEST(SocketStreamTest, WriteNormal)
 TEST(SocketStreamTest, WriteNormalMutipleTimes)
 {
     {
-        SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", Open::Truncate});
+        SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", FileMode::WriteTruncate});
 
         char data[] = "12345678WXYZABCD";
         stream.write(data, 8);
@@ -135,7 +135,7 @@ TEST(SocketStreamTest, WriteNormalMutipleTimes)
 TEST(SocketStreamTest, WriteNormalWithMove)
 {
     {
-        SocketStream  streamOriginal({"test/data/SocketStreamTest-WriteNormal", Open::Truncate});
+        SocketStream  streamOriginal({"test/data/SocketStreamTest-WriteNormal", FileMode::WriteTruncate});
         SocketStream  stream(std::move(streamOriginal));
 
         char data[16] = "12345678";
@@ -151,7 +151,7 @@ TEST(SocketStreamTest, WriteNormalWithMove)
 }
 TEST(SocketStreamTest, WriteLarge)
 {
-    SocketStream  stream({"test/data/SocketStreamTest-WriteLarge", Open::Truncate});
+    SocketStream  stream({"test/data/SocketStreamTest-WriteLarge", FileMode::WriteTruncate});
 
     std::vector<char> data(8000);
     stream.write(&data[0], 8000);
@@ -159,7 +159,7 @@ TEST(SocketStreamTest, WriteLarge)
 }
 TEST(SocketStreamTest, WriteFail)
 {
-    SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", Open::Truncate});
+    SocketStream  stream({"test/data/SocketStreamTest-WriteNormal", FileMode::WriteTruncate});
     ::close(stream.getSocket().socketId(Mode::Read));
 
     char data[16] = "12345678";
@@ -251,7 +251,7 @@ TEST(SocketStreamTest, SockeStreamDefault)
 TEST(SocketStreamTest, SockeStreamBufMove)
 {
     SocketStreamBuffer  dst;
-    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", FileMode::WriteAppend});
 
     EXPECT_TRUE(src.getSocket().isConnected());
 
@@ -262,7 +262,7 @@ TEST(SocketStreamTest, SockeStreamBufMove)
 
 TEST(SocketStreamTest, SockeStreamBufMoveConstruct)
 {
-    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", FileMode::WriteAppend});
 
     EXPECT_TRUE(src.getSocket().isConnected());
 
@@ -274,7 +274,7 @@ TEST(SocketStreamTest, SockeStreamBufMoveConstruct)
 TEST(SocketStreamTest, SockeStreamMove)
 {
     SocketStream        dst;
-    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", FileMode::WriteAppend});
 
     EXPECT_TRUE(src.getSocket().isConnected());
 
@@ -285,7 +285,7 @@ TEST(SocketStreamTest, SockeStreamMove)
 
 TEST(SocketStreamTest, SockeStreamMoveConstruct)
 {
-    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", FileMode::WriteAppend});
 
     EXPECT_TRUE(src.getSocket().isConnected());
 
@@ -297,7 +297,7 @@ TEST(SocketStreamTest, SockeStreamMoveConstruct)
 TEST(SocketStreamTest, SockeStreamBufReadAfterMove)
 {
     SocketStreamBuffer  dst;
-    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
 
     char buffer[5] = {0};
     src.sgetn(buffer, 4);
@@ -312,7 +312,7 @@ TEST(SocketStreamTest, SockeStreamBufReadAfterMove)
 
 TEST(SocketStreamTest, SockeStreamBufReadAfterMoveConstruct)
 {
-    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStreamBuffer  src({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
 
     char buffer[5] = {0};
     src.sgetn(buffer, 4);
@@ -328,7 +328,7 @@ TEST(SocketStreamTest, SockeStreamBufReadAfterMoveConstruct)
 TEST(SocketStreamTest, SockeStreamReadAfterMove)
 {
     SocketStream        dst;
-    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
 
     EXPECT_TRUE(src.getSocket().isConnected());
     char buffer[6] = {0};
@@ -344,7 +344,7 @@ TEST(SocketStreamTest, SockeStreamReadAfterMove)
 
 TEST(SocketStreamTest, SockeStreamReadAfterMoveConstruct)
 {
-    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", Open::Append});
+    SocketStream        src({"test/data/SocketStreamTest-ReadNormal", FileMode::Read});
 
     EXPECT_TRUE(src.getSocket().isConnected());
     char buffer[6] = {0};
@@ -362,7 +362,7 @@ TEST(SocketStreamTest, SockeStreamBufWriteAfterMove)
 {
     {
         SocketStreamBuffer  dst;
-        SocketStreamBuffer  src({"test/data/test-SockeStreamBufWriteAfterMove", Open::Truncate});
+        SocketStreamBuffer  src({"test/data/test-SockeStreamBufWriteAfterMove", FileMode::WriteTruncate});
 
         src.sputn("Test String Part1", 17);
 
@@ -380,7 +380,7 @@ TEST(SocketStreamTest, SockeStreamBufWriteAfterMove)
 TEST(SocketStreamTest, SockeStreamBufWriteAfterMoveConstruct)
 {
     {
-        SocketStreamBuffer  src({"test/data/test-SockeStreamBufWriteAfterMove", Open::Truncate});
+        SocketStreamBuffer  src({"test/data/test-SockeStreamBufWriteAfterMove", FileMode::WriteTruncate});
 
         src.sputn("Test String Part1", 17);
 
@@ -399,7 +399,7 @@ TEST(SocketStreamTest, SockeStreamWriteAfterMove)
 {
     {
         SocketStream    dst;
-        SocketStream    src({"test/data/test-SockeStreamWriteAfterMove", Open::Truncate});
+        SocketStream    src({"test/data/test-SockeStreamWriteAfterMove", FileMode::WriteTruncate});
 
         src.write("Test String Part1", 17);
 
@@ -417,7 +417,7 @@ TEST(SocketStreamTest, SockeStreamWriteAfterMove)
 TEST(SocketStreamTest, SockeStreamWriteAfterMoveConstruct)
 {
     {
-        SocketStream    src({"test/data/test-SockeStreamWriteAfterMove", Open::Truncate});
+        SocketStream    src({"test/data/test-SockeStreamWriteAfterMove", FileMode::WriteTruncate});
 
         src.write("Test String Part1", 17);
 

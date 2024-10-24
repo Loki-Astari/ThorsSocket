@@ -4,7 +4,7 @@
 #include <iostream>
 
 using ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
-using ThorsAnvil::ThorsSocket::Open;
+using ThorsAnvil::ThorsSocket::FileMode;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
@@ -21,26 +21,27 @@ TA_Object   File(
             );
 }
 
-TEST(ConnectionFileTest, Construct)
+TEST(ConnectionSimpleFileTest, Construct)
 {
     TA_TestNoThrow([](){
-        SimpleFile                        file({"TestFile", Open::Append}, Blocking::No);
+        SimpleFile                        file({"TestFile", FileMode::WriteAppend}, Blocking::No);
+        EXPECT_TRUE(file.isConnected());
     })
     .expectObjectTA(File)
     .run();
 }
 
-TEST(ConnectionFileTest, ConstructOpenFail)
+TEST(ConnectionSimpleFileTest, ConstructOpenFail)
 {
-    TA_TestThrow([](){
-        SimpleFile                        file({"TestFile", Open::Append}, Blocking::No);
+    TA_TestNoThrow([](){
+        SimpleFile                        file({"TestFile", FileMode::WriteAppend}, Blocking::No);
+        EXPECT_TRUE(file.isConnected());
     })
     .expectObjectTA(File)
-        .expectCallTA(open).inject().toReturn(-1)
     .run();
 }
 
-TEST(ConnectionFileTest, notValidOnMinusOne)
+TEST(ConnectionSimpleFileTest, notValidOnMinusOne)
 {
     TA_TestNoThrow([](){
         SimpleFile                        file(-1);
@@ -49,7 +50,7 @@ TEST(ConnectionFileTest, notValidOnMinusOne)
     .run();
 }
 
-TEST(ConnectionFileTest, getSocketIdWorks)
+TEST(ConnectionSimpleFileTest, getSocketIdWorks)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
     SimpleFile                  file(12);
@@ -61,10 +62,10 @@ TEST(ConnectionFileTest, getSocketIdWorks)
     .run();
 }
 
-TEST(ConnectionFileTest, Close)
+TEST(ConnectionSimpleFileTest, Close)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
-    SimpleFile                  file({"TestFile", Open::Append}, Blocking::No);
+    SimpleFile                  file({"TestFile", FileMode::WriteAppend}, Blocking::No);
 
     TA_TestNoThrow([&](){
         file.close();
@@ -74,7 +75,7 @@ TEST(ConnectionFileTest, Close)
     .run();
 }
 
-TEST(ConnectionFileTest, ReadFDSameAsSocketId)
+TEST(ConnectionSimpleFileTest, ReadFDSameAsSocketId)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
     SimpleFile                  file(33);
@@ -85,7 +86,7 @@ TEST(ConnectionFileTest, ReadFDSameAsSocketId)
     .run();
 }
 
-TEST(ConnectionFileTest, WriteFDSameAsSocketId)
+TEST(ConnectionSimpleFileTest, WriteFDSameAsSocketId)
 {
     MockAllDefaultFunctions     defaultMockedFunctions;
     SimpleFile                  file(34);
@@ -96,7 +97,7 @@ TEST(ConnectionFileTest, WriteFDSameAsSocketId)
     .run();
 }
 
-TEST(ConnectionFileTest, Protocol)
+TEST(ConnectionSimpleFileTest, Protocol)
 {
     SimpleFile                  file(34);
     EXPECT_EQ("file", file.protocol());

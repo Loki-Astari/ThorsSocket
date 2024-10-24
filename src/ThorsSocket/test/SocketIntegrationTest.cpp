@@ -6,6 +6,8 @@
 #include <iostream>
 
 using ThorsAnvil::ThorsSocket::Socket;
+using ThorsAnvil::ThorsSocket::SocketInfo;
+using ThorsAnvil::ThorsSocket::SSocketInfo;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;
@@ -19,7 +21,7 @@ TEST(SocketIntegrationTest, ConnectToSocket)
     ServerStart     server;
     server.run<SocketAcceptRequest>(8092, {}, [](Socket&){});
 
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
+    Socket  socket{SocketInfo{"127.0.0.1", 8092}, Blocking::Yes};
 
     ASSERT_NE(socket.socketId(Mode::Read), -1);
     ASSERT_NE(socket.socketId(Mode::Write), -1);
@@ -39,7 +41,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
     });
 
 
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
+    Socket  socket{SocketInfo{"127.0.0.1", 8092}, Blocking::Yes};
 
     std::string reply;
     reply.resize(message.size());
@@ -71,7 +73,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
     });
 
 
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
+    Socket  socket{SocketInfo{"127.0.0.1", 8092}, Blocking::Yes};
 
     std::string reply;
     reply.resize(message.size());
@@ -104,7 +106,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
 
     int yieldCount = 0;
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::No};
+    Socket  socket{SocketInfo{"127.0.0.1", 8092}, Blocking::No};
     socket.setReadYield([&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);return true;});
 
     std::string reply;
@@ -133,7 +135,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
     });
 
 
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
+    Socket  socket{SocketInfo{"127.0.0.1", 8092}, Blocking::Yes};
 
     std::string reply;
     reply.resize(message.size());
@@ -182,7 +184,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     });
 
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::No};
+    Socket  socket{SocketInfo{"127.0.0.1", 8092}, Blocking::No};
     socket.setWriteYield([&mutex, &cond, &finished]()
                         {
                             std::unique_lock<std::mutex> lock(mutex);
@@ -235,7 +237,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
         socket.putMessageData(&totalRead, sizeof(totalRead));
     });
 
-    Socket  socket{{"127.0.0.1", 8092}, Blocking::Yes};
+    Socket  socket{SocketInfo{"127.0.0.1", 8092}, Blocking::Yes};
 
     std::size_t readFromServer = 0;
 

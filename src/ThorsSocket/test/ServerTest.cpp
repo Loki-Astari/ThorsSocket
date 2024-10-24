@@ -7,6 +7,8 @@
 
 using ThorsAnvil::ThorsSocket::Server;
 using ThorsAnvil::ThorsSocket::Socket;
+using ThorsAnvil::ThorsSocket::SocketInfo;
+using ThorsAnvil::ThorsSocket::SSocketInfo;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::ServerInfo;
@@ -82,7 +84,7 @@ TEST(ServerTest, serverAcceptConnection)
     std::unique_lock        lock(mutex);
     condition.wait(lock, [&]{return ready;});
 
-    Socket  socket({"127.0.0.1", port});
+    Socket  socket(SocketInfo{"127.0.0.1", port});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[12] = {0};
@@ -142,7 +144,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
     CertificateInfo certificateClient{CLIENT_CERT, CLIENT_KEY};
     SSLctx          ctxClient{SSLMethodType::Client, certificateClient};
-    Socket  socket({"127.0.0.1", port, ctxClient});
+    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[50] = {0};
@@ -196,7 +198,7 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 
     CertificateInfo certificateClient{CLIENT_CERT, CLIENT_KEY};
     SSLctx          ctxClient{SSLMethodType::Client, certificateClient};
-    Socket  socket({"127.0.0.1", port, ctxClient});
+    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[50] = {0};
