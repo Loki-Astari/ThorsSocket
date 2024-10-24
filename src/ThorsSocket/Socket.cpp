@@ -34,7 +34,7 @@ Socket::Socket(std::unique_ptr<ConnectionClient>&& connection)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket::Socket(SocketInit initInfo, Blocking blocking)
+Socket::Socket(SocketInit const& initInfo, Blocking blocking)
     : connection(std::visit(SocketConnectionBuilder{blocking}, initInfo))
     , readYield([](){return false;})
     , writeYield([](){return false;})

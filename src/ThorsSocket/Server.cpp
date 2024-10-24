@@ -5,7 +5,23 @@
 
 using namespace ThorsAnvil::ThorsSocket;
 
+struct ServerConnectionBuilder
+{
+    Blocking blocking;
+    ServerConnectionBuilder(Blocking blocking)
+        : blocking(blocking)
+    {}
+    std::unique_ptr<ConnectionServer> operator()(ServerInfo const& socketInfo)      {return std::make_unique<ConnectionType::SocketServer>(socketInfo, blocking);}
+    std::unique_ptr<ConnectionServer> operator()(SServerInfo const& ssocketInfo)    {return std::make_unique<ConnectionType::SSocketServer>(ssocketInfo, blocking);}
+};
+
 THORS_SOCKET_HEADER_ONLY_INCLUDE
+Server::Server(ServerInit const& initInfo, Blocking blocking)
+    : connection(std::visit(ServerConnectionBuilder{blocking}, initInfo))
+    , yield([](){return false;})
+{}
+
+/*
 Server::Server(ServerInfo const& socketInfo, Blocking blocking)
     : connection(std::make_unique<ConnectionType::SocketServer>(socketInfo, blocking))
     , yield([](){return false;})
@@ -16,6 +32,7 @@ Server::Server(SServerInfo const& ssocketInfo, Blocking blocking)
     : connection(std::make_unique<ConnectionType::SSocketServer>(ssocketInfo, blocking))
     , yield([](){return false;})
 {}
+*/
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 Server::Server(Server&& move) noexcept

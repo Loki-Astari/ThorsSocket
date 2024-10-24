@@ -29,7 +29,7 @@ class Socket
     Socket(std::unique_ptr<ConnectionClient>&& connection);
     public:
         Socket();
-        Socket(SocketInit initInfo, Blocking blocking = Blocking::Yes);
+        Socket(SocketInit const& initInfo, Blocking blocking = Blocking::Yes);
         ~Socket();
 
         // Good for testing only.
