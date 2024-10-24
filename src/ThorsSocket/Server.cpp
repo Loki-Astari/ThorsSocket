@@ -21,19 +21,6 @@ Server::Server(ServerInit const& initInfo, Blocking blocking)
     , yield([](){return false;})
 {}
 
-/*
-Server::Server(ServerInfo const& socketInfo, Blocking blocking)
-    : connection(std::make_unique<ConnectionType::SocketServer>(socketInfo, blocking))
-    , yield([](){return false;})
-{}
-
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-Server::Server(SServerInfo const& ssocketInfo, Blocking blocking)
-    : connection(std::make_unique<ConnectionType::SSocketServer>(ssocketInfo, blocking))
-    , yield([](){return false;})
-{}
-*/
-
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 Server::Server(Server&& move) noexcept
     : connection(std::move(move.connection))

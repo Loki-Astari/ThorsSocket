@@ -9,6 +9,7 @@
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 int convertModeToOpenFlag(ThorsAnvil::ThorsSocket::FileMode mode, ThorsAnvil::ThorsSocket::Blocking blocking)
 {
     int result = THOR_BINARY;
@@ -26,10 +27,8 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SimpleFile::SimpleFile(FileInfo const& fileInfo, Blocking blocking)
     : fd(MOCK_TFUNC(open)(&fileInfo.fileName[0], convertModeToOpenFlag(fileInfo.mode, blocking), 0777))
 {
-    std::cerr << "Creating Simple File\n";
     if (fd == -1)
     {
-        std::cerr << "File Failed to open\n";
         ThorsLog(
             "ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile",
             "SimpleFile",

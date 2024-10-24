@@ -29,7 +29,6 @@ struct IOData
     bool            blocked;
 };
 
-// enum class Open     {Append, Truncate};
 enum class FileMode {Read, WriteAppend, WriteTruncate};
 enum class Blocking {No, Yes};
 enum class Mode     {Read, Write};
