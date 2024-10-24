@@ -19,6 +19,7 @@ int convertModeToOpenFlag(ThorsAnvil::ThorsSocket::FileMode mode, ThorsAnvil::Th
         case ThorsAnvil::ThorsSocket::FileMode::WriteTruncate: return result | O_WRONLY | O_CREAT | O_TRUNC;
         case ThorsAnvil::ThorsSocket::FileMode::WriteAppend:   return result | O_WRONLY | O_CREAT | O_APPEND;
     }
+    return 0;
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
