@@ -65,7 +65,7 @@ struct SSocketInfo: public SocketInfo
 
 struct SServerInfo: public ServerInfo
 {
-    SSLctx const&       ctx;
+    SSLctx              ctx;
 };
 
 struct OpenSSocketInfo: public OpenSocketInfo

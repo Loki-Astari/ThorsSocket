@@ -18,7 +18,7 @@ class Server
     YieldFunc                           yield;
 
     public:
-        Server(ServerInit const& serverInit, Blocking blocking = Blocking::Yes);
+        Server(ServerInit&& serverInit, Blocking blocking = Blocking::Yes);
         ~Server();
 
         Server(Server&& move)               noexcept;

@@ -61,10 +61,10 @@ class SSocketClient: public SocketClient
 
 class SSocketServer: public SocketServer
 {
-    SSLctx const&       ctx;
+    SSLctx          ctx;
 
     public:
-        SSocketServer(SServerInfo const& socketInfo, Blocking blocking);
+        SSocketServer(SServerInfo&& socketInfo, Blocking blocking);
 
         virtual std::unique_ptr<ConnectionClient> accept(YieldFunc& yield, Blocking blocking)          override;
 };

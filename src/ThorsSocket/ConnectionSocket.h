@@ -71,7 +71,7 @@ class SocketServer: public ConnectionServer
 {
     SocketStandard  socketInfo;
     public:
-        SocketServer(ServerInfo const& socketInfo, Blocking blocking);
+        SocketServer(ServerInfo&& socketInfo, Blocking blocking);
         virtual ~SocketServer();
 
         virtual bool isConnected()                          const   override;

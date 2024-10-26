@@ -375,7 +375,7 @@ int SocketClient::getWriteFD() const
 #endif
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketServer::SocketServer(ServerInfo const& socketInfo, Blocking blocking)
+SocketServer::SocketServer(ServerInfo&& socketInfo, Blocking blocking)
     : socketInfo(socketInfo, blocking)
 {}
 

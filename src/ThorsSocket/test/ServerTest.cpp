@@ -105,7 +105,7 @@ TEST(ServerTest, SecureServerCreate)
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     SSLctx          ctx{SSLMethodType::Server};
-    Server          server{SServerInfo{port, ctx}};
+    Server          server{SServerInfo{port, std::move(ctx)}};
 }
 
 TEST(ServerTest, SecureserverAcceptConnection)
@@ -113,7 +113,6 @@ TEST(ServerTest, SecureserverAcceptConnection)
     SocketSetUp     setup;
     int             port = 8080 + rand() * 200;
     CertificateInfo certificate{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}};
-    SSLctx          ctx{SSLMethodType::Server, certificate};
 
     std::string     message = "Secure TestMessage";
 
@@ -123,7 +122,8 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
     std::thread  backgound([&]()
     {
-        Server  server{SServerInfo{port, ctx}};
+        SSLctx          ctx{SSLMethodType::Server, certificate};
+        Server  server{SServerInfo{port, std::move(ctx)}};
 
         {
             std::unique_lock        lock(mutex);
@@ -163,11 +163,6 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
     CertificateInfo certificate{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",
                                 "/etc/letsencrypt/live/thorsanvil.dev/privkey.pem",
                                };
-    SSLctx          ctx{SSLMethodType::Server,
-                        CertificateInfo{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",
-                                        "/etc/letsencrypt/live/thorsanvil.dev/privkey.pem",
-                                       }
-                       };
 
     std::string     message = "Secure TestMessage";
 
@@ -177,7 +172,12 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 
     std::thread  backgound([&]()
     {
-        Server  server{SServerInfo{port, ctx}, Blocking::Yes};
+        SSLctx          ctx{SSLMethodType::Server,
+                            CertificateInfo{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",
+                                            "/etc/letsencrypt/live/thorsanvil.dev/privkey.pem",
+                                           }
+                           };
+        Server  server{SServerInfo{port, std::move(ctx)}, Blocking::Yes};
 
         {
             std::unique_lock        lock(mutex);

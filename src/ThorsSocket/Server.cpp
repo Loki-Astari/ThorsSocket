@@ -2,6 +2,7 @@
 #include "ConnectionSocket.h"
 #include "ConnectionSSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
+#include <iostream>
 
 using namespace ThorsAnvil::ThorsSocket;
 
@@ -11,13 +12,13 @@ struct ServerConnectionBuilder
     ServerConnectionBuilder(Blocking blocking)
         : blocking(blocking)
     {}
-    std::unique_ptr<ConnectionServer> operator()(ServerInfo const& socketInfo)      {return std::make_unique<ConnectionType::SocketServer>(socketInfo, blocking);}
-    std::unique_ptr<ConnectionServer> operator()(SServerInfo const& ssocketInfo)    {return std::make_unique<ConnectionType::SSocketServer>(ssocketInfo, blocking);}
+    std::unique_ptr<ConnectionServer> operator()(ServerInfo&& socketInfo)      {return std::make_unique<ConnectionType::SocketServer>(std::move(socketInfo), blocking);}
+    std::unique_ptr<ConnectionServer> operator()(SServerInfo&& ssocketInfo)    {return std::make_unique<ConnectionType::SSocketServer>(std::move(ssocketInfo), blocking);}
 };
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Server::Server(ServerInit const& initInfo, Blocking blocking)
-    : connection(std::visit(ServerConnectionBuilder{blocking}, initInfo))
+Server::Server(ServerInit&& initInfo, Blocking blocking)
+    : connection(std::visit(ServerConnectionBuilder{blocking}, std::move(initInfo)))
     , yield([](){return false;})
 {}
 

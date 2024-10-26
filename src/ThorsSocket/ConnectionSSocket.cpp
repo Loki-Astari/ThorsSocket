@@ -483,9 +483,9 @@ IOData SSocketClient::writeToStream(char const* buffer, std::size_t size)
 
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SSocketServer::SSocketServer(SServerInfo const& ssocketInfo, Blocking blocking)
-    : SocketServer(ssocketInfo, blocking)
-    , ctx(ssocketInfo.ctx)
+SSocketServer::SSocketServer(SServerInfo&& ssocketInfo, Blocking blocking)
+    : SocketServer(std::move(ssocketInfo), blocking)
+    , ctx(std::move(ssocketInfo.ctx))
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
