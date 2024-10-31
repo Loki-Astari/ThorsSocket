@@ -30,6 +30,10 @@ class Socket
     public:
         Socket();
         Socket(SocketInit const& initInfo, Blocking blocking = Blocking::Yes);
+        Socket(FileInfo const& fileInfo, Blocking blocking = Blocking::Yes)         : Socket{SocketInit{fileInfo}, blocking}{}
+        Socket(PipeInfo const& pipeInfo, Blocking blocking = Blocking::Yes)         : Socket{SocketInit{pipeInfo}, blocking}{}
+        Socket(SocketInfo const& socketInfo, Blocking blocking = Blocking::Yes)     : Socket{SocketInit{socketInfo}, blocking}{}
+        Socket(SSocketInfo const& ssocketInfo, Blocking blocking = Blocking::Yes)   : Socket{SocketInit{ssocketInfo}, blocking}{}
         ~Socket();
 
         // Good for testing only.

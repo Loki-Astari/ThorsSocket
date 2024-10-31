@@ -2,12 +2,18 @@
 #include "Socket.h"
 #include "Connection.h"
 
-#include <iostream>
-
 using ThorsAnvil::ThorsSocket::ConnectionClient;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Mode;
+using ThorsAnvil::ThorsSocket::SSLctx;
+using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::FileInfo;
+using ThorsAnvil::ThorsSocket::PipeInfo;
+using ThorsAnvil::ThorsSocket::SocketInfo;
+using ThorsAnvil::ThorsSocket::SSocketInfo;
+using ThorsAnvil::ThorsSocket::SocketInit;
+
 
 class TestConnection;
 struct TestConnectionInfo
@@ -103,9 +109,64 @@ class TestConnection: public ConnectionClient
         virtual std::string errorMessage(ssize_t)                   {return "Testing: 123";}
 };
 
+TEST(SocketTest, SocketConstructViantFileInfo)
+{
+    Socket  socket{SocketInit{FileInfo{"test/data/SocketStreamTest-ReadLarge", ThorsAnvil::ThorsSocket::FileMode::Read}}};
+}
+TEST(SocketTest, SocketConstructFileInfo)
+{
+    Socket  socket{FileInfo{"test/data/SocketStreamTest-ReadLarge", ThorsAnvil::ThorsSocket::FileMode::Read}};
+}
+TEST(SocketTest, SocketConstructFileInfoImplied)
+{
+    Socket  socket{{"test/data/SocketStreamTest-ReadLarge", ThorsAnvil::ThorsSocket::FileMode::Read}};
+}
+
+TEST(SocketTest, SocketConstructViantPipeInfo)
+{
+    Socket  socket{SocketInit{PipeInfo{}}};
+}
+TEST(SocketTest, SocketConstructPipeInfo)
+{
+    Socket  socket{PipeInfo{}};
+}
+TEST(SocketTest, SocketConstructPipeInfoImplied)
+{
+    // Would be nice to support auto detection of pipes.
+    // But the empty constructor matches to many things.
+    // Socket  socket{{}};
+}
+TEST(SocketTest, SocketConstructViantSocketInfo)
+{
+    Socket  socket{SocketInit{SocketInfo{"google.com", 80}}};
+}
+TEST(SocketTest, SocketConstructSocketInfo)
+{
+    Socket  socket{SocketInfo{"google.com", 80}};
+}
+TEST(SocketTest, SocketConstructSocketInfoImplied)
+{
+    Socket  socket{{"google.com", 80}};
+}
+TEST(SocketTest, SocketConstructViantSSocketInfo)
+{
+    SSLctx  ctx{SSLMethodType::Client};
+    Socket  socket{SocketInit{SSocketInfo{"google.com", 443, ctx}}};
+}
+TEST(SocketTest, SocketConstructSSocketInfo)
+{
+    SSLctx  ctx{SSLMethodType::Client};
+    Socket  socket{SSocketInfo{"google.com", 443, ctx}};
+}
+TEST(SocketTest, SocketConstructSSocketInfoImplied)
+{
+    SSLctx  ctx{SSLMethodType::Client};
+    Socket  socket{{"google.com", 443, ctx}};
+}
+
 TEST(SocketTest, SocketBuilderBuild)
 {
-    Socket                      socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
+    Socket  socket{ThorsAnvil::ThorsSocket::TestMarker::True, TestConnectionInfo{}};
 }
 
 TEST(SocketTest, SocketConstruct)

@@ -6,6 +6,10 @@
 #include <iostream>
 
 using ThorsAnvil::ThorsSocket::Server;
+using ThorsAnvil::ThorsSocket::SSLctx;
+using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::ServerInit;
+using ThorsAnvil::ThorsSocket::SServerInfo;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::SocketInfo;
 using ThorsAnvil::ThorsSocket::SSocketInfo;
@@ -43,13 +47,80 @@ class SocketSetUp
 
 
 
-TEST(ServerTest, ServerCreate)
+TEST(ServerTest, ServerCreateVeriantSocket)
+{
+    SocketSetUp     setup;
+
+    srand(time(nullptr));
+    int port = 8080 + rand() * 200;
+    Server  server{ServerInit{ServerInfo{port}}, Blocking::Yes};
+}
+
+TEST(ServerTest, ServerCreateSocket)
 {
     SocketSetUp     setup;
 
     srand(time(nullptr));
     int port = 8080 + rand() * 200;
     Server  server{ServerInfo{port}, Blocking::Yes};
+}
+
+TEST(ServerTest, ServerCreateSocketImplied)
+{
+    SocketSetUp     setup;
+
+    srand(time(nullptr));
+    int port = 8080 + rand() * 200;
+    Server  server{{port}, Blocking::Yes};
+}
+
+TEST(ServerTest, ServerCreateSocketWithPort)
+{
+    SocketSetUp     setup;
+
+    srand(time(nullptr));
+    int port = 8080 + rand() * 200;
+    Server  server{port, Blocking::Yes};
+}
+
+TEST(ServerTest, ServerCreateVeriantSecureSocket)
+{
+    SocketSetUp     setup;
+
+    srand(time(nullptr));
+    int port = 8080 + rand() * 200;
+    SSLctx  ctx{SSLMethodType::Server};
+    Server  server{ServerInit{SServerInfo{port, std::move(ctx)}}, Blocking::Yes};
+}
+
+TEST(ServerTest, ServerCreateSecureSocket)
+{
+    SocketSetUp     setup;
+
+    srand(time(nullptr));
+    int port = 8080 + rand() * 200;
+    SSLctx  ctx{SSLMethodType::Server};
+    Server  server{SServerInfo{port, std::move(ctx)}, Blocking::Yes};
+}
+
+TEST(ServerTest, ServerCreateSecureSocketImplied)
+{
+    SocketSetUp     setup;
+
+    srand(time(nullptr));
+    int port = 8080 + rand() * 200;
+    SSLctx  ctx{SSLMethodType::Server};
+    Server  server{{port, std::move(ctx)}, Blocking::Yes};
+}
+
+TEST(ServerTest, ServerCreateSecureSocketPortCTX)
+{
+    SocketSetUp     setup;
+
+    srand(time(nullptr));
+    int port = 8080 + rand() * 200;
+    SSLctx  ctx{SSLMethodType::Server};
+    Server  server{port, std::move(ctx), Blocking::Yes};
 }
 
 TEST(ServerTest, serverAcceptConnection)

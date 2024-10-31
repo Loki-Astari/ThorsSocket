@@ -19,6 +19,10 @@ class Server
 
     public:
         Server(ServerInit&& serverInit, Blocking blocking = Blocking::Yes);
+        Server(ServerInfo&& socketInit, Blocking blocking = Blocking::Yes)  : Server{ServerInit{std::move(socketInit)}, blocking}{}
+        Server(SServerInfo&& secureInit, Blocking blocking = Blocking::Yes) : Server{ServerInit{std::move(secureInit)}, blocking}{}
+        Server(int port, Blocking blocking = Blocking::Yes)                 : Server{ServerInit{ServerInfo{port}}, blocking}{}
+        Server(int port, SSLctx && ctx, Blocking blocking = Blocking::Yes)  : Server{ServerInit{SServerInfo{port, std::move(ctx)}}, blocking}{}
         ~Server();
 
         Server(Server&& move)               noexcept;
