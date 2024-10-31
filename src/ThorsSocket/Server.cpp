@@ -83,8 +83,8 @@ void Server::release()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-Socket Server::accept(Blocking blocking)
+Socket Server::accept(Blocking blocking, DeferAccept deferAccept)
 {
-    std::unique_ptr<ConnectionClient>   data = connection->accept(yield, blocking);
+    std::unique_ptr<ConnectionClient>   data = connection->accept(yield, blocking, deferAccept);
     return Socket(std::move(data));
 }

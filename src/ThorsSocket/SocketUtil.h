@@ -29,9 +29,10 @@ struct IOData
     bool            blocked;
 };
 
-enum class FileMode {Read, WriteAppend, WriteTruncate};
-enum class Blocking {No, Yes};
-enum class Mode     {Read, Write};
+enum class FileMode     {Read, WriteAppend, WriteTruncate};
+enum class Blocking     {No, Yes};
+enum class Mode         {Read, Write};
+enum class DeferAccept  {No, Yes};
 
 struct FileInfo
 {
@@ -61,6 +62,7 @@ struct OpenSocketInfo
 struct SSocketInfo: public SocketInfo
 {
     SSLctx const&       ctx;
+    DeferAccept         defer;
 };
 
 struct SServerInfo: public ServerInfo
@@ -71,6 +73,7 @@ struct SServerInfo: public ServerInfo
 struct OpenSSocketInfo: public OpenSocketInfo
 {
     SSLctx const&       ctx;
+    DeferAccept         defer;
 };
 
 }

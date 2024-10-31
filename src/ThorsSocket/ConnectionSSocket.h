@@ -11,10 +11,13 @@ namespace ThorsAnvil::ThorsSocket::ConnectionType
 
 class SSocket;
 
+enum class DeferAction  {None, Connect, Accept};
+
 class SSocketStandard
 {
     SSL*        ssl;
     bool        connectionFailed;
+    DeferAction deferAction;
     public:
         SSocketStandard()                       = delete;
         SSocketStandard(SSocketStandard const&) = delete;
@@ -33,10 +36,12 @@ class SSocketStandard
         SSL* getSSL() const;
         void checkConnectionOK(int errorCode);
 
+        void   deferredAccept(YieldFunc& rYield, YieldFunc& wYield);
+
     private:
         void initSSocket(SSLctx const& ctx, int fd);
-        void initSSocketClient();
-        void initSSocketClientAccept();
+        void initSSocketClientConnect(YieldFunc& rYield, YieldFunc& wYield);
+        void initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYield);
 };
 
 class SSocketServer;
@@ -57,6 +62,7 @@ class SSocketClient: public SocketClient
 
         virtual IOData readFromStream(char* buffer, std::size_t size)       override;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  override;
+        virtual void   deferredAccept(YieldFunc& rYield, YieldFunc& wYield) override {secureSocketInfo.deferredAccept(rYield, wYield);}
 };
 
 class SSocketServer: public SocketServer
@@ -66,7 +72,7 @@ class SSocketServer: public SocketServer
     public:
         SSocketServer(SServerInfo&& socketInfo, Blocking blocking);
 
-        virtual std::unique_ptr<ConnectionClient> accept(YieldFunc& yield, Blocking blocking)          override;
+        virtual std::unique_ptr<ConnectionClient> accept(YieldFunc& yield, Blocking blocking, DeferAccept deferAccept)          override;
 };
 
 }

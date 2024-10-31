@@ -42,7 +42,7 @@ class Server
         void close();
         void release();
 
-        Socket accept(Blocking blocking = Blocking::Yes);
+        Socket accept(Blocking blocking = Blocking::Yes, DeferAccept deferAccept = DeferAccept::No);
         void setYield(YieldFunc&& yieldFunc)    {yield = std::move(yieldFunc);}
     private:
 };

@@ -9,20 +9,36 @@ using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
-    : ssl(nullptr)
-    , connectionFailed(false)
+    : ssl{nullptr}
+    , connectionFailed{false}
+    , deferAction{DeferAction::None}
 {
     initSSocket(ssocketInfo.ctx, fd);
-    initSSocketClient();
+    if (ssocketInfo.defer == DeferAccept::No)
+    {
+        YieldFunc nullYield = [](){return false;};
+        initSSocketClientConnect(nullYield, nullYield);
+    }
+    else {
+        deferAction = DeferAction::Connect;
+    }
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketStandard::SSocketStandard(OpenSSocketInfo const& ssocketInfo, int fd)
-    : ssl(nullptr)
-    , connectionFailed(false)
+    : ssl{nullptr}
+    , connectionFailed{false}
+    , deferAction{DeferAction::None}
 {
     initSSocket(ssocketInfo.ctx, fd);
-    initSSocketClientAccept();
+    if (ssocketInfo.defer == DeferAccept::No)
+    {
+        YieldFunc nullYield = [](){return false;};
+        initSSocketClientAccept(nullYield, nullYield);
+    }
+    else {
+        deferAction = DeferAction::Accept;
+    }
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -189,7 +205,19 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, int fd)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketStandard::initSSocketClient()
+void SSocketStandard::deferredAccept(YieldFunc& rYield, YieldFunc& wYield)
+{
+    switch (deferAction)
+    {
+        case DeferAction::Connect:  initSSocketClientConnect(rYield, wYield);break;
+        case DeferAction::Accept:   initSSocketClientAccept(rYield, wYield);break;
+        case DeferAction::None:
+            break;
+    }
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketStandard::initSSocketClientConnect(YieldFunc& rYield, YieldFunc& wYield)
 {
     int ret;
     int error = 0;
@@ -206,8 +234,13 @@ void SSocketStandard::initSSocketClient()
             // TODO: Opportunity for yield()?
             error = MOCK_FUNC(SSL_get_error)(ssl, ret);
             checkConnectionOK(error);
-            if (error == SSL_ERROR_WANT_CONNECT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
-                continue;
+            switch (error)
+            {
+                case SSL_ERROR_WANT_READ:   rYield();continue;
+                case SSL_ERROR_WANT_WRITE:  wYield();continue;
+                case SSL_ERROR_WANT_CONNECT:wYield();continue;
+                default:
+                    break;
             }
         }
         break;
@@ -241,7 +274,7 @@ void SSocketStandard::initSSocketClient()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketStandard::initSSocketClientAccept()
+void SSocketStandard::initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYield)
 {
     int status;
     int error = 0;
@@ -253,8 +286,13 @@ void SSocketStandard::initSSocketClientAccept()
         {
             error = MOCK_FUNC(SSL_get_error)(ssl, status);
             checkConnectionOK(error);
-            if (error == SSL_ERROR_WANT_ACCEPT || error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
-                continue;
+            switch (error)
+            {
+                case SSL_ERROR_WANT_READ:   rYield();continue;
+                case SSL_ERROR_WANT_WRITE:  wYield();continue;
+                case SSL_ERROR_WANT_ACCEPT: wYield();continue;
+                default:
+                    break;
             }
         }
         break;
@@ -491,9 +529,9 @@ SSocketServer::SSocketServer(SServerInfo&& ssocketInfo, Blocking blocking)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SSocketServer::accept(YieldFunc& yield, Blocking blocking)
+std::unique_ptr<ThorsAnvil::ThorsSocket::ConnectionClient> SSocketServer::accept(YieldFunc& yield, Blocking blocking, DeferAccept deferAccept)
 {
     int     acceptedFd = SocketServer::acceptSocket(yield);
 
-    return std::make_unique<SSocketClient>(*this, OpenSSocketInfo{static_cast<SOCKET_TYPE>(acceptedFd), ctx}, blocking);
+    return std::make_unique<SSocketClient>(*this, OpenSSocketInfo{static_cast<SOCKET_TYPE>(acceptedFd), ctx, deferAccept}, blocking);
 }
