@@ -195,6 +195,7 @@ void SSocketStandard::initSSocketClient()
     int error = 0;
     do
     {
+        // TODO
         ret = MOCK_FUNC(SSL_connect)(ssl);
         if (ret != 1)
         {
@@ -246,6 +247,7 @@ void SSocketStandard::initSSocketClientAccept()
     int error = 0;
     do
     {
+        // TODO
         status = SSL_accept(ssl);
         if (status != 1)
         {
