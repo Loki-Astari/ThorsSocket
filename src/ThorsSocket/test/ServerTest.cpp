@@ -8,6 +8,7 @@
 using ThorsAnvil::ThorsSocket::Server;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::DeferAccept;
 using ThorsAnvil::ThorsSocket::ServerInit;
 using ThorsAnvil::ThorsSocket::SServerInfo;
 using ThorsAnvil::ThorsSocket::Socket;
@@ -71,7 +72,7 @@ TEST(ServerTest, ServerCreateSocketImplied)
 
     srand(time(nullptr));
     int port = 8080 + rand() * 200;
-    Server  server{{port}, Blocking::Yes};
+    Server  server{port, Blocking::Yes};
 }
 
 TEST(ServerTest, ServerCreateSocketWithPort)
@@ -215,7 +216,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
     CertificateInfo certificateClient{CLIENT_CERT, CLIENT_KEY};
     SSLctx          ctxClient{SSLMethodType::Client, certificateClient};
-    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient});
+    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient, DeferAccept::No});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[50] = {0};
@@ -269,7 +270,7 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 
     CertificateInfo certificateClient{CLIENT_CERT, CLIENT_KEY};
     SSLctx          ctxClient{SSLMethodType::Client, certificateClient};
-    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient});
+    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient, DeferAccept::No});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[50] = {0};

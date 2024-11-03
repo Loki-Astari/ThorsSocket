@@ -8,6 +8,7 @@ using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::DeferAccept;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
@@ -18,7 +19,7 @@ TEST(ConnectionSSocketTestPart2, Read_OK)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestNoThrow([&](){
         char    buffer[12];
@@ -37,7 +38,7 @@ TEST(ConnectionSSocketTestPart2, Write_OK)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestNoThrow([&](){
         char    buffer[12] = {};
@@ -56,7 +57,7 @@ void testReadFailure(IOData expected, int errorCode)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestNoThrow([&](){
         char    buffer[12];
@@ -75,7 +76,7 @@ void testReadFailureException(int errorCode)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestThrow<Exception>([&](){
         char    buffer[12] = {};
@@ -90,7 +91,7 @@ void testWriteFailure(IOData expected, int errorCode)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestNoThrow([&](){
         char    buffer[12] = {};
@@ -109,7 +110,7 @@ void testWriteFailureException(int errorCode)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestThrow<Exception>([&](){
         char    buffer[12] ={};

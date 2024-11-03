@@ -8,6 +8,7 @@ using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::DeferAccept;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
@@ -27,7 +28,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
 {
     TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
-        SSocketClient       socket({"github.com", 443, ctx}, Blocking::No);
+        SSocketClient       socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
@@ -40,7 +41,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
 {
     TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
-        SSocketClient       socket({"github.com", 443, ctx}, Blocking::No);
+        SSocketClient       socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
@@ -54,7 +55,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
 {
     TA_TestThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
-        SSocketClient       socket({"github.com", 443, ctx}, Blocking::No);
+        SSocketClient       socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_NonBlocking)
@@ -68,7 +69,7 @@ TEST(ConnectionSSocketTest, getSocketIdWorks)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.socketId(Mode::Write));
@@ -80,7 +81,7 @@ TEST(ConnectionSSocketTest, Close)
 {
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestNoThrow([&](){
         socket.close();
@@ -101,7 +102,7 @@ TEST(ConnectionSSocketTest, ReadFDSameAsSocketId)
 #else
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Read), socket.getReadFD());
@@ -119,7 +120,7 @@ TEST(ConnectionSSocketTest, WriteFDSameAsSocketId)
 #else
     MockAllDefaultFunctions defaultMockedFunctions;
     SSLctx                  ctx{SSLMethodType::Client};
-    SSocketClient           socket({"github.com", 443, ctx}, Blocking::No);
+    SSocketClient           socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
 
     TA_TestNoThrow([&](){
         ASSERT_EQ(socket.socketId(Mode::Write), socket.getWriteFD());

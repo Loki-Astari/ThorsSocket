@@ -8,6 +8,7 @@ using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::DeferAccept;
 using ThorsAnvil::ThorsSocket::FileInfo;
 using ThorsAnvil::ThorsSocket::PipeInfo;
 using ThorsAnvil::ThorsSocket::SocketInfo;
@@ -151,17 +152,17 @@ TEST(SocketTest, SocketConstructSocketInfoImplied)
 TEST(SocketTest, SocketConstructViantSSocketInfo)
 {
     SSLctx  ctx{SSLMethodType::Client};
-    Socket  socket{SocketInit{SSocketInfo{"google.com", 443, ctx}}};
+    Socket  socket{SocketInit{SSocketInfo{"google.com", 443, ctx, DeferAccept::No}}};
 }
 TEST(SocketTest, SocketConstructSSocketInfo)
 {
     SSLctx  ctx{SSLMethodType::Client};
-    Socket  socket{SSocketInfo{"google.com", 443, ctx}};
+    Socket  socket{SSocketInfo{"google.com", 443, ctx, DeferAccept::No}};
 }
 TEST(SocketTest, SocketConstructSSocketInfoImplied)
 {
     SSLctx  ctx{SSLMethodType::Client};
-    Socket  socket{{"google.com", 443, ctx}};
+    Socket  socket{{"google.com", 443, ctx, DeferAccept::No}};
 }
 
 TEST(SocketTest, SocketBuilderBuild)

@@ -9,6 +9,7 @@
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::SSLctx;
+using ThorsAnvil::ThorsSocket::DeferAccept;
 using ThorsAnvil::ThorsSocket::CertificateInfo;
 using ThorsAnvil::ThorsSocket::OpenSocketInfo;
 using ThorsAnvil::ThorsSocket::OpenSSocketInfo;
@@ -97,7 +98,7 @@ class SSocketServerAccept: public SSocketBase
 {
     public:
         SSocketServerAccept(SSocketServerInfo const& serverInfo)
-            : SSocketBase(OpenSSocketInfo{serverInfo.fd, serverInfo.ctx})
+            : SSocketBase(OpenSSocketInfo{serverInfo.fd, serverInfo.ctx, DeferAccept::No})
         {
             /*Do the SSL Handshake*/
             int status;

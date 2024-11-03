@@ -9,6 +9,7 @@ using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::DeferAccept;
 using ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
@@ -127,7 +128,7 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
     TA_TestNoThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
-        SSocketClient       socket({"github.com",443 , ctx}, Blocking::Yes);
+        SSocketClient       socket({"github.com",443 , ctx, DeferAccept::No}, Blocking::Yes);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_Blocking)
@@ -139,7 +140,7 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
 {
     TA_TestNoThrow([](){
         SSLctx              ctx{SSLMethodType::Client};
-        SSocketClient       socket({"github.com",443 , ctx}, Blocking::Yes);
+        SSocketClient       socket({"github.com",443 , ctx, DeferAccept::No}, Blocking::Yes);
     })
     .expectObjectTA(SSLctx_Client)
     .expectObjectTA(Socket_Blocking)
@@ -176,7 +177,7 @@ TEST(ConnectionSSocketTest, Protocol)
     SocketSetUp         setup;
 
     SSLctx              ctx{SSLMethodType::Client};
-    SSocketClient       socket({"github.com",443 , ctx}, Blocking::Yes);
+    SSocketClient       socket({"github.com",443 , ctx, DeferAccept::No}, Blocking::Yes);
     EXPECT_EQ("https", socket.protocol());
 }
     
