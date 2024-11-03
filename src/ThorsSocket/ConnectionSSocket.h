@@ -36,7 +36,7 @@ class SSocketStandard
         SSL* getSSL() const;
         void checkConnectionOK(int errorCode);
 
-        void   deferredAccept(YieldFunc& rYield, YieldFunc& wYield);
+        void   deferInit(YieldFunc& rYield, YieldFunc& wYield);
 
     private:
         void initSSocket(SSLctx const& ctx, int fd);
@@ -62,7 +62,7 @@ class SSocketClient: public SocketClient
 
         virtual IOData readFromStream(char* buffer, std::size_t size)       override;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  override;
-        virtual void   deferredAccept(YieldFunc& rYield, YieldFunc& wYield) override {secureSocketInfo.deferredAccept(rYield, wYield);}
+        virtual void   deferInit(YieldFunc& rYield, YieldFunc& wYield) override {secureSocketInfo.deferInit(rYield, wYield);}
 };
 
 class SSocketServer: public SocketServer

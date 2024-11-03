@@ -234,10 +234,10 @@ void Socket::externalyClosed()
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void Socket::deferredAccept()
+void Socket::deferInit()
 {
     if (connection.get() != nullptr) {
-        connection->deferredAccept(readYield, writeYield);
+        connection->deferInit(readYield, writeYield);
     }
 }
 

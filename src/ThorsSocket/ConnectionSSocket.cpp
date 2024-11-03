@@ -205,7 +205,7 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, int fd)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SSocketStandard::deferredAccept(YieldFunc& rYield, YieldFunc& wYield)
+void SSocketStandard::deferInit(YieldFunc& rYield, YieldFunc& wYield)
 {
     switch (deferAction)
     {

@@ -33,7 +33,7 @@ class ConnectionClient: public ConnectionBase
         virtual IOData readFromStream(char* buffer, std::size_t size)       = 0;
         virtual IOData writeToStream(char const* buffer, std::size_t size)  = 0;
         virtual std::string_view protocol() const                           = 0;
-        virtual void   deferredAccept(YieldFunc&, YieldFunc&)               {}
+        virtual void   deferInit(YieldFunc&, YieldFunc&)               {}
 };
 
 class ConnectionServer: public ConnectionBase
