@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "Socket.h"
 #include "Connection.h"
+#include "test/SimpleServer.h"
 
 using ThorsAnvil::ThorsSocket::ConnectionClient;
 using ThorsAnvil::ThorsSocket::Socket;
@@ -139,28 +140,34 @@ TEST(SocketTest, SocketConstructPipeInfoImplied)
 }
 TEST(SocketTest, SocketConstructViantSocketInfo)
 {
+    SocketSetUp     init;
     Socket  socket{SocketInit{SocketInfo{"google.com", 80}}};
 }
 TEST(SocketTest, SocketConstructSocketInfo)
 {
+    SocketSetUp     init;
     Socket  socket{SocketInfo{"google.com", 80}};
 }
 TEST(SocketTest, SocketConstructSocketInfoImplied)
 {
+    SocketSetUp     init;
     Socket  socket{{"google.com", 80}};
 }
 TEST(SocketTest, SocketConstructViantSSocketInfo)
 {
+    SocketSetUp     init;
     SSLctx  ctx{SSLMethodType::Client};
     Socket  socket{SocketInit{SSocketInfo{"google.com", 443, ctx, DeferAccept::No}}};
 }
 TEST(SocketTest, SocketConstructSSocketInfo)
 {
+    SocketSetUp     init;
     SSLctx  ctx{SSLMethodType::Client};
     Socket  socket{SSocketInfo{"google.com", 443, ctx, DeferAccept::No}};
 }
 TEST(SocketTest, SocketConstructSSocketInfoImplied)
 {
+    SocketSetUp     init;
     SSLctx  ctx{SSLMethodType::Client};
     Socket  socket{{"google.com", 443, ctx, DeferAccept::No}};
 }
