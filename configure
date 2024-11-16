@@ -5158,6 +5158,7 @@ then :
 
 printf "%s\n" "#define HAVE_ThorSerializeHeaderOnly 1" >>confdefs.h
 
+            thorserialize_header_only_found=1
             if test "x${with_thorserialize_header_only_root}" != "x"
 then :
 
