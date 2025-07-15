@@ -794,8 +794,6 @@ PACKAGE_TARNAME
 PACKAGE_NAME
 PATH_SEPARATOR
 SHELL
-MAGIC_ENUM_FILE
-HAVE_MagicEnumHeaderOnly
 am__quote'
 ac_subst_files=''
 ac_user_opts='
@@ -4833,6 +4831,60 @@ then :
 fi
 
 
+    if test "xcrypto" != "x"
+then :
+
+
+    if [ "x0" == "x0" ]; then
+        grep -q 'crypto_ROOT_DIR=@crypto_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting crypto_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        crypto_ROOT_DIR=@crypto_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+
+        grep -q 'crypto_ROOT_LIB=@crypto_ROOT_LIB@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting crypto_ROOT_LIB to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        crypto_ROOT_LIB=@crypto_ROOT_LIB@
+                " "$LINENO" 5
+
+
+fi
+    else
+        grep -q 'cryptoHeaderOnly_ROOT_DIR=@cryptoHeaderOnly_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting cryptoHeaderOnly_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        cryptoHeaderOnly_ROOT_DIR=@cryptoHeaderOnly_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+
+fi
+
     LIBRARY_DIR="-L ${with_crypto_root}/lib"
     if test "x${with_crypto_root}" == "x"
 then :
@@ -4977,6 +5029,60 @@ then :
   withval=$with_zlib_root;
 fi
 
+
+    if test "xZLIB" != "x"
+then :
+
+
+    if [ "x0" == "x0" ]; then
+        grep -q 'ZLIB_ROOT_DIR=@ZLIB_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting ZLIB_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        ZLIB_ROOT_DIR=@ZLIB_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+
+        grep -q 'ZLIB_ROOT_LIB=@ZLIB_ROOT_LIB@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting ZLIB_ROOT_LIB to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        ZLIB_ROOT_LIB=@ZLIB_ROOT_LIB@
+                " "$LINENO" 5
+
+
+fi
+    else
+        grep -q 'ZLIBHeaderOnly_ROOT_DIR=@ZLIBHeaderOnly_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting ZLIBHeaderOnly_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        ZLIBHeaderOnly_ROOT_DIR=@ZLIBHeaderOnly_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+
+fi
 
     LIBRARY_DIR="-L ${with_zlib_root}/lib"
     if test "x${with_zlib_root}" == "x"
@@ -5214,6 +5320,60 @@ then :
   withval=$with_thorserialize_root;
 fi
 
+
+    if test "x" != "x"
+then :
+
+
+    if [ "x0" == "x0" ]; then
+        grep -q '_ROOT_DIR=@_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting _ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        _ROOT_DIR=@_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+
+        grep -q '_ROOT_LIB=@_ROOT_LIB@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting _ROOT_LIB to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        _ROOT_LIB=@_ROOT_LIB@
+                " "$LINENO" 5
+
+
+fi
+    else
+        grep -q 'HeaderOnly_ROOT_DIR=@HeaderOnly_ROOT_DIR@' Makefile.config.in
+        result=$?
+        if test "x${result}" != "x0"
+then :
+
+                as_fn_error $? "
+                    Expecting HeaderOnly_ROOT_DIR to be defined in Makefile.config.in
+                    You should probably add this line to Makefile.config.in
+
+                        HeaderOnly_ROOT_DIR=@HeaderOnly_ROOT_DIR@
+                " "$LINENO" 5
+
+
+fi
+    fi
+
+
+fi
 
     LIBRARY_DIR="-L ${with_thorserialize_root}/lib"
     if test "x${with_thorserialize_root}" == "x"
