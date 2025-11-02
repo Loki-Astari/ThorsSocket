@@ -9,8 +9,6 @@ using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 using ThorsAnvil::ThorsSocket::IOData;
-using ThorsAnvil::Logging::LogErrorException;
-using ThorsAnvil::Logging::LogWarningException;
 
 
 template<typename Exception>
@@ -112,35 +110,35 @@ TEST(ConnectionFileDescriptorTest, WriteOK)
     .run();
 }
 
-TEST(ConnectionFileDescriptorTest, ReadEBADF)             {testSocketReadFailure<LogErrorException>(EBADF);}
-TEST(ConnectionFileDescriptorTest, ReadEFAULT)            {testSocketReadFailure<LogErrorException>(EFAULT);}
-TEST(ConnectionFileDescriptorTest, ReadEINVAL)            {testSocketReadFailure<LogErrorException>(EINVAL);}
-TEST(ConnectionFileDescriptorTest, ReadEISDIR)            {testSocketReadFailure<LogErrorException>(EISDIR);}
-TEST(ConnectionFileDescriptorTest, ReadEBADMSG)           {testSocketReadFailure<LogErrorException>(EBADMSG);}
-TEST(ConnectionFileDescriptorTest, ReadENXIO)             {testSocketReadFailure<LogErrorException>(ENXIO);}
-TEST(ConnectionFileDescriptorTest, ReadESPIPE)            {testSocketReadFailure<LogErrorException>(ESPIPE);}
-TEST(ConnectionFileDescriptorTest, ReadENOMEM)            {testSocketReadFailure<LogWarningException>(ENOMEM);}
-TEST(ConnectionFileDescriptorTest, ReadENOBUFS)           {testSocketReadFailure<LogWarningException>(ENOBUFS);}
-TEST(ConnectionFileDescriptorTest, ReadENOTCONN)          {testSocketReadFailure<LogWarningException>(ENOTCONN);}
-TEST(ConnectionFileDescriptorTest, ReadEOVERFLOW)         {testSocketReadFailure<LogWarningException>(EOVERFLOW);}
-TEST(ConnectionFileDescriptorTest, ReadUnknownError)      {testSocketReadFailure<LogWarningException>(EIO);}
+TEST(ConnectionFileDescriptorTest, ReadEBADF)             {testSocketReadFailure<std::runtime_error>(EBADF);}
+TEST(ConnectionFileDescriptorTest, ReadEFAULT)            {testSocketReadFailure<std::runtime_error>(EFAULT);}
+TEST(ConnectionFileDescriptorTest, ReadEINVAL)            {testSocketReadFailure<std::runtime_error>(EINVAL);}
+TEST(ConnectionFileDescriptorTest, ReadEISDIR)            {testSocketReadFailure<std::runtime_error>(EISDIR);}
+TEST(ConnectionFileDescriptorTest, ReadEBADMSG)           {testSocketReadFailure<std::runtime_error>(EBADMSG);}
+TEST(ConnectionFileDescriptorTest, ReadENXIO)             {testSocketReadFailure<std::runtime_error>(ENXIO);}
+TEST(ConnectionFileDescriptorTest, ReadESPIPE)            {testSocketReadFailure<std::runtime_error>(ESPIPE);}
+TEST(ConnectionFileDescriptorTest, ReadENOMEM)            {testSocketReadFailure<std::runtime_error>(ENOMEM);}
+TEST(ConnectionFileDescriptorTest, ReadENOBUFS)           {testSocketReadFailure<std::runtime_error>(ENOBUFS);}
+TEST(ConnectionFileDescriptorTest, ReadENOTCONN)          {testSocketReadFailure<std::runtime_error>(ENOTCONN);}
+TEST(ConnectionFileDescriptorTest, ReadEOVERFLOW)         {testSocketReadFailure<std::runtime_error>(EOVERFLOW);}
+TEST(ConnectionFileDescriptorTest, ReadUnknownError)      {testSocketReadFailure<std::runtime_error>(EIO);}
 TEST(ConnectionFileDescriptorTest, ReadEINTR)             {testSocketReadReturnError(EINTR, {0, true, false});}
 TEST(ConnectionFileDescriptorTest, ReadECONNRESET)        {testSocketReadReturnError(ECONNRESET, {0, false, false});}
 TEST(ConnectionFileDescriptorTest, ReadEAGAIN)            {testSocketReadReturnError(EAGAIN, {0, true, true});}
 TEST(ConnectionFileDescriptorTest, ReadEWOULDBLOCK)       {testSocketReadReturnError(EWOULDBLOCK, {0, true, true});}
 
 
-TEST(ConnectionFileDescriptorTest, writeEBADF)            {testSocketWriteFailure<LogErrorException>(EBADF);}
-TEST(ConnectionFileDescriptorTest, writeEFAULT)           {testSocketWriteFailure<LogErrorException>(EFAULT);}
-TEST(ConnectionFileDescriptorTest, writeEINVAL)           {testSocketWriteFailure<LogErrorException>(EINVAL);}
-TEST(ConnectionFileDescriptorTest, writeENXIO)            {testSocketWriteFailure<LogErrorException>(ENXIO);}
-TEST(ConnectionFileDescriptorTest, writeESPIPE)           {testSocketWriteFailure<LogErrorException>(ESPIPE);}
-TEST(ConnectionFileDescriptorTest, writeEDESTADDRREQ)     {testSocketWriteFailure<LogErrorException>(EDESTADDRREQ);}
-TEST(ConnectionFileDescriptorTest, writeEPIPE)            {testSocketWriteFailure<LogErrorException>(EPIPE);}
-TEST(ConnectionFileDescriptorTest, WriteUnknownError)     {testSocketWriteFailure<LogWarningException>(EIO);}
-TEST(ConnectionFileDescriptorTest, writeEACCES)           {testSocketWriteFailure<LogWarningException>(EACCES);}
-TEST(ConnectionFileDescriptorTest, writeENOTCONN)         {testSocketWriteFailure<LogWarningException>(ENOTCONN);}
-TEST(ConnectionFileDescriptorTest, writeERANGE)           {testSocketWriteFailure<LogWarningException>(ERANGE);}
+TEST(ConnectionFileDescriptorTest, writeEBADF)            {testSocketWriteFailure<std::runtime_error>(EBADF);}
+TEST(ConnectionFileDescriptorTest, writeEFAULT)           {testSocketWriteFailure<std::runtime_error>(EFAULT);}
+TEST(ConnectionFileDescriptorTest, writeEINVAL)           {testSocketWriteFailure<std::runtime_error>(EINVAL);}
+TEST(ConnectionFileDescriptorTest, writeENXIO)            {testSocketWriteFailure<std::runtime_error>(ENXIO);}
+TEST(ConnectionFileDescriptorTest, writeESPIPE)           {testSocketWriteFailure<std::runtime_error>(ESPIPE);}
+TEST(ConnectionFileDescriptorTest, writeEDESTADDRREQ)     {testSocketWriteFailure<std::runtime_error>(EDESTADDRREQ);}
+TEST(ConnectionFileDescriptorTest, writeEPIPE)            {testSocketWriteFailure<std::runtime_error>(EPIPE);}
+TEST(ConnectionFileDescriptorTest, WriteUnknownError)     {testSocketWriteFailure<std::runtime_error>(EIO);}
+TEST(ConnectionFileDescriptorTest, writeEACCES)           {testSocketWriteFailure<std::runtime_error>(EACCES);}
+TEST(ConnectionFileDescriptorTest, writeENOTCONN)         {testSocketWriteFailure<std::runtime_error>(ENOTCONN);}
+TEST(ConnectionFileDescriptorTest, writeERANGE)           {testSocketWriteFailure<std::runtime_error>(ERANGE);}
 TEST(ConnectionFileDescriptorTest, writeEINTR)            {testSocketWriteReturnError(EINTR, {0, true, false});}
 TEST(ConnectionFileDescriptorTest, writeECONNRESET)       {testSocketWriteReturnError(ECONNRESET, {0, false, false});}
 TEST(ConnectionFileDescriptorTest, writeEAGAIN)           {testSocketWriteReturnError(EAGAIN, {0, true, true});}

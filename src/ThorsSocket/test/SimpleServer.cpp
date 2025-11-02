@@ -34,6 +34,7 @@ void SSocketBase::initSSocket(SSLctx const& ctx)
     {
         int saveErrno = ERR_get_error();
         ThorsLogAndThrowDebug(
+            std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
             "SSocketBase",
             " :Failed on SSL_new.",
@@ -48,6 +49,7 @@ void SSocketBase::initSSocket(SSLctx const& ctx)
         int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, ret);
         MOCK_FUNC(SSL_free)(ssl);
         ThorsLogAndThrowDebug(
+            std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
             "SSocketBase",
             " :Failed on SSL_set_fd.",
@@ -100,6 +102,7 @@ IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
             case SSL_ERROR_SSL:
             {
                     ThorsLogAndThrowError(
+                        std::runtime_error,
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
                         " readFromStream",
                         " :SocketCritical exception thrown.",
@@ -114,6 +117,7 @@ IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
             default:
             {
                     ThorsLogAndThrowWarning(
+                        std::runtime_error,
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
                         " readFromStream",
                         " :UnknownCritical exception thrown.",
@@ -145,6 +149,7 @@ IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
             case SSL_ERROR_SSL:
             {
                     ThorsLogAndThrowError(
+                        std::runtime_error,
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
                         " writeToStream",
                         " :SocketCritical exception thrown.",
@@ -159,6 +164,7 @@ IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
             default:
             {
                     ThorsLogAndThrowWarning(
+                        std::runtime_error,
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
                         " writeToStream",
                         " :SocketUnknown exception thrown.",

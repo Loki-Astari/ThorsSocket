@@ -82,7 +82,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Socket::socketId(Mode rw) const
 {
     if (!isConnected()) {
-        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "socketId", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "socketId", "Socket is in an invalid state");
     }
     return connection->socketId(rw);
 }
@@ -105,7 +105,7 @@ IOData Socket::getMessageDataFromStream(void* b, std::size_t size, bool waitWhen
     char* buffer = reinterpret_cast<char*>(b);
 
     if (!isConnected()) {
-        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "getMessageDataFromStream", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "getMessageDataFromStream", "Socket is in an invalid state");
     }
 
     std::size_t dataRead = 0;
@@ -147,7 +147,7 @@ IOData Socket::putMessageDataToStream(void const* b, std::size_t size, bool wait
     char const* buffer = reinterpret_cast<char const*>(b);
 
     if (!isConnected()) {
-        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "putMessageData", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "putMessageData", "Socket is in an invalid state");
     }
 
     std::size_t dataWritten = 0;
@@ -194,7 +194,7 @@ void Socket::waitForFileDescriptor(int fd, short flag)
     while ((result = THOR_POLL(fds, 1, -1)) <= 0)
     {
         if (result == THOR_POLL_ERROR) {
-            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "waitForInput", ": poll return an error");
+            ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "waitForInput", ": poll return an error");
         }
     }
 }
@@ -203,7 +203,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::tryFlushBuffer()
 {
     if (!isConnected()) {
-        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "tryFlushBuffer", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "tryFlushBuffer", "Socket is in an invalid state");
     }
     connection->tryFlushBuffer();
 }
@@ -212,7 +212,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::close()
 {
     if (!isConnected()) {
-        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
     }
     connection->close();
 }
@@ -221,7 +221,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::release()
 {
     if (!isConnected()) {
-        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
     }
     connection->release();
 }

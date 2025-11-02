@@ -13,6 +13,7 @@ Pipe::Pipe(PipeInfo const&, Blocking blocking)
     if (result == -1)
     {
         ThorsLogAndThrowDebug(
+            std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
             "Pipe",
             " :Failed to open.",
@@ -30,6 +31,7 @@ Pipe::Pipe(PipeInfo const&, Blocking blocking)
         {
             close();
             ThorsLogAndThrowDebug(
+                std::runtime_error,
                 "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
                 "Pipe",
                 " :Failed to set non blocking.",

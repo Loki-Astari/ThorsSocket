@@ -122,6 +122,7 @@ class SSocketServerAccept: public SSocketBase
                 int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, status);
                 MOCK_FUNC(SSL_free)(ssl);
                 ThorsLogAndThrowDebug(
+                    std::runtime_error,
                     "ThorsAnvil::ThorsSocket::ConnectionType::SSocketServer",
                     "SSocketServer",
                     " :Failed on SSL_accept.",
@@ -135,6 +136,7 @@ class SSocketServerAccept: public SSocketBase
             {
                 MOCK_FUNC(SSL_free)(ssl);
                 ThorsLogAndThrowDebug(
+                    std::runtime_error,
                     "ThorsAnvil::ThorsSocket::ConnectionType::SSocketServer",
                     "SSocketServer",
                     " :Failed on SSL_get_verify_result."

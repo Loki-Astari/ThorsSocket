@@ -183,6 +183,7 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, int fd)
     if (!ssl)
     {
         ThorsLogAndThrowDebug(
+            std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocket",
             " :Failed on SSL_new(): ",
@@ -196,6 +197,7 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, int fd)
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
         ThorsLogAndThrowDebug(
+            std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocket",
             " :Failed on SSL_set_fd(): ",
@@ -252,6 +254,7 @@ void SSocketStandard::initSSocketClientConnect(YieldFunc& rYield, YieldFunc& wYi
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
         ThorsLogAndThrowDebug(
+            std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClient",
             " :Failed on SSL_connect(): ",
@@ -264,6 +267,7 @@ void SSocketStandard::initSSocketClientConnect(YieldFunc& rYield, YieldFunc& wYi
     if (cert == nullptr)
     {
         ThorsLogAndThrowDebug(
+            std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClient",
             " :Failed on SSL_get1_peer_certificate(): ",
@@ -447,6 +451,7 @@ IOData SSocketClient::readFromStream(char* buffer, std::size_t size)
             case SSL_ERROR_SSL:
             {
                     ThorsLogAndThrowError(
+                        std::runtime_error,
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " readFromStream",
                         " :SocketCritical exception thrown.",
@@ -461,6 +466,7 @@ IOData SSocketClient::readFromStream(char* buffer, std::size_t size)
             default:
             {
                     ThorsLogAndThrowWarning(
+                        std::runtime_error,
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " readFromStream",
                         " :UnknownCritical exception thrown.",
@@ -495,6 +501,7 @@ IOData SSocketClient::writeToStream(char const* buffer, std::size_t size)
             case SSL_ERROR_SSL:
             {
                     ThorsLogAndThrowError(
+                        std::runtime_error,
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " writeToStream",
                         " :SocketCritical exception thrown.",
@@ -509,6 +516,7 @@ IOData SSocketClient::writeToStream(char const* buffer, std::size_t size)
             default:
             {
                     ThorsLogAndThrowWarning(
+                        std::runtime_error,
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " writeToStream",
                         " :SocketUnknown exception thrown.",

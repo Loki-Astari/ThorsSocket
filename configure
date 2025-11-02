@@ -5375,10 +5375,10 @@ fi
 
 
 
-    if [ "ThorSerialize ThorsStorage ThorsLogging ThorsMongo" == "" ]; then
+    if [ "ThorSerialize ThorsLogging" == "" ]; then
         libs="ThorSerialize ThorsSocket ThorsStorage ThorsLogging ThorsMongo"
     else
-        libs="ThorSerialize ThorsStorage ThorsLogging ThorsMongo"
+        libs="ThorSerialize ThorsLogging"
     fi
 
     echo "Libs: ${libs}"

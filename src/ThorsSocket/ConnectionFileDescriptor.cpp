@@ -41,6 +41,7 @@ IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
             case ENXIO:         [[fallthrough]];
             case ESPIPE:
                 ThorsLogAndThrowError(
+                    std::runtime_error,
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
                     " readFromStream",
                     " :SocketCritical exception thrown.",
@@ -54,6 +55,7 @@ IOData FileDescriptor::readFromStream(char* buffer, std::size_t size)
             case ENOMEM:        [[fallthrough]];
             default:
                 ThorsLogAndThrowWarning(
+                    std::runtime_error,
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
                     " readFromStream",
                     " :SocketUnknown exception thrown.",
@@ -91,6 +93,7 @@ IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
             case EDESTADDRREQ:  [[fallthrough]];
             case EPIPE:
                 ThorsLogAndThrowError(
+                    std::runtime_error,
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
                     " writeToStream",
                     " :SocketCritical exception thrown.",
@@ -110,6 +113,7 @@ IOData FileDescriptor::writeToStream(char const* buffer, std::size_t size)
             case EPERM:         [[fallthrough]];
             default:
                 ThorsLogAndThrowWarning(
+                    std::runtime_error,
                     "ThorsAnvil::ThorsSocket::ConnectionType::FileDescriptor",
                     " readFromStream",
                     " :SocketUnknown exception thrown",
