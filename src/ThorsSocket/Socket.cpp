@@ -102,7 +102,6 @@ IOData Socket::tryGetMessageData(void* b, std::size_t size)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::getMessageDataFromStream(void* b, std::size_t size, bool waitWhenBlocking)
 {
-    std::cerr << "Socket::getMessageDataFromStream\n";
     char* buffer = reinterpret_cast<char*>(b);
 
     if (!isConnected()) {
@@ -112,31 +111,21 @@ IOData Socket::getMessageDataFromStream(void* b, std::size_t size, bool waitWhen
     std::size_t dataRead = 0;
     while (dataRead != size)
     {
-        std::cerr << "Socket::getMessageDataFromStream Reading: " << (size - dataRead) << "\n";
         IOData chunk = connection->readFromStream(buffer + dataRead, size - dataRead);
         dataRead += chunk.dataSize;
-        std::cerr << "Socket::getMessageDataFromStream Got:     " << chunk.dataSize << "\n";
-        if (!chunk.stillOpen)
-        {
-            std::cerr << "Socket::getMessageDataFromStream Stream Closed\n";
+        if (!chunk.stillOpen) {
             return {dataRead, false, false};
         }
         if (chunk.blocked)
         {
-            std::cerr << "Socket::getMessageDataFromStream Stream Blocked\n";
-            if (!waitWhenBlocking)
-            {
-                std::cerr << "Socket::getMessageDataFromStream Stream Blocked Returning\n";
+            if (!waitWhenBlocking) {
                 return {dataRead, true, true};
             }
-            if (!readYield())
-            {
-                std::cerr << "Socket::getMessageDataFromStream Stream Blocked Yield\n";
+            if (!readYield()) {
                 waitForInput();
             }
         }
     }
-    std::cerr << "Socket::getMessageDataFromStream DONE\n";
     return {dataRead, true, false};
 }
 
