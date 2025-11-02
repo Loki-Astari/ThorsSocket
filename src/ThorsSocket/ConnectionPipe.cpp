@@ -12,7 +12,7 @@ Pipe::Pipe(PipeInfo const&, Blocking blocking)
     int result = MOCK_FUNC(thorCreatePipe)(fd);
     if (result == -1)
     {
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
             "Pipe",
             " :Failed to open.",
@@ -29,7 +29,7 @@ Pipe::Pipe(PipeInfo const&, Blocking blocking)
         if (result != 0)
         {
             close();
-            ThorsLogAndThrow(
+            ThorsLogAndThrowDebug(
                 "ThorsAnvil::ThorsSocket::ConnectionType::Pipe",
                 "Pipe",
                 " :Failed to set non blocking.",

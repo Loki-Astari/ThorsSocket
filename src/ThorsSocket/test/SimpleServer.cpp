@@ -33,7 +33,7 @@ void SSocketBase::initSSocket(SSLctx const& ctx)
     if (!ssl)
     {
         int saveErrno = ERR_get_error();
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
             "SSocketBase",
             " :Failed on SSL_new.",
@@ -47,7 +47,7 @@ void SSocketBase::initSSocket(SSLctx const& ctx)
     {
         int saveErrno = MOCK_FUNC(SSL_get_error)(ssl, ret);
         MOCK_FUNC(SSL_free)(ssl);
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
             "SSocketBase",
             " :Failed on SSL_set_fd.",
@@ -99,7 +99,7 @@ IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
             case SSL_ERROR_SYSCALL:             [[fallthrough]];
             case SSL_ERROR_SSL:
             {
-                    ThorsLogAndThrowCritical(
+                    ThorsLogAndThrowError(
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
                         " readFromStream",
                         " :SocketCritical exception thrown.",
@@ -113,7 +113,7 @@ IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
             case SSL_ERROR_WANT_ASYNC_JOB:      [[fallthrough]];
             default:
             {
-                    ThorsLogAndThrowLogical(
+                    ThorsLogAndThrowWarning(
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
                         " readFromStream",
                         " :UnknownCritical exception thrown.",
@@ -144,7 +144,7 @@ IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
             case SSL_ERROR_SYSCALL:             [[fallthrough]];
             case SSL_ERROR_SSL:
             {
-                    ThorsLogAndThrowCritical(
+                    ThorsLogAndThrowError(
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
                         " writeToStream",
                         " :SocketCritical exception thrown.",
@@ -158,7 +158,7 @@ IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
             case SSL_ERROR_WANT_ASYNC_JOB:      [[fallthrough]];
             default:
             {
-                    ThorsLogAndThrowLogical(
+                    ThorsLogAndThrowWarning(
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketBase",
                         " writeToStream",
                         " :SocketUnknown exception thrown.",

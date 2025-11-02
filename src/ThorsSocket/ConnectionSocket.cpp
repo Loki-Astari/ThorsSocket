@@ -37,7 +37,7 @@ void SocketStandard::createSocket()
     if (fd == thorInvalidFD())
     {
         int saveErrno = thorGetSocketError();
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
             "createSocket",
             " :Failed on ::socket.",
@@ -57,7 +57,7 @@ void SocketStandard::setUpBlocking(Blocking blocking)
             int saveErrno = thorGetSocketError();
             MOCK_FUNC(thorCloseSocket)(fd);
 
-            ThorsLogAndThrow(
+            ThorsLogAndThrowDebug(
                 "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
                 "setUpBlocking",
                 " :Failed on ::thorSetSocketNonBlocking",
@@ -81,7 +81,7 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
         int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
 
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
                 "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
                 "setUpServerSocket",
                 " :Failed on ::bind",
@@ -96,7 +96,7 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
         int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
 
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
                 "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
                 "setUpServerSocket",
                 " :Failed on ::listen",
@@ -122,7 +122,7 @@ void SocketStandard::setUpClientSocket(SocketInfo const& socketInfo)
         int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
 
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
             "setUpClientSocket",
             " :Failed on ::gethostbyname.",
@@ -146,7 +146,7 @@ void SocketStandard::setUpClientSocket(SocketInfo const& socketInfo)
         int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
 
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
             "setUpClientSocket",
             " :Failed on ::connect.",
@@ -240,7 +240,7 @@ void SocketClient::tryFlushBuffer()
     if (result != 0)
     {
         int saveErrno = thorGetSocketError();
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
             "tryFlushBuffer",
             " :Win Failed on ::shutdown.",
@@ -280,7 +280,7 @@ IOData SocketClient::readFromStream(char* buffer, std::size_t size)
             case WSAEOPNOTSUPP:     [[fallthrough]];
             case WSAEINVAL:
             {
-                ThorsLogAndThrowCritical(
+                ThorsLogAndThrowError(
                     "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
                     "readFromStream",
                     " :Win Failed on ::recv with SocketCritical",
@@ -291,7 +291,7 @@ IOData SocketClient::readFromStream(char* buffer, std::size_t size)
             case WSAEMSGSIZE:       [[fallthrough]];
             default:
             {
-                ThorsLogAndThrowLogical(
+                ThorsLogAndThrowWarning(
                     "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
                     "readFromStream",
                     " :Win Failed on ::recv with SocketUnknown",
@@ -333,7 +333,7 @@ IOData SocketClient::writeToStream(char const* buffer, std::size_t size)
             case WSAEHOSTUNREACH:   [[fallthrough]];
             case WSAEINVAL:
             {
-                ThorsLogAndThrowCritical(
+                ThorsLogAndThrowError(
                     "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
                     "writeToStream",
                     " :Win Failed on ::send with SocketCritical",
@@ -345,7 +345,7 @@ IOData SocketClient::writeToStream(char const* buffer, std::size_t size)
             case WSAEMSGSIZE:       [[fallthrough]];
             default:
             {
-                ThorsLogAndThrowLogical(
+                ThorsLogAndThrowWarning(
                     "ThorsAnvil::ThorsSocket::ConnectionType::SocketClient",
                     "writeToStream",
                     " :Win Failed on ::send with SocketUnknown",
@@ -417,7 +417,7 @@ void SocketServer::waitForFileDescriptor(int fd)
     while ((result = THOR_POLL(fds, 1, -1)) <= 0)
     {
         if (result == THOR_POLL_ERROR) {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SocketServer", "waitForInput", ": poll return an error");
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::SocketServer", "waitForInput", ": poll return an error");
         }
     }
 }
@@ -461,7 +461,7 @@ int SocketServer::acceptSocket(YieldFunc& yield)
             continue;
         }
 
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
                 "ThorsAnvil::ThorsSocket::ConnectionType::SocketServer",
                 "accept",
                 " :Failed on ::accept.",

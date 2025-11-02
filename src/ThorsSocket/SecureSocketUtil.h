@@ -192,17 +192,17 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
 
     if (method == nullptr)
     {
-        ThorsLogAndThrow("ThorsAnvil::THorsSocket::SSLctx",
-                         "SSLctx",
-                         "TLS_client_method() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::THorsSocket::SSLctx",
+                              "SSLctx",
+                              "TLS_client_method() failed: ", buildOpenSSLErrorMessage());
     }
 
     ctx = newCtx(method);
     if (ctx == nullptr)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::SSLctx",
-                         "SSLctx",
-                         "SSL_CTX_new() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::SSLctx",
+                              "SSLctx",
+                              "SSL_CTX_new() failed: ", buildOpenSSLErrorMessage());
     }
 
     (args.apply(ctx),...);

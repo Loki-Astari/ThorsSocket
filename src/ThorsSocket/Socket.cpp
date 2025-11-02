@@ -5,6 +5,8 @@
 #include "ConnectionSSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
 
+#include <iostream>
+
 using namespace ThorsAnvil::ThorsSocket;
 
 struct SocketConnectionBuilder
@@ -80,7 +82,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 int Socket::socketId(Mode rw) const
 {
     if (!isConnected()) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "socketId", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "socketId", "Socket is in an invalid state");
     }
     return connection->socketId(rw);
 }
@@ -100,30 +102,41 @@ IOData Socket::tryGetMessageData(void* b, std::size_t size)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData Socket::getMessageDataFromStream(void* b, std::size_t size, bool waitWhenBlocking)
 {
+    std::cerr << "Socket::getMessageDataFromStream\n";
     char* buffer = reinterpret_cast<char*>(b);
 
     if (!isConnected()) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "getMessageDataFromStream", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "getMessageDataFromStream", "Socket is in an invalid state");
     }
 
     std::size_t dataRead = 0;
     while (dataRead != size)
     {
+        std::cerr << "Socket::getMessageDataFromStream Reading: " << (size - dataRead) << "\n";
         IOData chunk = connection->readFromStream(buffer + dataRead, size - dataRead);
         dataRead += chunk.dataSize;
-        if (!chunk.stillOpen) {
+        std::cerr << "Socket::getMessageDataFromStream Got:     " << chunk.dataSize << "\n";
+        if (!chunk.stillOpen)
+        {
+            std::cerr << "Socket::getMessageDataFromStream Stream Closed\n";
             return {dataRead, false, false};
         }
         if (chunk.blocked)
         {
-            if (!waitWhenBlocking) {
+            std::cerr << "Socket::getMessageDataFromStream Stream Blocked\n";
+            if (!waitWhenBlocking)
+            {
+                std::cerr << "Socket::getMessageDataFromStream Stream Blocked Returning\n";
                 return {dataRead, true, true};
             }
-            if (!readYield()) {
+            if (!readYield())
+            {
+                std::cerr << "Socket::getMessageDataFromStream Stream Blocked Yield\n";
                 waitForInput();
             }
         }
     }
+    std::cerr << "Socket::getMessageDataFromStream DONE\n";
     return {dataRead, true, false};
 }
 
@@ -145,7 +158,7 @@ IOData Socket::putMessageDataToStream(void const* b, std::size_t size, bool wait
     char const* buffer = reinterpret_cast<char const*>(b);
 
     if (!isConnected()) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "putMessageData", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "putMessageData", "Socket is in an invalid state");
     }
 
     std::size_t dataWritten = 0;
@@ -192,7 +205,7 @@ void Socket::waitForFileDescriptor(int fd, short flag)
     while ((result = THOR_POLL(fds, 1, -1)) <= 0)
     {
         if (result == THOR_POLL_ERROR) {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "waitForInput", ": poll return an error");
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "waitForInput", ": poll return an error");
         }
     }
 }
@@ -201,7 +214,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::tryFlushBuffer()
 {
     if (!isConnected()) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "tryFlushBuffer", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "tryFlushBuffer", "Socket is in an invalid state");
     }
     connection->tryFlushBuffer();
 }
@@ -210,7 +223,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::close()
 {
     if (!isConnected()) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
     }
     connection->close();
 }
@@ -219,7 +232,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Socket::release()
 {
     if (!isConnected()) {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::Socket", "close", "Socket is in an invalid state");
     }
     connection->release();
 }

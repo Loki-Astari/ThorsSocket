@@ -42,9 +42,9 @@ int ThorsAnvil::ThorsSocket::certificateInfo_PasswdCBNormal(char* buf, int size,
     std::string&& password = certificateInfo.getPassword(rwflag);
     if (password.size() > static_cast<std::size_t>(size))
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                         "setCertificateInfo",
-                         "certificateInfo_PasswdCB failed: password size exceeds max space. Max=", size, " Actual=", password.size());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                              "setCertificateInfo",
+                              "certificateInfo_PasswdCB failed: password size exceeds max space. Max=", size, " Actual=", password.size());
     }
     for (std::size_t loop = 0; loop < password.size(); ++loop) {
         buf[loop] = std::exchange(password[loop], 'X');
@@ -73,16 +73,16 @@ void ProtocolInfo::apply(SSL_CTX* ctx) const
     //if (SSL_CTX_set_min_proto_version(ctx, convertProtocolToOpenSSL(minProtocol)) != 1)
     if (MOCK_FUNC(SSL_CTX_ctrl)(ctx, SSL_CTRL_SET_MIN_PROTO_VERSION, convertProtocolToOpenSSL(minProtocol), nullptr) != 1)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ProtocolInfo",
-                         "setProtocolInfo",
-                         "SSL_CTX_set_min_proto_version() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::ProtocolInfo",
+                              "setProtocolInfo",
+                              "SSL_CTX_set_min_proto_version() failed: ", buildOpenSSLErrorMessage());
     }
     //if (SSL_CTX_set_max_proto_version(ctx, convertProtocolToOpenSSL(maxProtocol)) != 1)
     if (MOCK_FUNC(SSL_CTX_ctrl)(ctx, SSL_CTRL_SET_MAX_PROTO_VERSION, convertProtocolToOpenSSL(maxProtocol), nullptr) != 1)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ProtocolInfo",
-                         "setProtocolInfo",
-                         "SSL_CTX_set_max_proto_version() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::ProtocolInfo",
+                              "setProtocolInfo",
+                              "SSL_CTX_set_max_proto_version() failed: ", buildOpenSSLErrorMessage());
     }
 }
 
@@ -92,16 +92,16 @@ void ProtocolInfo::apply(SSL* ssl) const
     //if (SSL_set_min_proto_version(ssl, convertProtocolToOpenSSL(minProtocol)) != 1)
     if (MOCK_FUNC(SSL_ctrl)(ssl, SSL_CTRL_SET_MIN_PROTO_VERSION, convertProtocolToOpenSSL(minProtocol), nullptr) != 1)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ProtocolInfo",
-                         "setProtocolInfo",
-                         "SSL_set_min_proto_version() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::ProtocolInfo",
+                              "setProtocolInfo",
+                              "SSL_set_min_proto_version() failed: ", buildOpenSSLErrorMessage());
     }
     //if (SSL_set_max_proto_version(ssl, convertProtocolToOpenSSL(maxProtocol)) != 1)
     if (MOCK_FUNC(SSL_ctrl)(ssl, SSL_CTRL_SET_MAX_PROTO_VERSION, convertProtocolToOpenSSL(maxProtocol), nullptr) != 1)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ProtocolInfo",
-                         "setProtocolInfo",
-                         "SSL_set_max_proto_version() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::ProtocolInfo",
+                              "setProtocolInfo",
+                              "SSL_set_max_proto_version() failed: ", buildOpenSSLErrorMessage());
     }
 }
 
@@ -111,15 +111,15 @@ void CipherInfo::apply(SSL_CTX* ctx) const
     /*Set the Cipher List*/
     if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, cipherList.c_str()) <= 0)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherInfo",
-                         "setCipherInfo",
-                         "SSL_CTX_set_cipher_list() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CipherInfo",
+                              "setCipherInfo",
+                              "SSL_CTX_set_cipher_list() failed: ", buildOpenSSLErrorMessage());
     }
     if (MOCK_FUNC(SSL_CTX_set_ciphersuites)(ctx, cipherSuite.c_str()) <= 0)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherInfo",
-                         "setCipherInfo",
-                         "SSL_CTX_set_ciphersuites() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CipherInfo",
+                              "setCipherInfo",
+                              "SSL_CTX_set_ciphersuites() failed: ", buildOpenSSLErrorMessage());
     }
 }
 
@@ -129,15 +129,15 @@ void CipherInfo::apply(SSL* ssl) const
     /*Set the Cipher List*/
     if (MOCK_FUNC(SSL_set_cipher_list)(ssl, cipherList.c_str()) <= 0)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherInfo",
-                         "setCipherInfo",
-                         "SSL_set_cipher_list() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CipherInfo",
+                              "setCipherInfo",
+                              "SSL_set_cipher_list() failed: ", buildOpenSSLErrorMessage());
     }
     if (MOCK_FUNC(SSL_set_ciphersuites)(ssl, cipherSuite.c_str()) <= 0)
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CipherInfo",
-                         "setCipherInfo",
-                         "SSL_set_ciphersuites() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CipherInfo",
+                              "setCipherInfo",
+                              "SSL_set_ciphersuites() failed: ", buildOpenSSLErrorMessage());
     }
 }
 
@@ -149,9 +149,9 @@ CertificateInfo::CertificateInfo(std::string const& certificateFileName, std::st
 {
     if (certificateFileName == "" || keyFileName == "")
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                         "CertificateInfo",
-                         "Either both certificate and key are set or neither are set");
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                              "CertificateInfo",
+                              "Either both certificate and key are set or neither are set");
     }
 }
 
@@ -164,9 +164,9 @@ CertificateInfo::CertificateInfo(std::string const& certificateFileName, std::st
 {
     if (certificateFileName == "" || keyFileName == "")
     {
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                         "CertificateInfo",
-                         "Either both certificate and key are set or neither are set");
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                              "CertificateInfo",
+                              "Either both certificate and key are set or neither are set");
     }
 }
 
@@ -185,25 +185,25 @@ void CertificateInfo::apply(SSL_CTX* ctx) const
         /*Set the certificate to be used.*/
         if (MOCK_FUNC(SSL_CTX_use_certificate_file)(ctx, certificateFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
         {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                             "setCertificateInfo",
-                             "SSL_CTX_use_certificate_file() failed: ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                                  "setCertificateInfo",
+                                  "SSL_CTX_use_certificate_file() failed: ", buildOpenSSLErrorMessage());
         }
 
         /*Indicate the key file to be used*/
         if (MOCK_FUNC(SSL_CTX_use_PrivateKey_file)(ctx, keyFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
         {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                             "setCertificateInfo",
-                             "SSL_CTX_use_PrivateKey_file() failed: ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                                  "setCertificateInfo",
+                                  "SSL_CTX_use_PrivateKey_file() failed: ", buildOpenSSLErrorMessage());
         }
 
         /*Make sure the key and certificate file match*/
         if (MOCK_FUNC(SSL_CTX_check_private_key)(ctx) == 0)
         {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                             "setCertificateInfo",
-                             "SSL_CTX_check_private_key() failed: ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                                  "setCertificateInfo",
+                                  "SSL_CTX_check_private_key() failed: ", buildOpenSSLErrorMessage());
         }
     }
 }
@@ -223,25 +223,25 @@ void CertificateInfo::apply(SSL* ssl) const
         /*Set the certificate to be used.*/
         if (MOCK_FUNC(SSL_use_certificate_file)(ssl, certificateFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
         {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                             "setCertificateInfo",
-                             "SSL_use_certificate_file() failed: ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                                  "setCertificateInfo",
+                                  "SSL_use_certificate_file() failed: ", buildOpenSSLErrorMessage());
         }
 
         /*Indicate the key file to be used*/
         if (MOCK_FUNC(SSL_use_PrivateKey_file)(ssl, keyFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
         {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                             "setCertificateInfo",
-                             "SSL_use_PrivateKey_file() failed: ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                                  "setCertificateInfo",
+                                  "SSL_use_PrivateKey_file() failed: ", buildOpenSSLErrorMessage());
         }
 
         /*Make sure the key and certificate file match*/
         if (MOCK_FUNC(SSL_check_private_key)(ssl) == 0)
         {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertificateInfo",
-                             "setCertificateInfo",
-                             "SSL_check_private_key() failed: ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertificateInfo",
+                                  "setCertificateInfo",
+                                  "SSL_check_private_key() failed: ", buildOpenSSLErrorMessage());
         }
     }
 }
@@ -255,9 +255,9 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx) const
         int stat = setDefaultCertifcateAuthorityInfo(ctx);
         if (stat != 1)
         {
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityDataInfo",
-                             "setCertifcateAuthority",
-                             "setDefaultCertifcateAuthorityInfo() failed: ", type(), ": ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertifcateAuthorityDataInfo",
+                                  "setCertifcateAuthority",
+                                  "setDefaultCertifcateAuthorityInfo() failed: ", type(), ": ", buildOpenSSLErrorMessage());
         }
     }
     for (auto const& item: items)
@@ -267,9 +267,9 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx) const
             int stat = setOneCertifcateAuthorityInfo(ctx, item.c_str());
             if (stat != 1)
             {
-                ThorsLogAndThrow("ThorsAnvil::ThorsSocket::CertifcateAuthorityDataInfo",
-                                 "setCertifcateAuthority",
-                                 "setDefaultCertifcateAuthorityInfo() failed: ", type(), " ", item, ": " , buildOpenSSLErrorMessage());
+                ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::CertifcateAuthorityDataInfo",
+                                      "setCertifcateAuthority",
+                                      "setDefaultCertifcateAuthorityInfo() failed: ", type(), " ", item, ": " , buildOpenSSLErrorMessage());
             }
         }
     }
@@ -335,9 +335,9 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
     if (list == nullptr)
     {
         MOCK_FUNC(sk_X509_NAME_free_wrapper)(list);
-        ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ClientCAListInfo",
-                         "buildCAToList",
-                         "sk_X509_NAME_new_null() failed: ", buildOpenSSLErrorMessage());
+        ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::ClientCAListInfo",
+                              "buildCAToList",
+                              "sk_X509_NAME_new_null() failed: ", buildOpenSSLErrorMessage());
     }
     for (auto const& item: file.items)
     {
@@ -345,8 +345,8 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
         if (stat != 1)
         {
             MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<File>",
-                             "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<File>",
+                                  "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
         }
     }
     for (auto const& item: dir.items)
@@ -355,8 +355,8 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
         if (stat != 1)
         {
             MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<Dir>",
-                             "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<Dir>",
+                                  "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
         }
     }
     for (auto const& item: store.items)
@@ -365,8 +365,8 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
         if (stat != 1)
         {
             MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);
-            ThorsLogAndThrow("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<Store>",
-                             "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
+            ThorsLogAndThrowDebug("ThorsAnvil::ThorsSocket::ClientCAListDataInfo<Store>",
+                                  "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
         }
     }
     return list;

@@ -182,7 +182,7 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, int fd)
     ssl = MOCK_FUNC(SSL_new)(ctx.ctx);
     if (!ssl)
     {
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocket",
             " :Failed on SSL_new(): ",
@@ -195,7 +195,7 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, int fd)
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocket",
             " :Failed on SSL_set_fd(): ",
@@ -251,7 +251,7 @@ void SSocketStandard::initSSocketClientConnect(YieldFunc& rYield, YieldFunc& wYi
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClient",
             " :Failed on SSL_connect(): ",
@@ -263,7 +263,7 @@ void SSocketStandard::initSSocketClientConnect(YieldFunc& rYield, YieldFunc& wYi
     X509* cert = MOCK_FUNC(SSL_get1_peer_certificate)(ssl);
     if (cert == nullptr)
     {
-        ThorsLogAndThrow(
+        ThorsLogAndThrowDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClient",
             " :Failed on SSL_get1_peer_certificate(): ",
@@ -304,7 +304,7 @@ void SSocketStandard::initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYie
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
-        ThorsLog(
+        ThorsLogDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClientAccept",
             " :Failed on SSL_accept() ",
@@ -317,7 +317,7 @@ void SSocketStandard::initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYie
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
-        ThorsLog(
+        ThorsLogDebug(
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClientAccept",
             " :Failed on SSL_get_verify_result(): ",
@@ -352,7 +352,7 @@ void SSocketStandard::close()
                     continue;
                 }
 
-                ThorsLog(
+                ThorsLogDebug(
                     "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
                     "close",
                     " :Failed on SSL_shutdown(): ",
@@ -446,7 +446,7 @@ IOData SSocketClient::readFromStream(char* buffer, std::size_t size)
             case SSL_ERROR_SYSCALL:             [[fallthrough]];
             case SSL_ERROR_SSL:
             {
-                    ThorsLogAndThrowCritical(
+                    ThorsLogAndThrowError(
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " readFromStream",
                         " :SocketCritical exception thrown.",
@@ -460,7 +460,7 @@ IOData SSocketClient::readFromStream(char* buffer, std::size_t size)
             case SSL_ERROR_WANT_ASYNC_JOB:      [[fallthrough]];
             default:
             {
-                    ThorsLogAndThrowLogical(
+                    ThorsLogAndThrowWarning(
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " readFromStream",
                         " :UnknownCritical exception thrown.",
@@ -494,7 +494,7 @@ IOData SSocketClient::writeToStream(char const* buffer, std::size_t size)
             case SSL_ERROR_SYSCALL:             [[fallthrough]];
             case SSL_ERROR_SSL:
             {
-                    ThorsLogAndThrowCritical(
+                    ThorsLogAndThrowError(
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " writeToStream",
                         " :SocketCritical exception thrown.",
@@ -508,7 +508,7 @@ IOData SSocketClient::writeToStream(char const* buffer, std::size_t size)
             case SSL_ERROR_WANT_ASYNC_JOB:      [[fallthrough]];
             default:
             {
-                    ThorsLogAndThrowLogical(
+                    ThorsLogAndThrowWarning(
                         "ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient",
                         " writeToStream",
                         " :SocketUnknown exception thrown.",
