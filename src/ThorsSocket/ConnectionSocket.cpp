@@ -73,11 +73,32 @@ void SocketStandard::setUpBlocking(Blocking blocking)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
 {
+    int status;
+
+    // If we are restarting an application quickly the socket may
+    // by in a TIME_WAIT state. This will generate an error in bind (below)
+    // Thsi says we don't care about the timed wait state and to continue.
+    int yes = 1;
+    status = ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    if (status == -1) {
+        int saveErrno = thorGetSocketError();
+        MOCK_FUNC(thorCloseSocket)(fd);
+
+        ThorsLogAndThrowDebug(
+                std::runtime_error,
+                "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+                "setUpServerSocket",
+                " :Failed on ::setsockopt to port: ", socketInfo.port,
+                " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
+                " msg >", getErrMsgSocket(saveErrno), "<"
+                );
+    }
+
     SocketAddrIn        serverAddr{};
     serverAddr.sin_family       = AF_INET;
     serverAddr.sin_port         = htons(socketInfo.port);
     serverAddr.sin_addr.s_addr  = INADDR_ANY;
-    int status = ::bind(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr));
+    status = ::bind(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr));
     if (status == -1)
     {
         int saveErrno = thorGetSocketError();
