@@ -87,7 +87,7 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
                 std::runtime_error,
                 "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
                 "setUpServerSocket",
-                " :Failed on ::bind",
+                " :Failed on ::bind to port: ", socketInfo.port,
                 " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
                 " msg >", getErrMsgSocket(saveErrno), "<"
                 );
@@ -103,7 +103,7 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
                 std::runtime_error,
                 "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
                 "setUpServerSocket",
-                " :Failed on ::listen",
+                " :Failed on ::listen to port ", socketInfo.port,
                 " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
                 " msg >", getErrMsgSocket(saveErrno), "<"
                 );
