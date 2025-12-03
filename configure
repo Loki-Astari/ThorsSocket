@@ -4847,7 +4847,7 @@ fi
 then :
 
 
-    if [ "x12" == "x12" ] || [ "x12" == "x10" ]; then
+    if [ "x" == "x12" ] || [ "x" == "x10" ]; then
 
         grep -q 'crypto_ROOT_DIR=@crypto_ROOT_DIR@' Makefile.config.in
         result=$?
@@ -4865,7 +4865,7 @@ then :
 fi
     fi
 
-    if [ "x12" == "x12" ] || [ "x12" == "x11" ]; then
+    if [ "x" == "x12" ] || [ "x" == "x11" ]; then
 
         grep -q 'crypto_ROOT_LIB=@crypto_ROOT_LIB@' Makefile.config.in
         result=$?
@@ -4883,7 +4883,7 @@ then :
 fi
     fi
 
-    if [ "x12" == "x13" ]; then
+    if [ "x" == "x13" ]; then
         grep -q 'cryptoHeaderOnly_ROOT_DIR=@cryptoHeaderOnly_ROOT_DIR@' Makefile.config.in
         result=$?
         if test "x${result}" != "x0"
@@ -5052,7 +5052,7 @@ fi
 then :
 
 
-    if [ "x12" == "x12" ] || [ "x12" == "x10" ]; then
+    if [ "x" == "x12" ] || [ "x" == "x10" ]; then
 
         grep -q 'ZLIB_ROOT_DIR=@ZLIB_ROOT_DIR@' Makefile.config.in
         result=$?
@@ -5070,7 +5070,7 @@ then :
 fi
     fi
 
-    if [ "x12" == "x12" ] || [ "x12" == "x11" ]; then
+    if [ "x" == "x12" ] || [ "x" == "x11" ]; then
 
         grep -q 'ZLIB_ROOT_LIB=@ZLIB_ROOT_LIB@' Makefile.config.in
         result=$?
@@ -5088,7 +5088,7 @@ then :
 fi
     fi
 
-    if [ "x12" == "x13" ]; then
+    if [ "x" == "x13" ]; then
         grep -q 'ZLIBHeaderOnly_ROOT_DIR=@ZLIBHeaderOnly_ROOT_DIR@' Makefile.config.in
         result=$?
         if test "x${result}" != "x0"
@@ -5407,7 +5407,7 @@ fi
 then :
 
 
-    if [ "x12" == "x12" ] || [ "x12" == "x10" ]; then
+    if [ "x" == "x12" ] || [ "x" == "x10" ]; then
 
         grep -q 'ThorSerialize_ROOT_DIR=@ThorSerialize_ROOT_DIR@' Makefile.config.in
         result=$?
@@ -5425,7 +5425,7 @@ then :
 fi
     fi
 
-    if [ "x12" == "x12" ] || [ "x12" == "x11" ]; then
+    if [ "x" == "x12" ] || [ "x" == "x11" ]; then
 
         grep -q 'ThorSerialize_ROOT_LIB=@ThorSerialize_ROOT_LIB@' Makefile.config.in
         result=$?
@@ -5443,7 +5443,7 @@ then :
 fi
     fi
 
-    if [ "x12" == "x13" ]; then
+    if [ "x" == "x13" ]; then
         grep -q 'ThorSerializeHeaderOnly_ROOT_DIR=@ThorSerializeHeaderOnly_ROOT_DIR@' Makefile.config.in
         result=$?
         if test "x${result}" != "x0"
@@ -20057,6 +20057,16 @@ fi
 
     pushd third
     if [ $? == 0 ]; then
+        for third in $(ls); do
+
+    export BUILDING_${third}=1
+
+printf "%s\n" "#define THOR_PACKAGE_NAME \${third}" >>confdefs.h
+
+    THOR_PACKAGE_NAME=${third}
+
+
+        done
         for third in $(ls); do
             echo
             echo
