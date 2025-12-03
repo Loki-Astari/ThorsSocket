@@ -754,7 +754,6 @@ VERATOOL
 TestVera
 COV
 DefaultLinkDir
-THOR_PACKAGE_NAME
 target_alias
 host_alias
 build_alias
@@ -3640,11 +3639,8 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
     export BUILDING_ThorsSocket=1
-
-printf "%s\n" "#define THOR_PACKAGE_NAME ThorsSocket" >>confdefs.h
-
-    THOR_PACKAGE_NAME=ThorsSocket
-
+    # AC_DEFINE([THOR_PACKAGE_NAME], [ThorsSocket], [Name of package for header files])
+    # AC_SUBST([THOR_PACKAGE_NAME], [ThorsSocket])
 
     ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -20060,11 +20056,8 @@ fi
         for third in $(ls); do
 
     export BUILDING_${third}=1
-
-printf "%s\n" "#define THOR_PACKAGE_NAME \${third}" >>confdefs.h
-
-    THOR_PACKAGE_NAME=${third}
-
+    # AC_DEFINE([THOR_PACKAGE_NAME], [${third}], [Name of package for header files])
+    # AC_SUBST([THOR_PACKAGE_NAME], [${third}])
 
         done
         for third in $(ls); do
