@@ -1,3 +1,4 @@
+CONFIG_NAME					= ThorsSocket
 THORSANVIL_ROOT             ?= $(abspath ../..)
 COVERAGE_REQUIRED			= 70
 
