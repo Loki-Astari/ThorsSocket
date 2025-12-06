@@ -52,8 +52,7 @@ TEST(ServerTest, ServerCreateVeriantSocket)
 {
     SocketSetUp     setup;
 
-    srand(time(nullptr));
-    int port = 8080 + rand() * 200;
+    int port = 8000;
     Server  server{ServerInit{ServerInfo{port}}, Blocking::Yes};
 }
 
@@ -61,8 +60,7 @@ TEST(ServerTest, ServerCreateSocket)
 {
     SocketSetUp     setup;
 
-    srand(time(nullptr));
-    int port = 8080 + rand() * 200;
+    int port = 8081;
     Server  server{ServerInfo{port}, Blocking::Yes};
 }
 
@@ -70,8 +68,7 @@ TEST(ServerTest, ServerCreateSocketImplied)
 {
     SocketSetUp     setup;
 
-    srand(time(nullptr));
-    int port = 8080 + rand() * 200;
+    int port = 8082;
     Server  server{port, Blocking::Yes};
 }
 
@@ -79,8 +76,7 @@ TEST(ServerTest, ServerCreateSocketWithPort)
 {
     SocketSetUp     setup;
 
-    srand(time(nullptr));
-    int port = 8080 + rand() * 200;
+    int port = 8083;
     Server  server{port, Blocking::Yes};
 }
 
@@ -88,8 +84,7 @@ TEST(ServerTest, ServerCreateVeriantSecureSocket)
 {
     SocketSetUp     setup;
 
-    srand(time(nullptr));
-    int port = 8080 + rand() * 200;
+    int port = 8084;
     SSLctx  ctx{SSLMethodType::Server};
     Server  server{ServerInit{SServerInfo{port, std::move(ctx)}}, Blocking::Yes};
 }
@@ -98,8 +93,7 @@ TEST(ServerTest, ServerCreateSecureSocket)
 {
     SocketSetUp     setup;
 
-    srand(time(nullptr));
-    int port = 8080 + rand() * 200;
+    int port = 8085;
     SSLctx  ctx{SSLMethodType::Server};
     Server  server{SServerInfo{port, std::move(ctx)}, Blocking::Yes};
 }
@@ -108,8 +102,7 @@ TEST(ServerTest, ServerCreateSecureSocketImplied)
 {
     SocketSetUp     setup;
 
-    srand(time(nullptr));
-    int port = 8080 + rand() * 200;
+    int port = 8086;
     SSLctx  ctx{SSLMethodType::Server};
     Server  server{{port, std::move(ctx)}, Blocking::Yes};
 }
@@ -118,8 +111,7 @@ TEST(ServerTest, ServerCreateSecureSocketPortCTX)
 {
     SocketSetUp     setup;
 
-    srand(time(nullptr));
-    int port = 8080 + rand() * 200;
+    int port = 8087;
     SSLctx  ctx{SSLMethodType::Server};
     Server  server{port, std::move(ctx), Blocking::Yes};
 }
@@ -127,7 +119,7 @@ TEST(ServerTest, ServerCreateSecureSocketPortCTX)
 TEST(ServerTest, serverAcceptConnection)
 {
     SocketSetUp     setup;
-    int port = 8080 + rand() * 200;
+    int port = 8088;
 
     std::string     message = "TestMessage";
 
@@ -175,7 +167,7 @@ using ThorsAnvil::ThorsSocket::SServerInfo;
 TEST(ServerTest, SecureServerCreate)
 {
     SocketSetUp     setup;
-    int             port = 8080 + rand() * 200;
+    int             port = 8089;
     SSLctx          ctx{SSLMethodType::Server};
     Server          server{SServerInfo{port, std::move(ctx)}};
 }
@@ -183,7 +175,7 @@ TEST(ServerTest, SecureServerCreate)
 TEST(ServerTest, SecureserverAcceptConnection)
 {
     SocketSetUp     setup;
-    int             port = 8080 + rand() * 200;
+    int             port = 8090;
     CertificateInfo certificate{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}};
 
     std::string     message = "Secure TestMessage";
@@ -231,7 +223,7 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 {
     GTEST_SKIP();
     SocketSetUp     setup;
-    int             port = 8080 + rand() * 200;
+    int             port = 8091;
     CertificateInfo certificate{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",
                                 "/etc/letsencrypt/live/thorsanvil.dev/privkey.pem",
                                };
