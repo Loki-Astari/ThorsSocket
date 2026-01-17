@@ -8,10 +8,10 @@
 
 Can be installed via brew on Mac and Linux
 
-    brew install thors-mongo
+    brew install thors-anvil
 
-* Mac: https://formulae.brew.sh/formula/thors-mongo
-* Linux: https://formulae.brew.sh/formula-linux/thors-mongo
+* Mac: https://formulae.brew.sh/formula/thors-anvil
+* Linux: https://formulae.brew.sh/formula-linux/thors-anvil
 
 ## Header Only
 
