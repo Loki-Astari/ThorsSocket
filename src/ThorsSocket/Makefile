@@ -1,22 +1,21 @@
 CONFIG_NAME					= ThorsSocket
 THORSANVIL_ROOT             ?= $(abspath ../..)
 COVERAGE_REQUIRED			= 70
-
-EXCLUDE_HEADERS				= $(wildcard Connection[A-Z]*.h)
-
 TARGET                      = ThorsSocket.slib
 NAMESPACE					= ThorsAnvil::ThorsSocket
+EXCLUDE_HEADERS				= $(wildcard Connection[A-Z]*.h)
 
-LDLIBS_EXTERN_BUILD			= crypto ThorSerialize ZLIB
+
+LDLIBS_EXTERN_BUILD			+= crypto ThorSerialize ZLIB
 LINK_LIBS					+= ThorsLogging
-LDLIBS_MSYS_NT				= -lws2_32 -lwsock32
-LDLIBS_MINGW64_NT			= -lws2_32 -lwsock32
+LDLIBS_MSYS_NT				+= -lws2_32 -lwsock32
+LDLIBS_MINGW64_NT			+= -lws2_32 -lwsock32
 
-UNITTEST_CXXFLAGS			= -Wno-deprecated-declarations -Wno-writable-strings
-
+UNITTEST_CXXFLAGS			+= -Wno-deprecated-declarations -Wno-writable-strings
 UNITTEST_LDLIBS				+= $(LDLIBS_$(PLATFORM))
+
 LDLIBS						+= $(LDLIBS_$(PLATFORM))
 FILE_WARNING_FLAGS          += -Wno-ignored-attributes -Wno-missing-braces -Wno-unused-variable
-CONAN_FILE_WARNING_FLAGS	=  -Wno-missing-field-initializers
+CONAN_FILE_WARNING_FLAGS	+= -Wno-missing-field-initializers
 
 include $(THORSANVIL_ROOT)/build/tools/Makefile
