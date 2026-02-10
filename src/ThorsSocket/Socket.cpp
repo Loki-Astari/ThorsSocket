@@ -246,5 +246,8 @@ void Socket::deferInit()
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::string_view Socket::protocol()
 {
+    if (!isConnected()) {
+        ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "protocol", "Socket is in an invalid state");
+    }
     return connection->protocol();
 }
