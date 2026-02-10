@@ -308,7 +308,7 @@ void SSocketStandard::initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYie
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
-        ThorsLogDebug(
+        ThorsLogAndThrowDebug(std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClientAccept",
             " :Failed on SSL_accept() ",
@@ -321,7 +321,7 @@ void SSocketStandard::initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYie
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
-        ThorsLogDebug(
+        ThorsLogAndThrowDebug(std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClientAccept",
             " :Failed on SSL_get_verify_result(): ",
