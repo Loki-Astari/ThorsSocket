@@ -14,7 +14,7 @@ using ThorsAnvil::ThorsSocket::Mode;
 
 TEST(SocketIntegrationTest, ConnectToSocket)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -29,7 +29,7 @@ TEST(SocketIntegrationTest, ConnectToSocket)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -55,7 +55,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLine)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -87,7 +87,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnection)
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingRead)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -122,7 +122,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineSlowConnectionNonBlockingR
 
 TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -150,7 +150,7 @@ TEST(SocketIntegrationTest, ConnectToSocketReadOneLineCloseEarly)
 
 TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -210,7 +210,7 @@ TEST(SocketIntegrationTest, ConnectToSocketWriteDataUntilYouBlock)
 
 TEST(SocketIntegrationTest, ConnectToSocketWriteSmallAmountMakeSureItFlushes)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 

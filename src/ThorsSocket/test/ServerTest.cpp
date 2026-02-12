@@ -222,6 +222,8 @@ TEST(ServerTest, SecureserverAcceptConnection)
 TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 {
     GTEST_SKIP();
+    //  The following certificates are no longer valid.
+    //  Need a way to have valid but not meaningful certificates to test against.
     SocketSetUp     setup;
     int             port = 8011;
     CertificateInfo certificate{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",

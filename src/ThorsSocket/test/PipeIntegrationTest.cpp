@@ -29,7 +29,7 @@ class PipeServerStart
 
 TEST(PipeIntegrationTest, ConnectToPipe)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -42,7 +42,7 @@ TEST(PipeIntegrationTest, ConnectToPipe)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -66,7 +66,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLine)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -95,7 +95,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnection)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -135,7 +135,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineSlowConnectionNonBlockingRead)
 
 TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -161,7 +161,7 @@ TEST(PipeIntegrationTest, ConnectToPipeReadOneLineCloseEarly)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -230,7 +230,7 @@ TEST(PipeIntegrationTest, ConnectToPipeWriteDataUntilYouBlock)
 
 TEST(PipeIntegrationTest, ConnectToPipeWriteSmallAmountMakeSureItFlushes)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 

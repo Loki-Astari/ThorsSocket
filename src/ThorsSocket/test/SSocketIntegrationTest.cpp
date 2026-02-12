@@ -30,7 +30,7 @@ namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SSocketIntegrationTest, ConnectToServer)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -60,7 +60,7 @@ TEST(SSocketIntegrationTest, ConnectToServer)
 
 TEST(SSocketIntegrationTest, ConnectToServerLocal)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -90,7 +90,7 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
 
 TEST(SSocketIntegrationTest, ConnectToSSocket)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -114,7 +114,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -145,7 +145,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -182,7 +182,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockingRead)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -222,7 +222,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
 
 TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -255,7 +255,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 
@@ -320,7 +320,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
 
 TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
 {
-#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
 

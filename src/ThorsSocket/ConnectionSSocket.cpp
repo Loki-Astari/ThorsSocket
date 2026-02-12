@@ -285,7 +285,7 @@ void SSocketStandard::initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYie
     do
     {
         // TODO
-        status = SSL_accept(ssl);
+        status = MOCK_FUNC(SSL_accept)(ssl);
         if (status != 1)
         {
             error = MOCK_FUNC(SSL_get_error)(ssl, status);
