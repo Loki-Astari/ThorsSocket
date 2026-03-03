@@ -5,7 +5,6 @@
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo, Blocking blocking)
     : SocketClient(ssocketInfo, blocking)
     , ssl(nullptr)
@@ -13,20 +12,17 @@ SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo, Blocking blocking)
     initSSocket(ssocketInfo.ctx);
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketBase::SSocketBase(OpenSSocketInfo const& ssocketInfo)
     : SocketClient(*reinterpret_cast<SocketServer*>(32), ssocketInfo, Blocking::Yes)
 {
     initSSocket(ssocketInfo.ctx);
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketBase::~SSocketBase()
 {
     close();
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SSocketBase::initSSocket(SSLctx const& ctx)
 {
     ssl = MOCK_FUNC(SSL_new)(ctx.ctx);
@@ -59,12 +55,10 @@ void SSocketBase::initSSocket(SSLctx const& ctx)
     }
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SSocketBase::tryFlushBuffer()
 {
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SSocketBase::close()
 {
     if (ssl)
@@ -77,13 +71,11 @@ void SSocketBase::close()
     SocketClient::close();
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 bool SSocketBase::isConnected() const
 {
     return ssl != nullptr;
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
 {
     int ret = MOCK_FUNC(SSL_read)(ssl, buffer, size);
@@ -130,7 +122,6 @@ IOData SSocketBase::readFromStream(char* buffer, std::size_t size)
     return {static_cast<std::size_t>(ret), true, false};
 }
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData SSocketBase::writeToStream(char const* buffer, std::size_t size)
 {
     int ret = MOCK_FUNC(SSL_write)(ssl, buffer, size);

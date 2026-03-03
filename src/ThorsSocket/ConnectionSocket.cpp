@@ -1,8 +1,7 @@
 #include "ConnectionSocket.h"
+#include "ConnectionUtil.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
@@ -142,20 +141,6 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
     }
 }
 
-/*
- * ::getaddrinfo wrapper function.
- * The mock functionality does not support output parameters.
- * This function wraps ::getaddrinfo() so that the "result" output parameter
- * is returned as a result, thus allowing the use of this function in the
- * mock code. See: MOCK_FUNC(getAddressInfo)
- */
-AddressResult getAddressInfo(char const* host, char const* service, AddressInfo const* hint)
-{
-    AddressInfo*    result = nullptr;
-    int status = ::getaddrinfo(host, service, hint, &result);
-    return {status, result};
-}
-
 /* Initialize rewrite of the setUpClientSocket() function */
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpClientSocket(SocketService const& socketInfo)
@@ -184,7 +169,7 @@ void SocketStandard::setUpClientSocket(SocketService const& socketInfo)
     bool ok = false;
     for (AddressInfo* loop = result; loop != NULL; loop = loop->ai_next) {
         fd = MOCK_FUNC(socket)(loop->ai_family, loop->ai_socktype, loop->ai_protocol);
-        if (fd == -1) {
+        if (fd == thorInvalidFD()) {
             continue;
         }
         if (MOCK_FUNC(connect)(fd, loop->ai_addr, loop->ai_addrlen) != -1) {
@@ -192,7 +177,7 @@ void SocketStandard::setUpClientSocket(SocketService const& socketInfo)
             break;
         }
         MOCK_FUNC(thorCloseSocket)(fd);
-        fd = -1;
+        fd = thorInvalidFD();
     }
     MOCK_FUNC(freeaddrinfo)(result);
     if (!ok) {

@@ -5,6 +5,7 @@
 #include "Socket.h"
 #include "ConnectionSocket.h"
 #include "ConnectionSSocket.h"
+#include "SecureSocketUtil.h"
 
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Socket;

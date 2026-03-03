@@ -7,10 +7,6 @@
 
 #include <cstddef>
 
-using AddressInfo   = struct ::addrinfo;
-using AddressResult = std::pair<int, AddressInfo*>;
-AddressResult getAddressInfo(char const* host, char const* service, AddressInfo const* hint);
-
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
