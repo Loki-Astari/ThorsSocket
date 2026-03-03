@@ -1,5 +1,8 @@
 #include "ConnectionSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
@@ -20,6 +23,16 @@ SocketStandard::SocketStandard(SocketInfo const& socketInfo, Blocking blocking)
     createSocket();
     setUpClientSocket(socketInfo);
     setUpBlocking(blocking);
+}
+
+/* Temp Constructor */
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStandard::SocketStandard(bool, SocketInfo const& socketInfo, Blocking blocking)
+    : fd(thorInvalidFD())
+{
+    setUpClientSocket2(socketInfo);
+    setUpBlocking(blocking);
+    std::cerr << "Socket 2 Constructor Done\n";
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -131,6 +144,71 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
     }
 }
 
+/*
+ * ::getaddrinfo wrapper function.
+ * The mock functionality does not support output parameters.
+ * This function wraps ::getaddrinfo() so that the "result" output parameter
+ * is returned as a result, thus allowing the use of this function in the
+ * mock code. See: MOCK_FUNC(getAddressInfo)
+ */
+AddressResult getAddressInfo(char const* host, char const* service, AddressInfo const* hint)
+{
+    AddressInfo*    result = nullptr;
+    int status = ::getaddrinfo(host, service, hint, &result);
+    return {status, result};
+}
+
+/* Initialize rewrite of the setUpClientSocket() function */
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SocketStandard::setUpClientSocket2(SocketInfo const& socketInfo)
+{
+    AddressInfo  hints{};
+    hints.ai_family         = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype       = SOCK_DGRAM;   /* Datagram socket */
+    hints.ai_flags          = 0;
+    hints.ai_protocol       = 0;            /* Any protocol */
+
+
+    std::string  port = std::to_string(socketInfo.port);
+    AddressResult status = MOCK_FUNC(getAddressInfo)(&socketInfo.host[0], &port[0], &hints);
+    int             saveErrno   = status.first;
+    AddressInfo*    result      = status.second;
+
+    if (saveErrno != 0) {
+        ThorsLogAndThrowDebug(
+            std::runtime_error,
+            "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+            "setUpClientSocket2",
+            " :Failed on getaddrinfo.",
+            " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
+            " msg >", getErrMsgSocket(saveErrno), "<"
+        );
+    }
+
+    bool ok = false;
+    for (AddressInfo* loop = result; loop != NULL; loop = loop->ai_next) {
+        fd = MOCK_FUNC(socket)(loop->ai_family, loop->ai_socktype, loop->ai_protocol);
+        if (fd == -1) {
+            continue;
+        }
+        if (MOCK_FUNC(connect)(fd, loop->ai_addr, loop->ai_addrlen) != -1) {
+            ok =  true;
+            break;
+        }
+        MOCK_FUNC(thorCloseSocket)(fd);
+        fd = -1;
+    }
+    MOCK_FUNC(freeaddrinfo)(result);
+    if (!ok) {
+        ThorsLogAndThrowDebug(
+            std::runtime_error,
+            "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+            "setUpClientSocket2",
+            " :Failed to find valid socket to connect"
+        );
+    }
+}
+
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpClientSocket(SocketInfo const& socketInfo)
 {
@@ -221,6 +299,11 @@ int SocketStandard::getFD() const
 {
     return fd;
 }
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketClient::SocketClient(bool x, SocketInfo const& socketInfo, Blocking blocking)
+    : socketInfo(x, socketInfo, blocking)
+{}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketClient::SocketClient(SocketInfo const& socketInfo, Blocking blocking)

@@ -21,6 +21,7 @@ namespace ThorsAnvil::BuildTools::Mock
 extern TA_Object   SSLctx_Client;
 extern TA_Object   SSocket;
 extern TA_Object   Socket_NonBlocking;
+extern TA_Object   Socket_NonBlocking2;
 
 }
 

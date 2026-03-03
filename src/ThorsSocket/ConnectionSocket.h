@@ -7,6 +7,10 @@
 
 #include <cstddef>
 
+using AddressInfo   = struct ::addrinfo;
+using AddressResult = std::pair<int, AddressInfo*>;
+AddressResult getAddressInfo(char const* host, char const* service, AddressInfo const* hint);
+
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
@@ -20,6 +24,7 @@ class SocketStandard
     public:
         SocketStandard(ServerInfo const& socketInfo, Blocking blocking);
         SocketStandard(SocketInfo const& socketInfo, Blocking blocking);
+        SocketStandard(bool, SocketInfo const& socketInfo, Blocking blocking);
         SocketStandard(OpenSocketInfo const& socketInfo, Blocking blocking);
         virtual ~SocketStandard();
 
@@ -34,6 +39,7 @@ class SocketStandard
         void setUpBlocking(Blocking blocking);
         void setUpServerSocket(ServerInfo const& socketInfo);
         void setUpClientSocket(SocketInfo const& socketInfo);
+        void setUpClientSocket2(SocketInfo const& socketInfo);
 };
 
 class SocketServer;
@@ -46,6 +52,7 @@ class SocketClient: public ConnectionType::FileDescriptor
     SocketStandard  socketInfo;
     public:
         // Normal Client.
+        SocketClient(bool, SocketInfo const& socketInfo, Blocking blocking);
         SocketClient(SocketInfo const& socketInfo, Blocking blocking);
         // Server Side accept.
         SocketClient(SocketServer&, OpenSocketInfo const& socketInfo, Blocking blocking);

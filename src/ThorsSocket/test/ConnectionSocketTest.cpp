@@ -17,6 +17,7 @@ namespace ThorsAnvil::BuildTools::Mock
 {
 extern TA_Object Socket_Blocking;
 extern TA_Object Socket_NonBlocking;
+extern TA_Object Socket_NonBlocking2;
 }
 
 TEST(ConnectionSocketTest, Construct)
@@ -25,6 +26,15 @@ TEST(ConnectionSocketTest, Construct)
         SocketClient                 socket({"github.com",80}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlocking)
+    .run();
+}
+
+TEST(ConnectionSocketTest, Construct2)
+{
+    TA_TestNoThrow([](){
+        SocketClient                 socket(true, {"github.com",80}, Blocking::No);
+    })
+    .expectObjectTA(Socket_NonBlocking2)
     .run();
 }
 

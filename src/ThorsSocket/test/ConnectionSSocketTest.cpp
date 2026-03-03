@@ -122,6 +122,32 @@ TA_Object   Socket_NonBlocking(
                 .expectInitTA(thorSetSocketNonBlocking).checkInput(12)
                 .expectDestTA(thorCloseSocket)
             );
+
+class AddressInfoInit: public AddressInfo
+{
+    public:
+        AddressInfoInit()
+        {
+            this->ai_next   = nullptr;
+        }
+        AddressInfoInit(AddressInfoInit& next)
+        {
+            this->ai_next   = &next;
+        }
+};
+
+AddressInfoInit onePointer;
+AddressInfoInit twoPointer(onePointer);
+
+TA_Object   Socket_NonBlocking2(
+                build()
+                .expectInitTA(getAddressInfo).toReturn(std::make_pair(0, reinterpret_cast<AddressInfo*>(&onePointer)))
+                .expectInitTA(socket).toReturn(12)
+                .expectInitTA(connect)
+                .expectInitTA(freeaddrinfo).checkInput(reinterpret_cast<AddressInfo*>(&onePointer))
+                .expectInitTA(thorSetSocketNonBlocking).checkInput(12)
+                .expectDestTA(thorCloseSocket)
+            );
 }
 
 TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)

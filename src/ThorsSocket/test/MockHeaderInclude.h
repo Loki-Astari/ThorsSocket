@@ -10,6 +10,10 @@
 
 #include "ConnectionUtil.h"
 
+using AddressInfo   = struct ::addrinfo;
+using AddressResult = std::pair<int, AddressInfo*>;
+AddressResult getAddressInfo(char const* host, char const* service, AddressInfo const* hint);
+
 // PART-1-End
 namespace ThorsAnvil::BuildTools::Mock
 {
@@ -47,6 +51,11 @@ class MockAllDefaultFunctions
         result.h_length=1;
         result.h_addr_list = const_cast<char**>(addrList);
         return &result;
+    };
+    std::function<AddressResult(char const*, char const*, AddressInfo const*)> getAddressInfoMock = [](char const*, char const*, AddressInfo const*) {
+        static AddressInfo value;
+        std::cerr << "Mock Called for getAddressInfoMock\n";
+        return std::make_pair(0, &value);
     };
 
     MOCK_MEMBER(read);
@@ -108,6 +117,7 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(ERR_get_error);
     MOCK_MEMBER(socket);
     MOCK_MEMBER(gethostbyname);
+    MOCK_MEMBER(getAddressInfo);
     MOCK_MEMBER(connect);
     MOCK_MEMBER(thorShutdownSocket);
 // PART-3-End
@@ -175,6 +185,7 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(ERR_get_error,                         [ ]()                                   {return 0;})
             , MOCK_PARAM(socket,                                [ ](int, int, int)                      {return 12;})
             , MOCK_PARAM(gethostbyname,                         std::move(getHostByNameMock))
+            , MOCK_PARAM(getAddressInfo,                        std::move(getAddressInfoMock))
             , MOCK_PARAM(connect,                               [ ](int, sockaddr const*, unsigned int) {return 0;})
             , MOCK_PARAM(thorShutdownSocket,                    [ ](int)                                {return 0;})
 // PART-4-End
