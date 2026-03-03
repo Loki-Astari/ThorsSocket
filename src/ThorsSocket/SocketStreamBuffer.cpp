@@ -105,7 +105,33 @@ SocketStreamBuffer::SocketStreamBuffer(SocketInfo const& info)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStreamBuffer::SocketStreamBuffer(SocketService const& info)
+    : std::streambuf{}
+    , socket(info, Blocking::No)
+    , inputBuffer(4 * 1024)
+    , outputBuffer(4 * 1024)
+    , inCount(0)
+    , outCount(0)
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&outputBuffer[0], &outputBuffer[0] + outputBuffer.size() - 1);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStreamBuffer::SocketStreamBuffer(SSocketInfo const& info)
+    : std::streambuf{}
+    , socket(info, Blocking::No)
+    , inputBuffer(4 * 1024)
+    , outputBuffer(4 * 1024)
+    , inCount(0)
+    , outCount(0)
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&outputBuffer[0], &outputBuffer[0] + outputBuffer.size() - 1);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStreamBuffer::SocketStreamBuffer(SSocketService const& info)
     : std::streambuf{}
     , socket(info, Blocking::No)
     , inputBuffer(4 * 1024)

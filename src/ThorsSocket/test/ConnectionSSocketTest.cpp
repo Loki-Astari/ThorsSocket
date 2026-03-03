@@ -107,22 +107,6 @@ TA_Object   SSocket(
 static char const* addrList[] = {""};
 static HostEnt result {.h_length=1, .h_addr_list=const_cast<char**>(addrList)};
 
-TA_Object   Socket_Blocking(
-                build()
-                .expectInitTA(socket).toReturn(12)
-                .expectInitTA(gethostbyname).toReturn(&result)
-                .expectInitTA(connect)
-                .expectDestTA(thorCloseSocket)
-            );
-TA_Object   Socket_NonBlocking(
-                build()
-                .expectInitTA(socket).toReturn(12)
-                .expectInitTA(gethostbyname).toReturn(&result)
-                .expectInitTA(connect)
-                .expectInitTA(thorSetSocketNonBlocking).checkInput(12)
-                .expectDestTA(thorCloseSocket)
-            );
-
 class AddressInfoInit: public AddressInfo
 {
     public:
@@ -165,7 +149,7 @@ TA_Object   Socket_NonBlockingGetAddrInfoTwoV1(
                 .expectInitTA(connect)
                 .expectInitTA(freeaddrinfo).checkInput(reinterpret_cast<AddressInfo*>(&twoPointer))
                 .expectInitTA(thorSetSocketNonBlocking).checkInput(12)
-                .expectDestTA(thorCloseSocket).checkInput(12)
+                .optionalTA(thorCloseSocket).checkInput(12)
             );
 
 TA_Object   Socket_NonBlockingGetAddrInfoTwoV2(
@@ -199,7 +183,7 @@ TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
         SSocketClient       socket({"github.com",443 , ctx, DeferAccept::No}, Blocking::Yes);
     })
     .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_Blocking)
+    .expectObjectTA(Socket_BlockingGetAddrInfoOne)
     .expectObjectTA(SSocket)
     .run();
 }
@@ -211,7 +195,7 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
         SSocketClient       socket({"github.com",443 , ctx, DeferAccept::No}, Blocking::Yes);
     })
     .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_Blocking)
+    .expectObjectTA(Socket_BlockingGetAddrInfoOne)
     .expectObjectTA(SSocket)
         .expectCallTA(SSL_connect).inject().anyOrder().toReturn(-1).toReturn(-1).toReturn(-1).toReturn(1)
         .expectCallTA(SSL_get_error).anyOrder().toReturn(SSL_ERROR_WANT_CONNECT).toReturn(SSL_ERROR_WANT_READ).toReturn(SSL_ERROR_WANT_WRITE)

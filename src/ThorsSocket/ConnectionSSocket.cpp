@@ -25,6 +25,23 @@ SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
+SSocketStandard::SSocketStandard(SSocketService const& ssocketInfo, int fd)
+    : ssl{nullptr}
+    , connectionFailed{false}
+    , deferAction{DeferAction::None}
+{
+    initSSocket(ssocketInfo.ctx, fd);
+    if (ssocketInfo.defer == DeferAccept::No)
+    {
+        YieldFunc nullYield = [](){return false;};
+        initSSocketClientConnect(nullYield, nullYield);
+    }
+    else {
+        deferAction = DeferAction::Connect;
+    }
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketStandard::SSocketStandard(OpenSSocketInfo const& ssocketInfo, int fd)
     : ssl{nullptr}
     , connectionFailed{false}
@@ -396,6 +413,12 @@ void SSocketStandard::checkConnectionOK(int errorCode)
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SSocketClient::SSocketClient(SSocketInfo const& ssocketInfo, Blocking blocking)
+    : SocketClient(ssocketInfo, blocking)
+    , secureSocketInfo(ssocketInfo, socketId(Mode::Read))
+{}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+SSocketClient::SSocketClient(SSocketService const& ssocketInfo, Blocking blocking)
     : SocketClient(ssocketInfo, blocking)
     , secureSocketInfo(ssocketInfo, socketId(Mode::Read))
 {}

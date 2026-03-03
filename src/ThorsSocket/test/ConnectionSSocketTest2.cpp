@@ -20,8 +20,12 @@ namespace ThorsAnvil::BuildTools::Mock
 
 extern TA_Object   SSLctx_Client;
 extern TA_Object   SSocket;
-extern TA_Object   Socket_NonBlocking;
-extern TA_Object   Socket_NonBlocking2;
+
+extern TA_Object   Socket_BlockingGetAddrInfoOne;
+extern TA_Object   Socket_NonBlockingGetAddrInfoOne;
+extern TA_Object   Socket_NonBlockingGetAddrInfoTwoV1;
+extern TA_Object   Socket_NonBlockingGetAddrInfoTwoV2;
+extern TA_Object   Socket_NonBlockingGetAddrInfoTwoV3;
 
 }
 
@@ -32,7 +36,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_newFailed)
         SSocketClient       socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV2)
     .expectObjectTA(SSocket)
         .expectCallTA(SSL_new).inject().toReturn(nullptr)
     .run();
@@ -45,7 +49,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_set_fdFailed)
         SSocketClient       socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV2)
     .expectObjectTA(SSocket)
         .expectCallTA(SSL_set_fd).inject().toReturn(0)
         .expectCallTA(SSL_free).toReturn(1)
@@ -59,7 +63,7 @@ TEST(ConnectionSSocketTest, CreateSSocket_SSL_connectFailed)
         SSocketClient       socket({"github.com", 443, ctx, DeferAccept::No}, Blocking::No);
     })
     .expectObjectTA(SSLctx_Client)
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV2)
     .expectObjectTA(SSocket)
         .expectCallTA(SSL_connect).inject().toReturn(0)
         .expectCallTA(SSL_free).toReturn(1)

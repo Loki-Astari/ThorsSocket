@@ -45,16 +45,13 @@ class MockAllDefaultFunctions
 {
     int version;
 // PART-3-Start
-    std::function<hostent*(const char*)> getHostByNameMock =[]  (char const*) {
-        static char const* addrList[] = {""};
-        static hostent result;
-        result.h_length=1;
-        result.h_addr_list = const_cast<char**>(addrList);
-        return &result;
-    };
     std::function<AddressResult(char const*, char const*, AddressInfo const*)> getAddressInfoMock = [](char const*, char const*, AddressInfo const*) {
         static AddressInfo value;
-        std::cerr << "Mock Called for getAddressInfoMock\n";
+        value.ai_next       = nullptr;
+        value.ai_family     = AF_INET;
+        value.ai_socktype   = SOCK_STREAM;
+        value.ai_protocol   = 0;
+
         return std::make_pair(0, &value);
     };
 
@@ -116,8 +113,8 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(sk_X509_NAME_pop_free_wrapper);
     MOCK_MEMBER(ERR_get_error);
     MOCK_MEMBER(socket);
-    MOCK_MEMBER(gethostbyname);
     MOCK_MEMBER(getAddressInfo);
+    MOCK_MEMBER(freeaddrinfo);
     MOCK_MEMBER(connect);
     MOCK_MEMBER(thorShutdownSocket);
 // PART-3-End
@@ -184,8 +181,8 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(sk_X509_NAME_pop_free_wrapper,         [ ](STACK_OF(X509_NAME)*)               {})
             , MOCK_PARAM(ERR_get_error,                         [ ]()                                   {return 0;})
             , MOCK_PARAM(socket,                                [ ](int, int, int)                      {return 12;})
-            , MOCK_PARAM(gethostbyname,                         std::move(getHostByNameMock))
             , MOCK_PARAM(getAddressInfo,                        std::move(getAddressInfoMock))
+            , MOCK_PARAM(freeaddrinfo,                          [](AddressInfo*){})
             , MOCK_PARAM(connect,                               [ ](int, sockaddr const*, unsigned int) {return 0;})
             , MOCK_PARAM(thorShutdownSocket,                    [ ](int)                                {return 0;})
 // PART-4-End

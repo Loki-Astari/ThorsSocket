@@ -20,19 +20,17 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStandard::SocketStandard(SocketInfo const& socketInfo, Blocking blocking)
     : fd(thorInvalidFD())
 {
-    createSocket();
     setUpClientSocket(socketInfo);
     setUpBlocking(blocking);
 }
 
 /* Temp Constructor */
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketStandard::SocketStandard(bool, SocketInfo const& socketInfo, Blocking blocking)
+SocketStandard::SocketStandard(SocketService const& socketInfo, Blocking blocking)
     : fd(thorInvalidFD())
 {
-    setUpClientSocket2(socketInfo);
+    setUpClientSocket(socketInfo);
     setUpBlocking(blocking);
-    std::cerr << "Socket 2 Constructor Done\n";
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -160,22 +158,18 @@ AddressResult getAddressInfo(char const* host, char const* service, AddressInfo 
 
 /* Initialize rewrite of the setUpClientSocket() function */
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void SocketStandard::setUpClientSocket2(SocketInfo const& socketInfo)
+void SocketStandard::setUpClientSocket(SocketService const& socketInfo)
 {
     AddressInfo  hints{};
     hints.ai_family         = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
-    hints.ai_socktype       = SOCK_DGRAM;   /* Datagram socket */
-    hints.ai_flags          = 0;
+    hints.ai_socktype       = SOCK_STREAM;  /* Stream socket */
+    hints.ai_flags          = AI_PASSIVE;   /* This is for connect */
     hints.ai_protocol       = 0;            /* Any protocol */
 
-std::cerr << "AA\n";
-    std::string  port = std::to_string(socketInfo.port);
-    AddressResult status = MOCK_FUNC(getAddressInfo)(&socketInfo.host[0], &port[0], &hints);
-std::cerr << "BB\n";
+    AddressResult status = MOCK_FUNC(getAddressInfo)(&socketInfo.host[0], &socketInfo.service[0], &hints);
     int             saveErrno   = status.first;
     AddressInfo*    result      = status.second;
 
-std::cerr << "1\n";
     if (saveErrno != 0) {
         ThorsLogAndThrowDebug(
             std::runtime_error,
@@ -188,28 +182,20 @@ std::cerr << "1\n";
     }
 
     bool ok = false;
-std::cerr << "2\n";
     for (AddressInfo* loop = result; loop != NULL; loop = loop->ai_next) {
-std::cerr << "3\n";
         fd = MOCK_FUNC(socket)(loop->ai_family, loop->ai_socktype, loop->ai_protocol);
         if (fd == -1) {
             continue;
         }
-std::cerr << "4\n";
         if (MOCK_FUNC(connect)(fd, loop->ai_addr, loop->ai_addrlen) != -1) {
             ok =  true;
             break;
         }
-std::cerr << "5\n";
         MOCK_FUNC(thorCloseSocket)(fd);
         fd = -1;
-std::cerr << "6\n";
     }
-std::cerr << "7\n";
     MOCK_FUNC(freeaddrinfo)(result);
-std::cerr << "8\n";
     if (!ok) {
-std::cerr << "9\n";
         ThorsLogAndThrowDebug(
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
@@ -222,53 +208,7 @@ std::cerr << "9\n";
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpClientSocket(SocketInfo const& socketInfo)
 {
-    HostEnt* serv = nullptr;
-    do
-    {
-        // https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-gethostbyname
-        serv = MOCK_FUNC(gethostbyname)(&socketInfo.host[0]);
-    }
-    while (serv == nullptr && thorErrorIsTryAgain(thorGetSocketError()));
-
-    if (serv == nullptr)
-    {
-        int saveErrno = thorGetSocketError();
-        MOCK_FUNC(thorCloseSocket)(fd);
-
-        ThorsLogAndThrowDebug(
-            std::runtime_error,
-            "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
-            "setUpClientSocket",
-            " :Failed on ::gethostbyname.",
-            " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
-            " msg >", getErrMsgSocket(saveErrno), "<"
-        );
-    }
-
-    SocketAddrIn serverAddr{};
-    serverAddr.sin_family       = AF_INET;
-    serverAddr.sin_port         = htons(socketInfo.port);
-    char* src = reinterpret_cast<char*>(serv->h_addr);
-    char* dst = reinterpret_cast<char*>(&serverAddr.sin_addr.s_addr);
-    std::copy(src, src + serv->h_length, dst);
-
-    // https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-connect
-    int result = MOCK_FUNC(connect)(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr));
-    //int result = MOCK_FUNC(connect)(fd, reinterpret_cast<SOCKADDR*>(&serverAddr), sizeof(serverAddr));
-    if (result != 0)
-    {
-        int saveErrno = thorGetSocketError();
-        MOCK_FUNC(thorCloseSocket)(fd);
-
-        ThorsLogAndThrowDebug(
-            std::runtime_error,
-            "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
-            "setUpClientSocket",
-            " :Failed on ::connect.",
-            " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
-            " msg >", getErrMsgSocket(saveErrno), "<"
-        );
-    }
+    setUpClientSocket(SocketService{socketInfo.host, std::to_string(socketInfo.port)});
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -311,12 +251,12 @@ int SocketStandard::getFD() const
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketClient::SocketClient(bool x, SocketInfo const& socketInfo, Blocking blocking)
-    : socketInfo(x, socketInfo, blocking)
+SocketClient::SocketClient(SocketInfo const& socketInfo, Blocking blocking)
+    : socketInfo(socketInfo, blocking)
 {}
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-SocketClient::SocketClient(SocketInfo const& socketInfo, Blocking blocking)
+SocketClient::SocketClient(SocketService const& socketInfo, Blocking blocking)
     : socketInfo(socketInfo, blocking)
 {}
 

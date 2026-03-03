@@ -15,8 +15,6 @@ using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 
 namespace ThorsAnvil::BuildTools::Mock
 {
-extern TA_Object Socket_Blocking;
-extern TA_Object Socket_NonBlocking;
 extern TA_Object Socket_BlockingGetAddrInfoOne;
 extern TA_Object Socket_NonBlockingGetAddrInfoOne;
 extern TA_Object Socket_NonBlockingGetAddrInfoTwoV1;
@@ -29,14 +27,14 @@ TEST(ConnectionSocketTest, Construct)
     TA_TestNoThrow([](){
         SocketClient                 socket({"github.com",80}, Blocking::No);
     })
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV2)
     .run();
 }
 
 TEST(ConnectionSocketTest, ConstructGetAddrInfo)
 {
     TA_TestNoThrow([](){
-        SocketClient                 socket(true, {"github.com",80}, Blocking::No);
+        SocketClient                 socket({"github.com","80"}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlockingGetAddrInfoOne)
     .run();
@@ -45,7 +43,7 @@ TEST(ConnectionSocketTest, ConstructGetAddrInfo)
 TEST(ConnectionSocketTest, ConstructGetAddrInfoTwoValueV1)
 {
     TA_TestNoThrow([](){
-        SocketClient                 socket(true, {"github.com",80}, Blocking::No);
+        SocketClient                 socket({"github.com","80"}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV1)
     .run();
@@ -54,7 +52,7 @@ TEST(ConnectionSocketTest, ConstructGetAddrInfoTwoValueV1)
 TEST(ConnectionSocketTest, ConstructGetAddrInfoTwoValueV2)
 {
     TA_TestNoThrow([](){
-        SocketClient                 socket(true, {"github.com",80}, Blocking::No);
+        SocketClient                 socket({"github.com","80"}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV2)
     .run();
@@ -63,7 +61,7 @@ TEST(ConnectionSocketTest, ConstructGetAddrInfoTwoValueV2)
 TEST(ConnectionSocketTest, ConstructGetAddrInfoTwoValueV3)
 {
     TA_TestNoThrow([](){
-        SocketClient                 socket(true, {"github.com",80}, Blocking::No);
+        SocketClient                 socket({"github.com","80"}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV3)
     .run();
@@ -74,8 +72,10 @@ TEST(ConnectionSocketTest, SocketCallFails)
     TA_TestThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV1)
         .expectCallTA(socket).inject().toReturn(-1)
+        .expectCallTA(socket).inject().toReturn(-1)
+        .expectCallTA(freeaddrinfo)
     .run();
 }
 
@@ -92,8 +92,8 @@ TEST(ConnectionSocketTest, GetHostCallFails)
 #endif
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
-    .expectObjectTA(Socket_NonBlocking)
-        .expectCallTA(gethostbyname).inject().toReturn(nullptr)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV1)
+        .expectCallTA(getAddressInfo).inject().toReturn(std::make_pair(-1, nullptr))
         .expectCallTA(thorCloseSocket)
     .run();
 }
@@ -109,7 +109,7 @@ TEST(ConnectionSocketTest, GetHostCallFailsGetAddrInfo)
 #ifndef __WINNT__
         h_errno = HOST_NOT_FOUND; // TODO put inside function
 #endif
-        SocketClient                socket(true, {"github.com",80}, Blocking::No);
+        SocketClient                socket({"github.com","80"}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlockingGetAddrInfoOne)
         .expectCallTA(getAddressInfo).inject().toReturn(std::make_pair(-1, nullptr))
@@ -117,42 +117,15 @@ TEST(ConnectionSocketTest, GetHostCallFailsGetAddrInfo)
     .run();
 }
 
-TEST(ConnectionSocketTest, GetHostCallFailsTryAgain)
-{
-#ifdef  __WINNT__
-    // Can't set h_errno (not a variable on windows)
-    // So can't force a retry.
-    GTEST_SKIP();
-#else
-    h_errno = NO_DATA;
-    TA_TestThrow([](){
-        // TODO support setting h_errno depending on the call.
-        MOCK_SYS(gethostbyname, [](char const*)
-        {
-            static int call =0;
-            ++call;
-            h_errno = (call == 1) ? TRY_AGAIN : HOST_NOT_FOUND;
-            return nullptr;
-        });
-        SocketClient                socket({"github.com",80}, Blocking::No);
-    })
-    .expectObjectTA(Socket_NonBlocking)
-        // This removes the gethostbyname from the init section.
-        // We never enter the error section of the code.
-        // The above MOCK_SYS catches the gethostbyname 
-        .expectCallTA(gethostbyname).inject()
-    .run();
-#endif
-}
-
 TEST(ConnectionSocketTest, ConnectCallFailes)
 {
     TA_TestThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoOne)
         .expectCallTA(connect).inject().toReturn(-1)
         .expectCallTA(thorCloseSocket).toReturn(0)
+        .expectCallTA(freeaddrinfo)
     .run();
 }
 
@@ -161,14 +134,14 @@ TEST(ConnectionSocketTest, CreateNonBlocking)
     TA_TestNoThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::Yes);
     })
-    .expectObjectTA(Socket_Blocking)
+    .expectObjectTA(Socket_BlockingGetAddrInfoOne)
     .run();
 }
 
 TEST(ConnectionSocketTest, CreateNonBlockingGetAddrInfo)
 {
     TA_TestNoThrow([](){
-        SocketClient                socket(true, {"github.com",80}, Blocking::Yes);
+        SocketClient                socket({"github.com","80"}, Blocking::Yes);
     })
     .expectObjectTA(Socket_BlockingGetAddrInfoOne)
     .run();
@@ -179,14 +152,14 @@ TEST(ConnectionSocketTest, CreateBlocking)
     TA_TestNoThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV1)
     .run();
 }
 
 TEST(ConnectionSocketTest, CreateBlockingGetAddrInfo)
 {
     TA_TestNoThrow([](){
-        SocketClient                socket(true, {"github.com",80}, Blocking::No);
+        SocketClient                socket({"github.com","80"}, Blocking::No);
     })
     .expectObjectTA(Socket_NonBlockingGetAddrInfoOne)
     .run();
@@ -267,7 +240,7 @@ TEST(ConnectionSocketTest, SetNonBlockingFails)
     TA_TestThrow([](){
         SocketClient                socket({"github.com",80}, Blocking::No);
     })
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV1)
         .expectCallTA(thorSetSocketNonBlocking).inject().toReturn(-1)
     .run();
 }
@@ -278,7 +251,7 @@ TEST(ConnectionSocketTest, ShutdownFails)
         SocketClient                socket({"github.com",80}, Blocking::No);
         socket.tryFlushBuffer();
     })
-    .expectObjectTA(Socket_NonBlocking)
+    .expectObjectTA(Socket_NonBlockingGetAddrInfoTwoV1)
         .expectCallTA(thorShutdownSocket).toReturn(0)
     .run();
 }
