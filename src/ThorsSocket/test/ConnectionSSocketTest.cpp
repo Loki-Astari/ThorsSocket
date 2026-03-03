@@ -139,16 +139,58 @@ class AddressInfoInit: public AddressInfo
 AddressInfoInit onePointer;
 AddressInfoInit twoPointer(onePointer);
 
-TA_Object   Socket_NonBlocking2(
+TA_Object   Socket_BlockingGetAddrInfoOne(
+                build()
+                .expectInitTA(getAddressInfo).toReturn(std::make_pair(0, reinterpret_cast<AddressInfo*>(&onePointer)))
+                .expectInitTA(socket).toReturn(12)
+                .expectInitTA(connect)
+                .expectInitTA(freeaddrinfo).checkInput(reinterpret_cast<AddressInfo*>(&onePointer))
+                .expectDestTA(thorCloseSocket).checkInput(12)
+            );
+
+TA_Object   Socket_NonBlockingGetAddrInfoOne(
                 build()
                 .expectInitTA(getAddressInfo).toReturn(std::make_pair(0, reinterpret_cast<AddressInfo*>(&onePointer)))
                 .expectInitTA(socket).toReturn(12)
                 .expectInitTA(connect)
                 .expectInitTA(freeaddrinfo).checkInput(reinterpret_cast<AddressInfo*>(&onePointer))
                 .expectInitTA(thorSetSocketNonBlocking).checkInput(12)
-                .expectDestTA(thorCloseSocket)
+                .expectDestTA(thorCloseSocket).checkInput(12)
             );
-}
+
+TA_Object   Socket_NonBlockingGetAddrInfoTwoV1(
+                build()
+                .expectInitTA(getAddressInfo).toReturn(std::make_pair(0, reinterpret_cast<AddressInfo*>(&twoPointer)))
+                .expectInitTA(socket).toReturn(12)
+                .expectInitTA(connect)
+                .expectInitTA(freeaddrinfo).checkInput(reinterpret_cast<AddressInfo*>(&twoPointer))
+                .expectInitTA(thorSetSocketNonBlocking).checkInput(12)
+                .expectDestTA(thorCloseSocket).checkInput(12)
+            );
+
+TA_Object   Socket_NonBlockingGetAddrInfoTwoV2(
+                build()
+                .expectInitTA(getAddressInfo).toReturn(std::make_pair(0, reinterpret_cast<AddressInfo*>(&twoPointer)))
+                .expectInitTA(socket).toReturn(-1)
+                .expectInitTA(socket).toReturn(15)
+                .expectInitTA(connect)
+                .expectInitTA(freeaddrinfo).checkInput(reinterpret_cast<AddressInfo*>(&twoPointer))
+                .expectInitTA(thorSetSocketNonBlocking).checkInput(15)
+                .expectDestTA(thorCloseSocket).checkInput(15)
+            );
+
+TA_Object   Socket_NonBlockingGetAddrInfoTwoV3(
+                build()
+                .expectInitTA(getAddressInfo).toReturn(std::make_pair(0, reinterpret_cast<AddressInfo*>(&twoPointer)))
+                .expectInitTA(socket).toReturn(12)
+                .expectInitTA(connect).toReturn(-1)
+                .expectInitTA(thorCloseSocket).checkInput(12)
+                .expectInitTA(socket).toReturn(15)
+                .expectInitTA(connect)
+                .expectInitTA(freeaddrinfo).checkInput(reinterpret_cast<AddressInfo*>(&twoPointer))
+                .expectInitTA(thorSetSocketNonBlocking).checkInput(15)
+                .expectDestTA(thorCloseSocket).checkInput(15)
+            );
 
 TEST(ConnectionSSocketTest, ValidateAllFunctionsCalledCorrectOrder)
 {
@@ -206,5 +248,7 @@ TEST(ConnectionSSocketTest, Protocol)
     SSocketClient       socket({"github.com",443 , ctx, DeferAccept::No}, Blocking::Yes);
     EXPECT_EQ("https", socket.protocol());
 }
-    
+
+}
+
 

@@ -168,12 +168,14 @@ void SocketStandard::setUpClientSocket2(SocketInfo const& socketInfo)
     hints.ai_flags          = 0;
     hints.ai_protocol       = 0;            /* Any protocol */
 
-
+std::cerr << "AA\n";
     std::string  port = std::to_string(socketInfo.port);
     AddressResult status = MOCK_FUNC(getAddressInfo)(&socketInfo.host[0], &port[0], &hints);
+std::cerr << "BB\n";
     int             saveErrno   = status.first;
     AddressInfo*    result      = status.second;
 
+std::cerr << "1\n";
     if (saveErrno != 0) {
         ThorsLogAndThrowDebug(
             std::runtime_error,
@@ -186,20 +188,28 @@ void SocketStandard::setUpClientSocket2(SocketInfo const& socketInfo)
     }
 
     bool ok = false;
+std::cerr << "2\n";
     for (AddressInfo* loop = result; loop != NULL; loop = loop->ai_next) {
+std::cerr << "3\n";
         fd = MOCK_FUNC(socket)(loop->ai_family, loop->ai_socktype, loop->ai_protocol);
         if (fd == -1) {
             continue;
         }
+std::cerr << "4\n";
         if (MOCK_FUNC(connect)(fd, loop->ai_addr, loop->ai_addrlen) != -1) {
             ok =  true;
             break;
         }
+std::cerr << "5\n";
         MOCK_FUNC(thorCloseSocket)(fd);
         fd = -1;
+std::cerr << "6\n";
     }
+std::cerr << "7\n";
     MOCK_FUNC(freeaddrinfo)(result);
+std::cerr << "8\n";
     if (!ok) {
+std::cerr << "9\n";
         ThorsLogAndThrowDebug(
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
