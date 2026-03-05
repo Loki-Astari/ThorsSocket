@@ -2,6 +2,8 @@
 
 ![ThorSocket](img/socket.jpg)
 
+**Online documentation:** https://loki-astari.github.io/ThorsAnvil/ThorsSocket.html
+
 # Installation
 
 ## HomeBrew
