@@ -8,7 +8,7 @@
 
 #include <utility>
 
-#include "ConnectionUtil.h"
+#include "../ConnectionUtil.h"
 
 using AddressInfo   = struct ::addrinfo;
 using AddressResult = std::pair<int, AddressInfo*>;
@@ -37,7 +37,7 @@ typedef int (*VCB)(int, X509_STORE_CTX*);
 
 }
 
-#include "coverage/MockHeaders.h"
+#include "../coverage/MockHeaders.h"
 
 namespace ThorsAnvil::BuildTools::Mock
 {

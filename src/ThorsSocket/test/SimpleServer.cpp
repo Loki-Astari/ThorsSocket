@@ -1,4 +1,4 @@
-#include "test/SimpleServer.h"
+#include "SimpleServer.h"
 
 #include <iostream>
 
