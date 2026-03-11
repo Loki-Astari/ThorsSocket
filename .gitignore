@@ -4,6 +4,8 @@
 *.gcov
 .windows.fix
 
+.claude
+
 unittest
 
 coverage/
