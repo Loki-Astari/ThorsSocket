@@ -296,6 +296,8 @@ void SocketClient::tryFlushBuffer()
 }
 
 #ifdef __WINNT__
+using ThorsAnvil::ThorsSocket::IOData;
+
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 IOData SocketClient::readFromStream(char* buffer, std::size_t size)
 {
