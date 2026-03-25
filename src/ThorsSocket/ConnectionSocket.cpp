@@ -4,7 +4,6 @@
 #include <sys/types.h>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
-using ThorsAnvil::ThorsSocket::IOData;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStandard::SocketStandard(ServerInfo const& socketInfo, Blocking blocking)

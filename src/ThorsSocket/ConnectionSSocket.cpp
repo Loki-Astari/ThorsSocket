@@ -1,6 +1,5 @@
 #include "ConnectionSSocket.h"
 #include "ThorsLogging/ThorsLogging.h"
-#include <iostream>
 
 #include <openssl/err.h>
 

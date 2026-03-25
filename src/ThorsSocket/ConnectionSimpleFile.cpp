@@ -4,7 +4,6 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <iostream>
 
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;

@@ -37,7 +37,7 @@ typedef int (*VCB)(int, X509_STORE_CTX*);
 
 }
 
-#include "../coverage/MockHeaders.h"
+#include "coverage/MockHeaders.h"
 
 namespace ThorsAnvil::BuildTools::Mock
 {
@@ -117,6 +117,7 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(freeaddrinfo);
     MOCK_MEMBER(connect);
     MOCK_MEMBER(thorShutdownSocket);
+    MOCK_MEMBER(SSL_accept);
 // PART-3-End
 
     public:
@@ -185,6 +186,7 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(freeaddrinfo,                          [](AddressInfo*){})
             , MOCK_PARAM(connect,                               [ ](int, sockaddr const*, unsigned int) {return 0;})
             , MOCK_PARAM(thorShutdownSocket,                    [ ](int)                                {return 0;})
+            , MOCK_PARAM(SSL_accept,                            [ ](SSL*)                               {return 1;})
 // PART-4-End
         {}
 };
