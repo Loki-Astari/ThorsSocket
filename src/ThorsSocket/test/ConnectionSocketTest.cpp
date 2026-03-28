@@ -258,6 +258,9 @@ TEST(ConnectionSocketTest, ShutdownFails)
 
 TEST(ConnectionSocketTest, Protocol)
 {
+#ifdef THOR_DISABLE_TEST_WITH_PORT80
+GTEST_SKIP()
+#endif
     SocketSetUp         setup;
 
     SocketClient                socket({"github.com",80}, Blocking::No);
