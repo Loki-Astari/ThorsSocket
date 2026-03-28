@@ -3,8 +3,6 @@
 #include "Socket.h"
 #include <thread>
 
-#include <iostream>
-
 using ThorsAnvil::ThorsSocket::Server;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;

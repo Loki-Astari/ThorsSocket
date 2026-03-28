@@ -141,7 +141,7 @@ TEST(SocketTest, SocketConstructPipeInfoImplied)
 TEST(SocketTest, SocketConstructViantSocketInfo)
 {
 #ifdef THOR_DISABLE_TEST_WITH_PORT80
-GTEST_SKIP()
+GTEST_SKIP();
 #endif
     SocketSetUp     init;
     Socket  socket{SocketInit{SocketInfo{"google.com", 80}}};
@@ -149,7 +149,7 @@ GTEST_SKIP()
 TEST(SocketTest, SocketConstructSocketInfo)
 {
 #ifdef THOR_DISABLE_TEST_WITH_PORT80
-GTEST_SKIP()
+GTEST_SKIP();
 #endif
     SocketSetUp     init;
     Socket  socket{SocketInfo{"google.com", 80}};
@@ -157,7 +157,7 @@ GTEST_SKIP()
 TEST(SocketTest, SocketConstructSocketInfoImplied)
 {
 #ifdef THOR_DISABLE_TEST_WITH_PORT80
-GTEST_SKIP()
+GTEST_SKIP();
 #endif
     SocketSetUp     init;
     Socket  socket{{"google.com", 80}};

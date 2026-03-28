@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
-#include "test/ConnectionTest.h"
 #include "ConnectionSocket.h"
 #include "SimpleServer.h"
 
-#include <iostream>
 
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
@@ -259,7 +257,7 @@ TEST(ConnectionSocketTest, ShutdownFails)
 TEST(ConnectionSocketTest, Protocol)
 {
 #ifdef THOR_DISABLE_TEST_WITH_PORT80
-GTEST_SKIP()
+GTEST_SKIP();
 #endif
     SocketSetUp         setup;
 

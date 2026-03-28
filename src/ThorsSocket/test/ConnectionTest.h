@@ -12,7 +12,7 @@ class TempFileWithCleanup
         TempFileWithCleanup()
             : fileName("/var/tmp/XXXXXX")
         {
-            mktemp(fileName.data());
+            mkstemp(fileName.data());
         }
         ~TempFileWithCleanup()
         {

@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "ConnectionPipe.h"
 
-#include <iostream>
 
 using ThorsAnvil::ThorsSocket::ConnectionType::Pipe;
 using ThorsAnvil::ThorsSocket::Mode;

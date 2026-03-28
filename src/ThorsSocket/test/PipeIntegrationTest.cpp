@@ -1,10 +1,7 @@
 #include <gtest/gtest.h>
-#include "ConnectionPipe.h"
 #include "Socket.h"
 
 #include <thread>
-
-#include <iostream>
 
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;

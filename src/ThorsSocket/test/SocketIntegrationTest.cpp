@@ -1,13 +1,10 @@
 #include <gtest/gtest.h>
 #include "test/SimpleServer.h"
-#include "ConnectionSocket.h"
 #include "Socket.h"
 
-#include <iostream>
 
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::SocketInfo;
-using ThorsAnvil::ThorsSocket::SSocketInfo;
 using ThorsAnvil::ThorsSocket::IOData;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::Mode;

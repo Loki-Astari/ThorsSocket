@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
-#include "test/ConnectionTest.h"
 #include "ConnectionSSocket.h"
 
-#include <iostream>
 
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;

@@ -1,13 +1,10 @@
 #include <gtest/gtest.h>
 #include "ConnectionSimpleFile.h"
 
-#include <iostream>
-
 using ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
 using ThorsAnvil::ThorsSocket::FileMode;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
-using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
 using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 

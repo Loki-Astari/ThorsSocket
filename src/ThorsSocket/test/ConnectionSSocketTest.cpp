@@ -1,11 +1,8 @@
 #include <gtest/gtest.h>
-#include "test/ConnectionTest.h"
 #include "ConnectionSSocket.h"
 #include "SimpleServer.h"
 
-#include <iostream>
 
-using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
@@ -14,7 +11,6 @@ using ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient;
 using ThorsAnvil::ThorsSocket::ConnectionType::HostEnt;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
-using ThorsAnvil::BuildTools::Mock::MockAllDefaultFunctions;
 
 
 namespace ThorsAnvil::BuildTools::Mock

@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
-#include "test/ConnectionTest.h"
 #include "ConnectionSimpleFile.h"
 
-#include <iostream>
 
 using FileDescriptorProxy = ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;

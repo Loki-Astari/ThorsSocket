@@ -1,7 +1,5 @@
 #include "SimpleServer.h"
 
-#include <iostream>
-
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 using ThorsAnvil::ThorsSocket::IOData;
 

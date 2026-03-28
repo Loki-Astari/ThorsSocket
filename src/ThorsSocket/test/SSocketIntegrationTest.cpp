@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 #include "test/SimpleServer.h"
-#include "ConnectionSSocket.h"
 #include "Socket.h"
 
-#include <iostream>
 
 #define CERT_FILE       "test/data/server/server.crt"
 #define KEY_FILE        "test/data/server/server.key"
@@ -13,7 +11,6 @@
 #define CLIENT_KEY      "test/data/client/client.key"
 
 
-using ThorsAnvil::ThorsSocket::ConnectionClient;
 using ThorsAnvil::ThorsSocket::SSocketInfo;
 using ThorsAnvil::ThorsSocket::Socket;
 using ThorsAnvil::ThorsSocket::IOData;
@@ -24,9 +21,7 @@ using ThorsAnvil::ThorsSocket::DeferAccept;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
 using ThorsAnvil::ThorsSocket::CertificateInfo;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
-using ThorsAnvil::ThorsSocket::ConnectionType::SSocketClient;
 
-namespace ConnectionType = ThorsAnvil::ThorsSocket::ConnectionType;
 
 TEST(SSocketIntegrationTest, ConnectToServer)
 {
