@@ -93,6 +93,9 @@
 /* Disable integration tests */
 #undef THOR_DISABLE_TEST_WITH_INTEGRATION
 
+/* Disable integration tests */
+#undef THOR_DISABLE_TEST_WITH_PORT80
+
 /* Version number of package */
 #undef VERSION
 

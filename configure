@@ -709,6 +709,7 @@ build_vendor
 build_cpu
 build
 LIBTOOL
+THOR_DISABLE_TEST_WITH_PORT80_DISABLE
 THOR_DISABLE_TEST_WITH_INTEGRATION_DISABLE
 ThorSerialize_ROOT_LIB
 ThorSerialize_ROOT_DIR
@@ -808,6 +809,7 @@ with_zlib_root
 with_thorserialize_header_only_root
 with_thorserialize_root
 enable_test_with_integration
+enable_test_with_port80
 enable_shared
 enable_static
 enable_pic
@@ -1481,6 +1483,14 @@ Optional Features:
                           environments. All integration tests to be disabled.
                           To tests that you may want to disable add: #if
                           defined(THOR_DISABLE_TEST_WITH_INTEGRATION)
+                          GTEST_SKIP(); #endif
+
+  --disable-test-with-port80
+                          Some ISP disable outgoing port 80. Some unite tests
+                          try and hit google on port 80 and they will fail if
+                          port 80 are blocked. You can disable these tests
+                          with -- If you are adding port 80 tests disable
+                          with. #if defined(THOR_DISABLE_TEST_WITH_PORT80)
                           GTEST_SKIP(); #endif
 
   --enable-shared[=PKGS]  build shared libraries [default=yes]
@@ -5693,6 +5703,38 @@ else case e in #(
   e)
 
 printf "%s\n" "#define THOR_DISABLE_TEST_WITH_INTEGRATION 0" >>confdefs.h
+
+
+
+     ;;
+esac
+fi
+
+
+
+
+
+    # Check whether --enable-test-with-port80 was given.
+if test ${enable_test_with_port80+y}
+then :
+  enableval=$enable_test_with_port80;
+fi
+
+
+    if test "x${enable_test_with_port80}" == "xno"
+then :
+
+
+printf "%s\n" "#define THOR_DISABLE_TEST_WITH_PORT80 1" >>confdefs.h
+
+            THOR_DISABLE_TEST_WITH_PORT80_DISABLE=PORT80
+
+            subconfigure="${subconfigure} --disable-test-with-port80";
+
+else case e in #(
+  e)
+
+printf "%s\n" "#define THOR_DISABLE_TEST_WITH_PORT80 0" >>confdefs.h
 
 
 
