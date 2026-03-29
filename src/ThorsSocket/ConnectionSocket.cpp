@@ -2,7 +2,6 @@
 #include "ConnectionUtil.h"
 #include "ThorsLogging/ThorsLogging.h"
 #include <sys/types.h>
-#include <iostream>
 
 using namespace ThorsAnvil::ThorsSocket::ConnectionType;
 
@@ -19,7 +18,6 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStandard::SocketStandard(SocketInfo const& socketInfo, Blocking blocking)
     : fd(thorInvalidFD())
 {
-    std::cerr << "SocketStandard: SocketInfo\n";
     setUpClientSocket(socketInfo);
     setUpBlocking(blocking);
 }
@@ -29,7 +27,6 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStandard::SocketStandard(SocketService const& socketInfo, Blocking blocking)
     : fd(thorInvalidFD())
 {
-    std::cerr << "SocketStandard: SocketService\n";
     setUpClientSocket(socketInfo);
     setUpBlocking(blocking);
 }
@@ -147,7 +144,6 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpClientSocket(SocketService const& socketInfo)
 {
-    std::cerr << "setUpClientSocket2: Host: " << socketInfo.host << " Service: " << socketInfo.service << "\n";
     AddressInfo  hints{};
     hints.ai_family         = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
     hints.ai_socktype       = SOCK_STREAM;  /* Stream socket */
@@ -158,11 +154,11 @@ void SocketStandard::setUpClientSocket(SocketService const& socketInfo)
     int             saveErrno   = status.first;
     AddressInfo*    result      = status.second;
 
-    if (saveErrno != 0) {
+    if (saveErrno != 0 || result == nullptr) {
         ThorsLogAndThrowDebug(
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
-            "setUpClientSocket2",
+            "setUpClientSocket",
             " :Failed on getaddrinfo.",
             " errno = ", saveErrno, " ", getErrNoStrSocket(saveErrno),
             " msg >", getErrMsgSocket(saveErrno), "<"
@@ -170,32 +166,44 @@ void SocketStandard::setUpClientSocket(SocketService const& socketInfo)
     }
 
     bool ok = false;
-    std::cerr << "Start Socket Check\n";
+    constexpr int connectionErrorMaxCount = 3;
+    int  connectionErrorCount = 0;
+    int  connectionError[connectionErrorMaxCount];
+
     for (AddressInfo* loop = result; loop != NULL; loop = loop->ai_next) {
-        std::cerr << "Calling: socket\n";
         fd = MOCK_FUNC(socket)(loop->ai_family, loop->ai_socktype, loop->ai_protocol);
-        std::cerr << "     => " << fd << "\n";
         if (fd == thorInvalidFD()) {
-            std::cerr << "    Try next\n";
             continue;
         }
         if (MOCK_FUNC(connect)(fd, loop->ai_addr, loop->ai_addrlen) != -1) {
-            std::cerr << "   OK: break\n";
             ok =  true;
             break;
         }
-        std::cerr << "connect failed:" << errno << " : " << strerror(errno) << " \n";
+        if (connectionErrorCount < connectionErrorMaxCount) {
+            connectionError[connectionErrorCount++] = errno;
+        }
         MOCK_FUNC(thorCloseSocket)(fd);
         fd = thorInvalidFD();
     }
-    std::cerr << "Done\n";
     MOCK_FUNC(freeaddrinfo)(result);
     if (!ok) {
+        if (connectionErrorCount == 0) {
+            ThorsLogAndThrowDebug(
+                std::runtime_error,
+                "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
+                "setUpClientSocket",
+                " :Failed to create socket. Host: ", socketInfo.host, " Service: ", socketInfo.service);
+        }
+        std::stringstream  message;
+        for (int loop = 0; loop < connectionErrorCount; ++loop) {
+            message << "Errno: " << connectionError[loop] << " Msg: " << strerror(connectionError[loop]) << ". ";
+        }
         ThorsLogAndThrowDebug(
             std::runtime_error,
             "ThorsAnvil::ThorsSocket::ConnectionType::SocketStandard",
-            "setUpClientSocket2",
-            " :Failed to find valid socket to connect"
+            "setUpClientSocket",
+            " Socket opened to. Host: ", socketInfo.host, " Service: ", socketInfo.service,
+            " Failed to connect. Errors: ", message.str()
         );
     }
 }
@@ -203,7 +211,6 @@ void SocketStandard::setUpClientSocket(SocketService const& socketInfo)
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void SocketStandard::setUpClientSocket(SocketInfo const& socketInfo)
 {
-    std::cerr << "setUpClientSocket: Host: " << socketInfo.host << " Port: " << socketInfo.port << "\n";
     setUpClientSocket(SocketService{socketInfo.host, std::to_string(socketInfo.port)});
 }
 
