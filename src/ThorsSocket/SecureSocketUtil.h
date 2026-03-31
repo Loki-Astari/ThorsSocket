@@ -210,6 +210,8 @@ class SSLctx
     public:
         template<IsMarkType... Args>
         SSLctx(SSLMethodType methodType, Args&&... args);
+            // All the following parameters can be passed in args.
+            // They are then applied to the CTX object via the apply() method.
                // ProtocolInfo
                // CipherInfo
                // CertificateInfo
@@ -266,6 +268,24 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
     }
 
     (args.apply(ctx, mark),...);
+    //protocolRange.setProtocolInfo(ctx);
+    //cipherList.setCipherInfo(ctx);
+    //certificate.setCertificateInfo(ctx);
+    //certifcateAuthority.setCertifcateAuthorityInfo(ctx);
+    //clientCAList.setCertifcateAuthorityInfo(ctx);
+
+    if (methodType == SSLMethodType::Client) {
+        if (!mark[MarkUsed::CertificateMark]) {
+           // CertifcateAuthorityFile{SystemDefault::Load}.apply(ctx, mark);
+           // CertifcateAuthorityDir{SystemDefault::Load}.apply(ctx, mark);
+           // CertifcateAuthorityStore{SystemDefault::Load}.apply(ctx, mark);
+        }
+        if (!mark[MarkUsed::ClientMark]) {
+            // If no arguments are provided then set up default values
+            // verify: > Force the client to verify the host name
+           // ClientCAListInfo{}.apply(ctx, mark);
+        }
+    }
 }
 
 
