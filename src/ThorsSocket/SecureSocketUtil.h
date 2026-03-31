@@ -24,9 +24,10 @@ namespace ThorsAnvil::ThorsSocket
 extern "C" int certificateInfo_PasswdCB(char* buf, int size, int /*rwflag*/, void* userdata);
 int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata);
 std::string buildOpenSSLErrorMessage(bool prefix = true);
-enum class SSLMethodType {Client, Server};
 
-enum Protocol { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3 };
+enum class  SSLMethodType   { Client, Server};
+enum        Protocol        { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3};
+enum        AuthorityType   { File, Dir, Store};
 
 class SSLUtil
 {
@@ -37,6 +38,18 @@ class SSLUtil
         SSLUtil(SSLUtil const&)                 = delete;
         SSLUtil& operator=(SSLUtil const&)      = delete;
 };
+
+/*
+ * SSL manipulators
+ *   Objects of these type can be passed to SSLctx constructor.
+ *   These can be passed as const reference values and thus constructed inline if needed.
+ *
+ *      ProtocolInfo
+ *      CipherInfo
+ *      CertificateInfo
+ *      CertifcateAuthorityInfo
+ *      ClientCAListInfo
+ */
 
 struct ProtocolInfo
 {
@@ -75,40 +88,6 @@ struct CipherInfo
     void apply(SSL* ssl)        const;
 };
 
-class SSLctx
-{
-    private:
-        friend class ConnectionType::SSocketBase;
-        friend class ConnectionType::SSocketStandard;
-        SSL_CTX*            ctx;
-    public:
-        template<typename... Args>
-        SSLctx(SSLMethodType methodType, Args&&... args);
-               // ProtocolInfo
-               // CipherInfo
-               // CertificateInfo
-               // CertifcateAuthorityInfo
-               // ClientCAListInfo
-
-        ~SSLctx();
-
-        SSLctx(SSLctx const&)                   = delete;
-        SSLctx& operator=(SSLctx const&)        = delete;
-
-        SSLctx(SSLctx&& move)
-            : ctx(std::exchange(move.ctx, nullptr))
-        {}
-        SSLctx& operator=(SSLctx&& move)
-        {
-            ctx = std::exchange(move.ctx, nullptr);
-            return *this;
-        }
-    private:
-        SSL_METHOD const*       createClient();
-        SSL_METHOD const*       createServer();
-        SSL_CTX*                newCtx(SSL_METHOD const* method);
-};
-
 struct CertificateInfo
 {
     public:
@@ -128,8 +107,6 @@ struct CertificateInfo
         void apply(SSL_CTX* ctx)   const;
         void apply(SSL* ssl)       const;
 };
-
-enum AuthorityType { File, Dir, Store };
 
 template<AuthorityType A>
 struct CertifcateAuthorityDataInfo
@@ -171,14 +148,42 @@ struct ClientCAListInfo
     void apply(SSL_CTX* ctx)   const;
     void apply(SSL* ssl)       const;
 };
+class SSLctx
+{
+    private:
+        friend class ConnectionType::SSocketBase;
+        friend class ConnectionType::SSocketStandard;
+        SSL_CTX*            ctx;
+    public:
+        template<typename... Args>
+        SSLctx(SSLMethodType methodType, Args&&... args);
+               // ProtocolInfo
+               // CipherInfo
+               // CertificateInfo
+               // CertifcateAuthorityInfo
+               // ClientCAListInfo
+
+        ~SSLctx();
+
+        SSLctx(SSLctx const&)                   = delete;
+        SSLctx& operator=(SSLctx const&)        = delete;
+
+        SSLctx(SSLctx&& move)
+            : ctx(std::exchange(move.ctx, nullptr))
+        {}
+        SSLctx& operator=(SSLctx&& move)
+        {
+            ctx = std::exchange(move.ctx, nullptr);
+            return *this;
+        }
+    private:
+        SSL_METHOD const*       createClient();
+        SSL_METHOD const*       createServer();
+        SSL_CTX*                newCtx(SSL_METHOD const* method);
+};
 
 template<typename... Args>
 SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
-               // ProtocolInfo protocolRange,
-               //CipherInfo const& cipherList,
-               //CertificateInfo const& certificate,
-               //CertifcateAuthorityInfo const& certifcateAuthority,
-               //ClientCAListInfo const& clientCAList)
     : ctx(nullptr)
 {
     SSLUtil::getInstance();
@@ -208,11 +213,6 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
     }
 
     (args.apply(ctx),...);
-    //protocolRange.setProtocolInfo(ctx);
-    //cipherList.setCipherInfo(ctx);
-    //certificate.setCertificateInfo(ctx);
-    //certifcateAuthority.setCertifcateAuthorityInfo(ctx);
-    //clientCAList.setCertifcateAuthorityInfo(ctx);
 }
 
 
