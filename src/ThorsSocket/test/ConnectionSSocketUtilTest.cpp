@@ -3,6 +3,7 @@
 #include "SecureSocketUtil.h"
 
 
+using ThorsAnvil::ThorsSocket::VerifyPeer;
 using ThorsAnvil::ThorsSocket::MarkUsed;
 using ThorsAnvil::ThorsSocket::MarkArray;
 using ThorsAnvil::ThorsSocket::SystemDefault;
@@ -585,7 +586,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 {
     TA_TestNoThrow([](){
         MarkArray         mark;
-        ClientCAListInfo  list;
+        ClientCAListInfo  list{VerifyPeer::On};
         list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
 
         EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
@@ -604,7 +605,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 
         EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
-    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
@@ -621,7 +621,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 
         EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
-    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
@@ -638,7 +637,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 
         EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
-    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
@@ -649,7 +647,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 {
     TA_TestNoThrow([](){
         MarkArray         mark;
-        ClientCAListInfo  list;
+        ClientCAListInfo  list{VerifyPeer::On};
         list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
 
         EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
@@ -668,7 +666,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 
         EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
-    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -686,7 +683,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 
         EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
-    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -704,7 +700,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 
         EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
-    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -718,14 +713,13 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
         ClientCAListInfo  list;
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_set_verify).toReturn(1)
     .run();
 }
 
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 {
     TA_TestNoThrow([](){
-        ClientCAListInfo            list;
+        ClientCAListInfo            list{VerifyPeer::On};
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
     .expectCallTA(SSL_set_verify).toReturn(1)
@@ -739,7 +733,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
         list.addFiles({"File 1"});
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
@@ -753,7 +746,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
         list.addDirs({"File 1"});
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
@@ -767,7 +759,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
         list.addStores({"File 1"});
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
@@ -777,7 +768,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 {
     TA_TestNoThrow([](){
-        ClientCAListInfo            list;
+        ClientCAListInfo            list{VerifyPeer::On};
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
     .expectCallTA(SSL_set_verify).toReturn(0)
@@ -791,7 +782,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
         list.addFile("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -806,7 +796,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
         list.addDir("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -821,7 +810,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
         list.addStore("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
-    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)

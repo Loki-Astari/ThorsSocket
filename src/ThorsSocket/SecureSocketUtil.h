@@ -24,14 +24,15 @@ namespace ThorsAnvil::ThorsSocket
 extern "C" int certificateInfo_PasswdCB(char* buf, int size, int /*rwflag*/, void* userdata);
 int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userdata);
 std::string buildOpenSSLErrorMessage(bool prefix = true);
-
 enum class  SSLMethodType   { Client, Server};
+
 enum Protocol               { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3};
 enum AuthorityType          { File, Dir, Store};
 enum SystemDefault          { Load};
+enum VerifyPeer             { On};
+enum MarkUsed : int         { ProtocolMark = 0, CipherMark = 1, CertificateMark = 2, AuthorityFileMark = 3, AuthorityDirMark = 4, AuthorityStoreMark = 5, ClientMark = 6, END = 7};
 
 using StringList    = std::vector<std::string>;
-enum MarkUsed { ProtocolMark, CipherMark, CertificateMark, AuthorityFileMark, AuthorityDirMark, AuthorityStoreMark, ClientMark, END};
 using MarkArray     = std::array<bool, MarkUsed::END>;
 
 class SSLUtil
@@ -127,8 +128,8 @@ static constexpr MarkUsed certifcateAuthorityDataInfoType[] = {AuthorityFileMark
 template<AuthorityType A>
 class CertifcateAuthorityDataInfo
 {
-    bool            loadDefault;
-    StringList      items;
+    bool                        loadDefault;
+    StringList                  items;
 
     int setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const;
     int setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const*) const;
@@ -171,6 +172,7 @@ struct ClientCAListDataInfo
 
 class ClientCAListInfo
 {
+    bool                                verify;
     ClientCAListDataInfo<File>          file;
     ClientCAListDataInfo<Dir>           dir;
     ClientCAListDataInfo<Store>         store;
@@ -178,12 +180,14 @@ class ClientCAListInfo
     STACK_OF(X509_NAME)* buildCAToList()            const;
 
     public:
-        ClientCAListInfo& addFile(std::string f)    {file.items.emplace_back(std::move(f));return *this;}
-        ClientCAListInfo& addFiles(StringList fl)   {std::move(std::begin(fl), std::end(fl), std::back_inserter(file.items));return *this;}
-        ClientCAListInfo& addDir(std::string f)     {dir.items.emplace_back(std::move(f));return *this;}
-        ClientCAListInfo& addDirs(StringList fl)    {std::move(std::begin(fl), std::end(fl), std::back_inserter(dir.items));return *this;}
-        ClientCAListInfo& addStore(std::string f)   {store.items.emplace_back(std::move(f));return *this;}
-        ClientCAListInfo& addStores(StringList fl)  {std::move(std::begin(fl), std::end(fl), std::back_inserter(store.items));return *this;}
+        ClientCAListInfo():             verify(false)   {}
+        ClientCAListInfo(VerifyPeer):   verify(true)    {}
+        ClientCAListInfo& addFile(std::string f)        {file.items.emplace_back(std::move(f));return *this;}
+        ClientCAListInfo& addFiles(StringList fl)       {std::move(std::begin(fl), std::end(fl), std::back_inserter(file.items));return *this;}
+        ClientCAListInfo& addDir(std::string f)         {dir.items.emplace_back(std::move(f));return *this;}
+        ClientCAListInfo& addDirs(StringList fl)        {std::move(std::begin(fl), std::end(fl), std::back_inserter(dir.items));return *this;}
+        ClientCAListInfo& addStore(std::string f)       {store.items.emplace_back(std::move(f));return *this;}
+        ClientCAListInfo& addStores(StringList fl)      {std::move(std::begin(fl), std::end(fl), std::back_inserter(store.items));return *this;}
 
         void apply(SSL_CTX* ctx, MarkArray& mark)   const;
         void apply(SSL* ssl)       const;
@@ -240,6 +244,7 @@ class SSLctx
 template<IsMarkType... Args>
 SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
     : ctx(nullptr)
+    , mark{}
 {
     SSLUtil::getInstance();
     SSL_METHOD const*  method;
@@ -275,15 +280,12 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
     //clientCAList.setCertifcateAuthorityInfo(ctx);
 
     if (methodType == SSLMethodType::Client) {
-        if (!mark[MarkUsed::CertificateMark]) {
-           // CertifcateAuthorityFile{SystemDefault::Load}.apply(ctx, mark);
-           // CertifcateAuthorityDir{SystemDefault::Load}.apply(ctx, mark);
-           // CertifcateAuthorityStore{SystemDefault::Load}.apply(ctx, mark);
-        }
-        if (!mark[MarkUsed::ClientMark]) {
-            // If no arguments are provided then set up default values
-            // verify: > Force the client to verify the host name
-           // ClientCAListInfo{}.apply(ctx, mark);
+        bool check = mark[MarkUsed::AuthorityFileMark] || mark[MarkUsed::AuthorityDirMark] || mark[MarkUsed::AuthorityStoreMark] || mark[MarkUsed::ClientMark];
+        if (!check) {
+            CertifcateAuthorityFile{SystemDefault::Load}.apply(ctx, mark);
+            CertifcateAuthorityDir{SystemDefault::Load}.apply(ctx, mark);
+            CertifcateAuthorityStore{SystemDefault::Load}.apply(ctx, mark);
+            ClientCAListInfo{VerifyPeer::On}.apply(ctx, mark);
         }
     }
 }

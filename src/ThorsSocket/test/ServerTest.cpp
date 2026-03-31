@@ -16,6 +16,8 @@ using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::ServerInfo;
 
+#define CERT_FILE_TA    "/etc/letsencrypt/live/thors-anvil.com/fullchain.pem"
+#define KEY_FILE_TA     "/etc/letsencrypt/live/thors-anvil.com/privkey.pem"
 #define CERT_FILE       "test/data/server/server.crt"
 #define KEY_FILE        "test/data/server/server.key"
 #define KEY_PASSWD      "TheLongDarkNight"
@@ -174,7 +176,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 {
     SocketSetUp     setup;
     int             port = 8010;
-    CertificateInfo certificate{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}};
+    CertificateInfo certificate{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}};
 
     std::string     message = "Secure TestMessage";
 
@@ -206,7 +208,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
     CertificateInfo certificateClient{CLIENT_CERT, CLIENT_KEY};
     SSLctx          ctxClient{SSLMethodType::Client, certificateClient};
-    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient, DeferAccept::No});
+    Socket  socket(SSocketInfo{"thors-anvil.com", port, ctxClient, DeferAccept::No});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[50] = {0};

@@ -78,7 +78,7 @@ TA_Object   SSocket(
                 .expectInitTA(SSL_connect).toReturn(1)
                 .expectInitTA(SSL_get1_peer_certificate).toReturn(reinterpret_cast<X509*>(0x08))
                 .expectInitTA(X509_free).toReturn(1)
-//                .expectInitTA(SSL_get_verify_result).toReturn(X509_V_OK)
+                .expectInitTA(SSL_get_verify_result).toReturn(X509_V_OK)
                 .expectDestTA(SSL_shutdown).toReturn(1)
                 .expectDestTA(SSL_free).toReturn(1)
                 .optionalTA(SSL_ctrl).toReturn(1)
@@ -198,7 +198,7 @@ TEST(ConnectionSSocketTest, ValidateConnectIsReCalledOnNonBlockingSocket)
         .expectCallTA(SSL_get_error).anyOrder().toReturn(SSL_ERROR_WANT_CONNECT).toReturn(SSL_ERROR_WANT_READ).toReturn(SSL_ERROR_WANT_WRITE)
         .expectCallTA(SSL_get1_peer_certificate).anyOrder().toReturn(reinterpret_cast<X509*>(0x08))
         .expectCallTA(X509_free).anyOrder().toReturn(1)
-//        .expectCallTA(SSL_get_verify_result).toReturn(X509_V_OK)
+        .expectCallTA(SSL_get_verify_result).toReturn(X509_V_OK)
     .run();
 }
 
