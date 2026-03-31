@@ -13,6 +13,7 @@ SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
     , deferAction{DeferAction::None}
 {
     initSSocket(ssocketInfo.ctx, fd);
+    setSNIHostName(ssocketInfo.host);
     if (ssocketInfo.defer == DeferAccept::No)
     {
         YieldFunc nullYield = [](){return false;};
@@ -30,6 +31,7 @@ SSocketStandard::SSocketStandard(SSocketService const& ssocketInfo, int fd)
     , deferAction{DeferAction::None}
 {
     initSSocket(ssocketInfo.ctx, fd);
+    setSNIHostName(ssocketInfo.host);
     if (ssocketInfo.defer == DeferAccept::No)
     {
         YieldFunc nullYield = [](){return false;};
@@ -217,6 +219,23 @@ void SSocketStandard::initSSocket(SSLctx const& ctx, int fd)
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocket",
             " :Failed on SSL_set_fd(): ",
+            buildSSErrorMessage(0)
+        );
+    }
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSocketStandard::setSNIHostName(std::string_view host)
+{
+    if (MOCK_FUNC(SSL_ctrl)(ssl, SSL_CTRL_SET_TLSEXT_HOSTNAME, TLSEXT_NAMETYPE_host_name, const_cast<char*>(host.data())) != 1)
+    {
+        MOCK_FUNC(SSL_free)(ssl);
+        ssl = nullptr;
+        ThorsLogAndThrowDebug(
+            std::runtime_error,
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+            "setSNIHostName",
+            " :Failed on SSL_set_tlsext_host_name(): ",
             buildSSErrorMessage(0)
         );
     }
