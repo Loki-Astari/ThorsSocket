@@ -506,6 +506,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
         ClientCAListInfo  list;
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
+    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .run();
 }
 
@@ -513,7 +514,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
-        list.verifyClientCA = true;
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
@@ -524,9 +524,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
-        list.file.items.push_back("File 1");
+        list.addFile("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
+    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
@@ -537,9 +538,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
-        list.dir.items.push_back("File 1");
+        list.addDir("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
+    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
@@ -550,9 +552,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
-        list.store.items.push_back("File 1");
+        list.addStore("File 1");
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
+    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_CTX_set_client_CA_list).toReturn(1)
@@ -563,7 +566,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo  list;
-        list.verifyClientCA = true;
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(0)
@@ -574,9 +576,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 {
     TA_TestThrow([](){
         ClientCAListInfo  list;
-        list.file.items.push_back("File 1");
+        list.addFiles({"File 1"});
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
+    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -588,9 +591,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
     TA_TestThrow([](){
         ClientCAListInfo            list;
-        list.dir.items.push_back("File 1");
+        list.addDirs({"File 1"});
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
+    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -602,9 +606,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 {
     TA_TestThrow([](){
         ClientCAListInfo  list;
-        list.store.items.push_back("File 1");
+        list.addStores({"File 1"});
         list.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
+    .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -618,6 +623,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoSSL)
         ClientCAListInfo  list;
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
+    .expectCallTA(SSL_set_verify).toReturn(1)
     .run();
 }
 
@@ -625,7 +631,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientSSL)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
-        list.verifyClientCA = true;
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
     .expectCallTA(SSL_set_verify).toReturn(1)
@@ -636,9 +641,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileSSL)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
-        list.file.items.push_back("File 1");
+        list.addFiles({"File 1"});
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
+    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
@@ -649,9 +655,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirSSL)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
-        list.dir.items.push_back("File 1");
+        list.addDirs({"File 1"});
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
+    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
@@ -662,9 +669,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreSSL)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
-        list.store.items.push_back("File 1");
+        list.addStores({"File 1"});
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
+    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(1)
     .expectCallTA(SSL_set_client_CA_list).toReturn(1)
@@ -675,7 +683,6 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailSSL)
 {
     TA_TestNoThrow([](){
         ClientCAListInfo            list;
-        list.verifyClientCA = true;
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
     .expectCallTA(SSL_set_verify).toReturn(0)
@@ -686,9 +693,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
 {
     TA_TestThrow([](){
         ClientCAListInfo            list;
-        list.file.items.push_back("File 1");
+        list.addFile("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
+    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -700,9 +708,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
 {
     TA_TestThrow([](){
         ClientCAListInfo            list;
-        list.dir.items.push_back("File 1");
+        list.addDir("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
+    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)
@@ -714,9 +723,10 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
 {
     TA_TestThrow([](){
         ClientCAListInfo            list;
-        list.store.items.push_back("File 1");
+        list.addStore("File 1");
         list.apply(reinterpret_cast<SSL*>(0x08));
     })
+    .expectCallTA(SSL_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
     .expectCallTA(sk_X509_NAME_pop_free_wrapper)

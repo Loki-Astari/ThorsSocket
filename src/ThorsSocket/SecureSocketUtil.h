@@ -151,22 +151,31 @@ using CertifcateAuthorityStore  = CertifcateAuthorityDataInfo<Store>;
 template<AuthorityType A>
 struct ClientCAListDataInfo
 {
-    std::vector<std::string>        items;
+    StringList      items;
 
     int addCAToList(STACK_OF(X509_NAME)* certs, char const* item) const;
 };
 
-struct ClientCAListInfo
+class ClientCAListInfo
 {
-    bool                                verifyClientCA = false;
     ClientCAListDataInfo<File>          file;
     ClientCAListDataInfo<Dir>           dir;
     ClientCAListDataInfo<Store>         store;
 
     STACK_OF(X509_NAME)* buildCAToList()            const;
-    void apply(SSL_CTX* ctx)   const;
-    void apply(SSL* ssl)       const;
+
+    public:
+        ClientCAListInfo& addFile(std::string f)    {file.items.emplace_back(std::move(f));return *this;}
+        ClientCAListInfo& addFiles(StringList fl)   {std::move(std::begin(fl), std::end(fl), std::back_inserter(file.items));return *this;}
+        ClientCAListInfo& addDir(std::string f)     {dir.items.emplace_back(std::move(f));return *this;}
+        ClientCAListInfo& addDirs(StringList fl)    {std::move(std::begin(fl), std::end(fl), std::back_inserter(dir.items));return *this;}
+        ClientCAListInfo& addStore(std::string f)   {store.items.emplace_back(std::move(f));return *this;}
+        ClientCAListInfo& addStores(StringList fl)  {std::move(std::begin(fl), std::end(fl), std::back_inserter(store.items));return *this;}
+
+        void apply(SSL_CTX* ctx)   const;
+        void apply(SSL* ssl)       const;
 };
+
 class SSLctx
 {
     private:

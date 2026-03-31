@@ -397,9 +397,7 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ClientCAListInfo::apply(SSL_CTX* ctx) const
 {
-    if (verifyClientCA) {
-        MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
-    }
+    MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
     STACK_OF(X509_NAME)* list = buildCAToList();
     if (list != nullptr) {
         MOCK_FUNC(SSL_CTX_set_client_CA_list)(ctx, list);
@@ -409,9 +407,7 @@ void ClientCAListInfo::apply(SSL_CTX* ctx) const
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void ClientCAListInfo::apply(SSL* ssl) const
 {
-    if (verifyClientCA) {
-        MOCK_FUNC(SSL_set_verify)(ssl, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
-    }
+    MOCK_FUNC(SSL_set_verify)(ssl, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
     STACK_OF(X509_NAME)* list = buildCAToList();
     if (list != nullptr) {
         MOCK_FUNC(SSL_set_client_CA_list)(ssl, list);
