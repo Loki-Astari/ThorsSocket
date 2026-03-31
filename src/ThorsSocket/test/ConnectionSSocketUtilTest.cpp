@@ -3,6 +3,8 @@
 #include "SecureSocketUtil.h"
 
 
+using ThorsAnvil::ThorsSocket::MarkUsed;
+using ThorsAnvil::ThorsSocket::MarkArray;
 using ThorsAnvil::ThorsSocket::SystemDefault;
 using ThorsAnvil::ThorsSocket::Protocol;
 using ThorsAnvil::ThorsSocket::ProtocolInfo;
@@ -34,8 +36,11 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoBuild)
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 {
     TA_TestNoThrow([](){
+        MarkArray       mark;
         ProtocolInfo    protocol(Protocol::TLS_1_0, Protocol::TLS_1_1);
-        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ProtocolMark]);
     })
     .expectCallTA(SSL_CTX_ctrl).checkInput(reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, nullptr).toReturn(1)
     .expectCallTA(SSL_CTX_ctrl).checkInput(reinterpret_cast<SSL_CTX*>(0x08), SSL_CTRL_SET_MAX_PROTO_VERSION, TLS1_1_VERSION, nullptr).toReturn(1)
@@ -45,8 +50,11 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTX)
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 {
     TA_TestThrow([](){
+        MarkArray       mark;
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
-        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ProtocolMark]);
     })
     .expectCallTA(SSL_CTX_ctrl).toReturn(-1)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -56,8 +64,11 @@ TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMinFailed)
 TEST(ConnectionSSocketUtilTest, ProtocolInfoSetCTXMaxFailed)
 {
     TA_TestThrow([](){
+        MarkArray       mark;
         ProtocolInfo    protocol(Protocol::TLS_1_2, Protocol::TLS_1_3);
-        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        protocol.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ProtocolMark]);
     })
     .expectCallTA(SSL_CTX_ctrl).toReturn(1).toReturn(-1)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -133,8 +144,11 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTX)
     std::string input2 = "Suite2";
 
     TA_TestNoThrow([&](){
+        MarkArray       mark;
         CipherInfo      cipherInfo{input1, input2};
-        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::CipherMark]);
     })
     .expectCallTA(SSL_CTX_set_cipher_list).checkInput(reinterpret_cast<SSL_CTX*>(0x08), input1).toReturn(1)
     .expectCallTA(SSL_CTX_set_ciphersuites).checkInput( reinterpret_cast<SSL_CTX*>(0x08), input2).toReturn(1)
@@ -158,8 +172,11 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetSSL)
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 {
     TA_TestThrow([](){
+        MarkArray       mark;
         CipherInfo      cipherInfo{"List1", "Suite2"};
-        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::CipherMark]);
     })
     .expectCallTA(SSL_CTX_set_cipher_list).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -169,8 +186,11 @@ TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXListFail)
 TEST(ConnectionSSocketUtilTest, CipherInfoSetCTXSuiteFail)
 {
     TA_TestThrow([](){
+        MarkArray       mark;
         CipherInfo      cipherInfo{"List1", "Suite2"};
-        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        cipherInfo.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::CipherMark]);
     })
     .expectCallTA(SSL_CTX_set_cipher_list).toReturn(1)
     .expectCallTA(SSL_CTX_set_ciphersuites).toReturn(0)
@@ -215,8 +235,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXDone)
     std::string keyFile  = "keyFile2";
 
     TA_TestNoThrow([&](){
+        MarkArray           mark;
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::CertificateMark]);
     })
     .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
@@ -265,8 +288,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCert)
     std::string keyFile  = "keyFile2";
 
     TA_TestThrow([&](){
+        MarkArray           mark;
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::CertificateMark]);
     })
     .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
@@ -281,8 +307,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidKey)
     std::string keyFile  = "keyFile2";
 
     TA_TestThrow([&](){
+        MarkArray           mark;
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::CertificateMark]);
     })
     .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
@@ -298,8 +327,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionCTXInvalidCheck)
     std::string keyFile  = "keyFile2";
 
     TA_TestThrow([&](){
+        MarkArray           mark;
         CertificateInfo     ca(certFile, keyFile, [](int){return "password";});
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::CertificateMark]);
     })
     .expectCallTA(SSL_CTX_set_default_passwd_cb).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_passwd_cb_userdata).toReturn(1)
@@ -364,8 +396,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 {
     TA_TestNoThrow([&](){
+        MarkArray                   mark;
         CertifcateAuthorityFile     ca(SystemDefault::Load);
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(1)
     .run();
@@ -374,8 +409,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 {
     TA_TestNoThrow([](){
+        MarkArray                   mark;
         CertifcateAuthorityDir      ca{SystemDefault::Load};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityDirMark]);
     })
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(1)
     .run();
@@ -384,8 +422,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 {
     TA_TestNoThrow([](){
+        MarkArray                   mark;
         CertifcateAuthorityStore    ca{SystemDefault::Load};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityStoreMark]);
     })
     .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(1)
     .run();
@@ -396,8 +437,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
+        MarkArray                   mark;
         CertifcateAuthorityFile     ca{file};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
     .expectCallTA(SSL_CTX_load_verify_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
     .run();
@@ -408,8 +452,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
+        MarkArray                   mark;
         CertifcateAuthorityDir      ca({file});
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityDirMark]);
     })
     .expectCallTA(SSL_CTX_load_verify_dir).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
     .run();
@@ -420,8 +467,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
+        MarkArray                   mark;
         CertifcateAuthorityStore    ca{file};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityStoreMark]);
     })
     .expectCallTA(SSL_CTX_load_verify_store).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
     .run();
@@ -431,8 +481,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 {
     TA_TestThrow([](){
+        MarkArray                   mark;
         CertifcateAuthorityFile     ca{SystemDefault::Load};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -442,8 +495,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 {
     TA_TestThrow([](){
+        MarkArray                   mark;
         CertifcateAuthorityDir      ca{SystemDefault::Load};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityDirMark]);
     })
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -453,8 +509,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 {
     TA_TestThrow([](){
+        MarkArray                   mark;
         CertifcateAuthorityStore    ca{SystemDefault::Load};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityStoreMark]);
     })
     .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -466,8 +525,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
+        MarkArray                   mark;
         CertifcateAuthorityFile     ca{file};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
     .expectCallTA(SSL_CTX_load_verify_file).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -479,8 +541,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
+        MarkArray                   mark;
         CertifcateAuthorityDir      ca{{file}};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityDirMark]);
     })
     .expectCallTA(SSL_CTX_load_verify_dir).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -492,8 +557,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
+        MarkArray                   mark;
         CertifcateAuthorityStore    ca{file};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::AuthorityStoreMark]);
     })
     .expectCallTA(SSL_CTX_load_verify_store).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
@@ -503,8 +571,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 {
     TA_TestNoThrow([](){
+        MarkArray         mark;
         ClientCAListInfo  list;
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .run();
@@ -513,8 +584,11 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoCTX)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 {
     TA_TestNoThrow([](){
+        MarkArray         mark;
         ClientCAListInfo  list;
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .run();
@@ -523,9 +597,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientCTX)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 {
     TA_TestNoThrow([](){
+        MarkArray         mark;
         ClientCAListInfo  list;
         list.addFile("File 1");
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
@@ -537,9 +614,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileCTX)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 {
     TA_TestNoThrow([](){
+        MarkArray         mark;
         ClientCAListInfo  list;
         list.addDir("File 1");
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
@@ -551,9 +631,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirCTX)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 {
     TA_TestNoThrow([](){
+        MarkArray         mark;
         ClientCAListInfo  list;
         list.addStore("File 1");
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
@@ -565,8 +648,11 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreCTX)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 {
     TA_TestNoThrow([](){
+        MarkArray         mark;
         ClientCAListInfo  list;
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(0)
     .run();
@@ -575,9 +661,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoValidateClientFailCTX)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 {
     TA_TestThrow([](){
+        MarkArray         mark;
         ClientCAListInfo  list;
         list.addFiles({"File 1"});
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
@@ -590,9 +679,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 {
     TA_TestThrow([](){
+        MarkArray                   mark;
         ClientCAListInfo            list;
         list.addDirs({"File 1"});
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
@@ -605,9 +697,12 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
 TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
 {
     TA_TestThrow([](){
+        MarkArray         mark;
         ClientCAListInfo  list;
         list.addStores({"File 1"});
-        list.apply(reinterpret_cast<SSL_CTX*>(0x08));
+        list.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+
+        EXPECT_EQ(true, mark[MarkUsed::ClientMark]);
     })
     .expectCallTA(SSL_CTX_set_verify).toReturn(1)
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))

@@ -31,6 +31,8 @@ enum AuthorityType          { File, Dir, Store};
 enum SystemDefault          { Load};
 
 using StringList    = std::vector<std::string>;
+enum MarkUsed { ProtocolMark, CipherMark, CertificateMark, AuthorityFileMark, AuthorityDirMark, AuthorityStoreMark, ClientMark, END};
+using MarkArray     = std::array<bool, MarkUsed::END>;
 
 class SSLUtil
 {
@@ -56,6 +58,7 @@ class SSLUtil
  *      ClientCAListInfo
  */
 
+
 struct ProtocolInfo
 {
     private:
@@ -72,8 +75,10 @@ struct ProtocolInfo
             , maxProtocol(maxProtocol)
         {}
 
-        void apply(SSL_CTX* ctx)   const;
+        void apply(SSL_CTX* ctx, MarkArray& mark)   const;
         void apply(SSL* ssl)       const;
+
+        static constexpr MarkUsed markType = MarkUsed::ProtocolMark;
 };
 
 struct CipherInfo
@@ -89,8 +94,10 @@ struct CipherInfo
     std::string         cipherSuite         =   "TLS_AES_256_GCM_SHA384"            ":"
                                                 "TLS_CHACHA20_POLY1305_SHA256"      ":"
                                                 "TLS_AES_128_GCM_SHA256";
-    void apply(SSL_CTX* ctx)    const;
+    void apply(SSL_CTX* ctx, MarkArray& mark)    const;
     void apply(SSL* ssl)        const;
+
+    static constexpr MarkUsed markType = MarkUsed::CipherMark;
 };
 
 struct CertificateInfo
@@ -109,9 +116,13 @@ struct CertificateInfo
         CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName);
         CertificateInfo(std::string const& certificateFileName, std::string const& keyFileName, GetPasswordFunc&& getPassword);
 
-        void apply(SSL_CTX* ctx)   const;
+        void apply(SSL_CTX* ctx, MarkArray& mark)   const;
         void apply(SSL* ssl)       const;
+
+        static constexpr MarkUsed markType = MarkUsed::CertificateMark;
 };
+
+static constexpr MarkUsed certifcateAuthorityDataInfoType[] = {AuthorityFileMark, AuthorityDirMark, AuthorityStoreMark};
 
 template<AuthorityType A>
 class CertifcateAuthorityDataInfo
@@ -141,7 +152,9 @@ class CertifcateAuthorityDataInfo
             , items({std::move(file)})
         {}
 
-        void apply(SSL_CTX* ctx)   const;
+        void apply(SSL_CTX* ctx, MarkArray& mark)   const;
+
+        static constexpr MarkUsed markType = certifcateAuthorityDataInfoType[A];
 };
 
 using CertifcateAuthorityFile   = CertifcateAuthorityDataInfo<File>;
@@ -172,9 +185,20 @@ class ClientCAListInfo
         ClientCAListInfo& addStore(std::string f)   {store.items.emplace_back(std::move(f));return *this;}
         ClientCAListInfo& addStores(StringList fl)  {std::move(std::begin(fl), std::end(fl), std::back_inserter(store.items));return *this;}
 
-        void apply(SSL_CTX* ctx)   const;
+        void apply(SSL_CTX* ctx, MarkArray& mark)   const;
         void apply(SSL* ssl)       const;
+
+        static constexpr MarkUsed markType = MarkUsed::ClientMark;
 };
+
+template<typename T>
+concept IsMarkType = requires(T a)
+{
+    // Requires that a.buildHtml() is a valid expression
+    // and returns a type convertible to std::string.
+    { a.markType } -> std::convertible_to<MarkUsed>;
+};
+
 
 class SSLctx
 {
@@ -182,8 +206,9 @@ class SSLctx
         friend class ConnectionType::SSocketBase;
         friend class ConnectionType::SSocketStandard;
         SSL_CTX*            ctx;
+        MarkArray           mark;
     public:
-        template<typename... Args>
+        template<IsMarkType... Args>
         SSLctx(SSLMethodType methodType, Args&&... args);
                // ProtocolInfo
                // CipherInfo
@@ -210,7 +235,7 @@ class SSLctx
         SSL_CTX*                newCtx(SSL_METHOD const* method);
 };
 
-template<typename... Args>
+template<IsMarkType... Args>
 SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
     : ctx(nullptr)
 {
@@ -240,7 +265,7 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
                               "SSL_CTX_new() failed: ", buildOpenSSLErrorMessage());
     }
 
-    (args.apply(ctx),...);
+    (args.apply(ctx, mark),...);
 }
 
 

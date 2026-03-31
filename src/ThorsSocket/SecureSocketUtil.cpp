@@ -69,8 +69,9 @@ int ProtocolInfo::convertProtocolToOpenSSL(Protocol protocol) const
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void ProtocolInfo::apply(SSL_CTX* ctx) const
+void ProtocolInfo::apply(SSL_CTX* ctx, MarkArray& mark) const
 {
+    mark[markType] = true;
     //if (SSL_CTX_set_min_proto_version(ctx, convertProtocolToOpenSSL(minProtocol)) != 1)
     if (MOCK_FUNC(SSL_CTX_ctrl)(ctx, SSL_CTRL_SET_MIN_PROTO_VERSION, convertProtocolToOpenSSL(minProtocol), nullptr) != 1)
     {
@@ -111,8 +112,9 @@ void ProtocolInfo::apply(SSL* ssl) const
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void CipherInfo::apply(SSL_CTX* ctx) const
+void CipherInfo::apply(SSL_CTX* ctx, MarkArray& mark) const
 {
+    mark[markType] = true;
     /*Set the Cipher List*/
     if (MOCK_FUNC(SSL_CTX_set_cipher_list)(ctx, cipherList.c_str()) <= 0)
     {
@@ -182,8 +184,9 @@ CertificateInfo::CertificateInfo(std::string const& certificateFileName, std::st
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void CertificateInfo::apply(SSL_CTX* ctx) const
+void CertificateInfo::apply(SSL_CTX* ctx, MarkArray& mark) const
 {
+    mark[markType] = true;
     if (certificateFileName != "")
     {
         if (hasPasswordGetter)
@@ -265,8 +268,9 @@ void CertificateInfo::apply(SSL* ssl) const
 
 template<AuthorityType A>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx) const
+void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
 {
+    mark[markType] = true;
     if (loadDefault)
     {
         int stat = setDefaultCertifcateAuthorityInfo(ctx);
@@ -335,11 +339,11 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ClientCAListDataInfo<Store>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)  const {return MOCK_FUNC(SSL_add_store_cert_subjects_to_stack)(certs, item);}
 
 template
-void CertifcateAuthorityDataInfo<File>::apply(SSL_CTX* ctx) const;
+void CertifcateAuthorityDataInfo<File>::apply(SSL_CTX* ctx, MarkArray& mark) const;
 template
-void CertifcateAuthorityDataInfo<Dir>::apply(SSL_CTX* ctx) const;
+void CertifcateAuthorityDataInfo<Dir>::apply(SSL_CTX* ctx, MarkArray& mark) const;
 template
-void CertifcateAuthorityDataInfo<Store>::apply(SSL_CTX* ctx) const;
+void CertifcateAuthorityDataInfo<Store>::apply(SSL_CTX* ctx, MarkArray& mark) const;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
@@ -395,8 +399,9 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-void ClientCAListInfo::apply(SSL_CTX* ctx) const
+void ClientCAListInfo::apply(SSL_CTX* ctx, MarkArray& mark) const
 {
+    mark[markType] = true;
     MOCK_FUNC(SSL_CTX_set_verify)(ctx, SSL_VERIFY_PEER|SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
     STACK_OF(X509_NAME)* list = buildCAToList();
     if (list != nullptr) {
