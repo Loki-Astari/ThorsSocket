@@ -193,13 +193,13 @@ void CertificateInfo::apply(SSL_CTX* ctx) const
             MOCK_FUNC(SSL_CTX_set_default_passwd_cb_userdata)(ctx, static_cast<void*>(const_cast<CertificateInfo*>(this)));
         }
 
-        /*Set the certificate to be used.*/
-        if (MOCK_FUNC(SSL_CTX_use_certificate_file)(ctx, certificateFileName.c_str(), SSL_FILETYPE_PEM) <= 0)
+        /*Set the certificate (and any intermediates) to be used.*/
+        if (MOCK_FUNC(SSL_CTX_use_certificate_chain_file)(ctx, certificateFileName.c_str()) <= 0)
         {
             ThorsLogAndThrowDebug(std::runtime_error,
                                   "ThorsAnvil::ThorsSocket::CertificateInfo",
                                   "apply",
-                                  "SSL_CTX_use_certificate_file() failed: ", buildOpenSSLErrorMessage());
+                                  "SSL_CTX_use_certificate_chain_file() failed: ", buildOpenSSLErrorMessage());
         }
 
         /*Indicate the key file to be used*/

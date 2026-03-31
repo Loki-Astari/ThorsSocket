@@ -85,7 +85,7 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(SSL_CTX_set_ciphersuites);
     MOCK_MEMBER(SSL_CTX_set_default_passwd_cb);
     MOCK_MEMBER(SSL_CTX_set_default_passwd_cb_userdata);
-    MOCK_MEMBER(SSL_CTX_use_certificate_file);
+    MOCK_MEMBER(SSL_CTX_use_certificate_chain_file);
     MOCK_MEMBER(SSL_CTX_use_PrivateKey_file);
     MOCK_MEMBER(SSL_CTX_check_private_key);
     MOCK_MEMBER(SSL_CTX_set_default_verify_file);
@@ -155,7 +155,7 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(SSL_CTX_set_ciphersuites,              [ ](SSL_CTX*, char const*)              {return 1;})
             , MOCK_PARAM(SSL_CTX_set_default_passwd_cb,         [ ](SSL_CTX*, CB)                       {return 1;})
             , MOCK_PARAM(SSL_CTX_set_default_passwd_cb_userdata,[ ](SSL_CTX*, void*)                    {return 1;})
-            , MOCK_PARAM(SSL_CTX_use_certificate_file,          [ ](SSL_CTX*, char const*, int)         {return 1;})
+            , MOCK_PARAM(SSL_CTX_use_certificate_chain_file,    [ ](SSL_CTX*, char const*)               {return 1;})
             , MOCK_PARAM(SSL_CTX_use_PrivateKey_file,           [ ](SSL_CTX*, char const*, int)         {return 1;})
             , MOCK_PARAM(SSL_CTX_check_private_key,             [ ](SSL_CTX const*)                     {return 1;})
             , MOCK_PARAM(SSL_CTX_set_default_verify_file,       [ ](SSL_CTX*)                           {return 1;})
