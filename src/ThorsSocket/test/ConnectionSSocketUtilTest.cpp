@@ -364,11 +364,9 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
         CertifcateAuthorityInfo     ca;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
-/*
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(1)
     .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(1)
-*/
     .run();
 }
 
