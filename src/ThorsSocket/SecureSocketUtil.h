@@ -28,6 +28,9 @@ std::string buildOpenSSLErrorMessage(bool prefix = true);
 enum class  SSLMethodType   { Client, Server};
 enum Protocol               { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3};
 enum AuthorityType          { File, Dir, Store};
+enum SystemDefault          { Load};
+
+using StringList    = std::vector<std::string>;
 
 class SSLUtil
 {
@@ -111,15 +114,34 @@ struct CertificateInfo
 };
 
 template<AuthorityType A>
-struct CertifcateAuthorityDataInfo
+class CertifcateAuthorityDataInfo
 {
-    bool                        loadDefault = false;
-    std::vector<std::string>    items;
+    bool            loadDefault;
+    StringList      items;
 
-    void apply(SSL_CTX* ctx)   const;
     int setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const;
     int setOneCertifcateAuthorityInfo(SSL_CTX* ctx, char const*) const;
     std::string type() const;
+
+    public:
+        CertifcateAuthorityDataInfo(SystemDefault, StringList fileList = {})
+            : loadDefault(true)
+            , items(std::move(fileList))
+        {}
+        CertifcateAuthorityDataInfo(SystemDefault, std::string file)
+            : loadDefault(true)
+            , items({std::move(file)})
+        {}
+        CertifcateAuthorityDataInfo(StringList fileList)
+            : loadDefault(false)
+            , items(std::move(fileList))
+        {}
+        CertifcateAuthorityDataInfo(std::string file)
+            : loadDefault(false)
+            , items({std::move(file)})
+        {}
+
+        void apply(SSL_CTX* ctx)   const;
 };
 
 using CertifcateAuthorityFile   = CertifcateAuthorityDataInfo<File>;
