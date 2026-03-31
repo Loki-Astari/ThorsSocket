@@ -291,6 +291,18 @@ void SSocketStandard::initSSocketClientConnect(YieldFunc& rYield, YieldFunc& wYi
         );
     }
     MOCK_FUNC(X509_free)(cert);
+/*
+    long verifyOK = MOCK_FUNC(SSL_get_verify_result)(ssl);
+    if (verifyOK != X509_V_OK) {
+        ThorsLogAndThrowDebug(
+            std::runtime_error,
+            "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
+            "initSSocketClient",
+            " :Failed on SSL_get_verify_result(): ",
+            X509_verify_cert_error_string(verifyOK)
+        );
+    }
+*/
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -333,7 +345,9 @@ void SSocketStandard::initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYie
     }
 
     /* Check for Client authentication error */
-    if (SSL_get_verify_result(ssl) != X509_V_OK)
+/*
+    long verifyOK = MOCK_FUNC(SSL_get_verify_result)(ssl);
+    if (verifyOK != X509_V_OK)
     {
         MOCK_FUNC(SSL_free)(ssl);
         ssl = nullptr;
@@ -341,9 +355,10 @@ void SSocketStandard::initSSocketClientAccept(YieldFunc& rYield, YieldFunc& wYie
             "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
             "initSSocketClientAccept",
             " :Failed on SSL_get_verify_result(): ",
-            buildSSErrorMessage(0)
+            X509_verify_cert_error_string(verifyOK)
         );
     }
+*/
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE

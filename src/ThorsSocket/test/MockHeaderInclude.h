@@ -76,6 +76,7 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(SSL_get_error);
     MOCK_MEMBER(SSL_get1_peer_certificate);
     MOCK_MEMBER(X509_free);
+    MOCK_MEMBER(SSL_get_verify_result);
     MOCK_MEMBER(SSL_read);
     MOCK_MEMBER(SSL_write);
     MOCK_MEMBER(SSL_shutdown);
@@ -145,6 +146,7 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(SSL_get_error,                         [ ](SSL const*, int)                    {return SSL_ERROR_NONE;})
             , MOCK_PARAM(SSL_get1_peer_certificate,             [ ](SSL const*)                         {return reinterpret_cast<X509*>(0x08);})
             , MOCK_PARAM(X509_free,                             [ ](X509*)                              {})
+            , MOCK_PARAM(SSL_get_verify_result,                  [ ](SSL const*)                         {return X509_V_OK;})
             , MOCK_PARAM(SSL_read,                              [ ](SSL*, void*, int)                   {return 1;})
             , MOCK_PARAM(SSL_write,                             [ ](SSL*, void const*, int)             {return 1;})
             , MOCK_PARAM(SSL_shutdown,                          [ ](SSL*)                               {return 1;})
