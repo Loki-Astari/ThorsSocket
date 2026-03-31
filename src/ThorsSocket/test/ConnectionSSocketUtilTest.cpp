@@ -7,7 +7,9 @@ using ThorsAnvil::ThorsSocket::Protocol;
 using ThorsAnvil::ThorsSocket::ProtocolInfo;
 using ThorsAnvil::ThorsSocket::CipherInfo;
 using ThorsAnvil::ThorsSocket::CertificateInfo;
-using ThorsAnvil::ThorsSocket::CertifcateAuthorityInfo;
+using ThorsAnvil::ThorsSocket::CertifcateAuthorityFile;
+using ThorsAnvil::ThorsSocket::CertifcateAuthorityDir;
+using ThorsAnvil::ThorsSocket::CertifcateAuthorityStore;
 using ThorsAnvil::ThorsSocket::ClientCAListInfo;
 using ThorsAnvil::BuildTools::Mock::TA_TestThrow;
 using ThorsAnvil::BuildTools::Mock::TA_TestNoThrow;
@@ -358,23 +360,11 @@ TEST(ConnectionSSocketUtilTest, CertificateInfoActionSSLInvalidCheck)
     .run();
 }
 
-TEST(ConnectionSSocketUtilTest, CertifcateAuthorityInfoDefaultConstruct)
-{
-    TA_TestNoThrow([](){
-        CertifcateAuthorityInfo     ca;
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
-    })
-    .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(1)
-    .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(1)
-    .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(1)
-    .run();
-}
-
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 {
     TA_TestNoThrow([&](){
-        CertifcateAuthorityInfo     ca;
-        ca.file.loadDefault = true;
+        CertifcateAuthorityFile     ca;
+        ca.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(1)
@@ -384,8 +374,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 {
     TA_TestNoThrow([](){
-        CertifcateAuthorityInfo     ca;
-        ca.dir.loadDefault = true;
+        CertifcateAuthorityDir      ca;
+        ca.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(1)
@@ -395,8 +385,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultStore)
 {
     TA_TestNoThrow([](){
-        CertifcateAuthorityInfo     ca;
-        ca.store.loadDefault = true;
+        CertifcateAuthorityStore    ca;
+        ca.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(1)
@@ -408,8 +398,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFile)
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
-        CertifcateAuthorityInfo     ca;
-        ca.file.items.push_back(file);
+        CertifcateAuthorityFile     ca;
+        ca.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_load_verify_file).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
@@ -421,8 +411,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDir)
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
-        CertifcateAuthorityInfo     ca;
-        ca.dir.items.push_back(file);
+        CertifcateAuthorityDir      ca;
+        ca.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_load_verify_dir).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
@@ -434,8 +424,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
     std::string  file = "Item 1";
 
     TA_TestNoThrow([&](){
-        CertifcateAuthorityInfo     ca;
-        ca.store.items.push_back(file);
+        CertifcateAuthorityStore    ca;
+        ca.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_load_verify_store).checkInput(reinterpret_cast<SSL_CTX*>(0x08), file).toReturn(1)
@@ -446,8 +436,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStore)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 {
     TA_TestThrow([](){
-        CertifcateAuthorityInfo     ca;
-        ca.file.loadDefault = true;
+        CertifcateAuthorityFile     ca;
+        ca.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(0)
@@ -458,8 +448,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 {
     TA_TestThrow([](){
-        CertifcateAuthorityInfo     ca;
-        ca.dir.loadDefault = true;
+        CertifcateAuthorityDir      ca;
+        ca.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(0)
@@ -470,8 +460,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
 {
     TA_TestThrow([](){
-        CertifcateAuthorityInfo     ca;
-        ca.store.loadDefault = true;
+        CertifcateAuthorityStore    ca;
+        ca.loadDefault = true;
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(0)
@@ -484,8 +474,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddFileFail)
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
-        CertifcateAuthorityInfo     ca;
-        ca.file.items.push_back(file);
+        CertifcateAuthorityFile     ca;
+        ca.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_load_verify_file).toReturn(0)
@@ -498,8 +488,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddDirFail)
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
-        CertifcateAuthorityInfo     ca;
-        ca.dir.items.push_back(file);
+        CertifcateAuthorityDir      ca;
+        ca.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_load_verify_dir).toReturn(0)
@@ -512,8 +502,8 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityAddStoreFail)
     std::string  file = "Item 1";
 
     TA_TestThrow([&](){
-        CertifcateAuthorityInfo     ca;
-        ca.store.items.push_back(file);
+        CertifcateAuthorityStore    ca;
+        ca.items.push_back(file);
         ca.apply(reinterpret_cast<SSL_CTX*>(0x08));
     })
     .expectCallTA(SSL_CTX_load_verify_store).toReturn(0)

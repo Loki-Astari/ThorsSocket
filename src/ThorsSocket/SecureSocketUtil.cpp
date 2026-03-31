@@ -324,14 +324,6 @@ template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 std::string CertifcateAuthorityDataInfo<Store>::type() const {return "CA Store";}
 
-THORS_SOCKET_HEADER_ONLY_INCLUDE
-void CertifcateAuthorityInfo::apply(SSL_CTX* ctx) const
-{
-    file.apply(ctx);
-    dir.apply(ctx);
-    store.apply(ctx);
-}
-
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ClientCAListDataInfo<File>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)   const {return MOCK_FUNC(SSL_add_file_cert_subjects_to_stack)(certs, item);}
@@ -341,6 +333,13 @@ int ClientCAListDataInfo<Dir>::addCAToList(STACK_OF(X509_NAME)* certs, char cons
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int ClientCAListDataInfo<Store>::addCAToList(STACK_OF(X509_NAME)* certs, char const* item)  const {return MOCK_FUNC(SSL_add_store_cert_subjects_to_stack)(certs, item);}
+
+template
+void CertifcateAuthorityDataInfo<File>::apply(SSL_CTX* ctx) const;
+template
+void CertifcateAuthorityDataInfo<Dir>::apply(SSL_CTX* ctx) const;
+template
+void CertifcateAuthorityDataInfo<Store>::apply(SSL_CTX* ctx) const;
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const

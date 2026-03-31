@@ -26,8 +26,8 @@ int certificateInfo_PasswdCBNormal(char* buf, int size, int rwflag, void* userda
 std::string buildOpenSSLErrorMessage(bool prefix = true);
 
 enum class  SSLMethodType   { Client, Server};
-enum        Protocol        { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3};
-enum        AuthorityType   { File, Dir, Store};
+enum Protocol               { TLS_1_0, TLS_1_1, TLS_1_2, TLS_1_3};
+enum AuthorityType          { File, Dir, Store};
 
 class SSLUtil
 {
@@ -47,7 +47,9 @@ class SSLUtil
  *      ProtocolInfo
  *      CipherInfo
  *      CertificateInfo
- *      CertifcateAuthorityInfo
+ *      CertifcateAuthorityFile
+ *      CertifcateAuthorityDir
+ *      CertifcateAuthorityStore
  *      ClientCAListInfo
  */
 
@@ -120,14 +122,9 @@ struct CertifcateAuthorityDataInfo
     std::string type() const;
 };
 
-struct CertifcateAuthorityInfo
-{
-    CertifcateAuthorityDataInfo<File>   file;
-    CertifcateAuthorityDataInfo<Dir>    dir;
-    CertifcateAuthorityDataInfo<Store>  store;
-
-    void apply(SSL_CTX* ctx)   const;
-};
+using CertifcateAuthorityFile   = CertifcateAuthorityDataInfo<File>;
+using CertifcateAuthorityDir    = CertifcateAuthorityDataInfo<Dir>;
+using CertifcateAuthorityStore  = CertifcateAuthorityDataInfo<Store>;
 
 template<AuthorityType A>
 struct ClientCAListDataInfo
