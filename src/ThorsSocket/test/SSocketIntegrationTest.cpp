@@ -1,14 +1,7 @@
 #include <gtest/gtest.h>
 #include "test/SimpleServer.h"
 #include "Socket.h"
-
-
-#define CERT_FILE       "test/data/server/server.crt"
-#define KEY_FILE        "test/data/server/server.key"
-#define KEY_PASSWD      "TheLongDarkNight"
-
-#define CLIENT_CERT     "test/data/client/client.crt"
-#define CLIENT_KEY      "test/data/client/client.key"
+#include "CertInfo.h"
 
 
 using ThorsAnvil::ThorsSocket::SSocketInfo;
@@ -19,6 +12,7 @@ using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::DeferAccept;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
+using ThorsAnvil::ThorsSocket::ClientCAListInfo;
 using ThorsAnvil::ThorsSocket::CertificateInfo;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
 
@@ -72,7 +66,7 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{SSocketInfo{"127.0.0.1", 8092, ctxClient, DeferAccept::No}, Blocking::Yes};
+    Socket              socket{SSocketInfo{"thors-anvil.com", 8092, ctxClient, DeferAccept::No}, Blocking::Yes};
     IOData resultPut = socket.putMessageData("Test", 4);
     char buffer[10];
     IOData resultGet = socket.getMessageData(buffer, 4);
@@ -164,7 +158,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{SSocketInfo{"127.0.0.1", 8092, ctxClient, DeferAccept::No}, Blocking::Yes};
+    Socket              socket{SSocketInfo{"thors-anvil.com", 8092, ctxClient, DeferAccept::No}, Blocking::Yes};
 
     std::string reply;
     reply.resize(message.size());
@@ -202,7 +196,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                 };
-    Socket              socket{SSocketInfo{"127.0.0.1", 8092, ctxClient, DeferAccept::No}, Blocking::No};
+    Socket              socket{SSocketInfo{"thors-anvil.com", 8092, ctxClient, DeferAccept::No}, Blocking::No};
     socket.setReadYield([&yieldCount](){++yieldCount;PAUSE_AND_WAIT(2);return true;});
 
     std::string reply;
@@ -236,7 +230,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{SSocketInfo{"127.0.0.1", 8092, ctxClient, DeferAccept::No}, Blocking::Yes};
+    Socket              socket{SSocketInfo{"thors-anvil.com", 8092, ctxClient, DeferAccept::No}, Blocking::Yes};
 
     std::string reply;
     reply.resize(message.size());
@@ -290,7 +284,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{SSocketInfo{"127.0.0.1", 8092, ctxClient, DeferAccept::No}, Blocking::No};
+    Socket              socket{SSocketInfo{"thors-anvil.com", 8092, ctxClient, DeferAccept::No}, Blocking::No};
     socket.setWriteYield([&mutex, &cond, &finished]()
                          {
                             std::unique_lock<std::mutex> lock(mutex);
@@ -348,7 +342,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
     SSLctx              ctxClient{SSLMethodType::Client,
                                         CertificateInfo{CLIENT_CERT, CLIENT_KEY}
                                  };
-    Socket              socket{SSocketInfo{"127.0.0.1", 8092, ctxClient, DeferAccept::No}, Blocking::Yes};
+    Socket              socket{SSocketInfo{"thors-anvil.com", 8092, ctxClient, DeferAccept::No}, Blocking::Yes};
 
     std::size_t readFromServer = 0;
 
