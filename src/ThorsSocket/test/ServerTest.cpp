@@ -2,6 +2,7 @@
 #include "Server.h"
 #include "Socket.h"
 #include <thread>
+#include "CertInfo.h"
 
 using ThorsAnvil::ThorsSocket::Server;
 using ThorsAnvil::ThorsSocket::SSLctx;
@@ -15,15 +16,6 @@ using ThorsAnvil::ThorsSocket::SSocketInfo;
 using ThorsAnvil::ThorsSocket::Mode;
 using ThorsAnvil::ThorsSocket::Blocking;
 using ThorsAnvil::ThorsSocket::ServerInfo;
-
-#define CERT_FILE_TA    "/etc/letsencrypt/live/thors-anvil.com/fullchain.pem"
-#define KEY_FILE_TA     "/etc/letsencrypt/live/thors-anvil.com/privkey.pem"
-#define CERT_FILE       "test/data/server/server.crt"
-#define KEY_FILE        "test/data/server/server.key"
-#define KEY_PASSWD      "TheLongDarkNight"
-
-#define CLIENT_CERT     "test/data/client/client.crt"
-#define CLIENT_KEY      "test/data/client/client.key"
 
 class SocketSetUp
 {
@@ -174,9 +166,12 @@ TEST(ServerTest, SecureServerCreate)
 
 TEST(ServerTest, SecureserverAcceptConnection)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
+    GTEST_SKIP();
+#endif
     SocketSetUp     setup;
     int             port = 8010;
-    CertificateInfo certificate{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}};
+    CertificateInfo certificate{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}};
 
     std::string     message = "Secure TestMessage";
 
@@ -221,7 +216,9 @@ TEST(ServerTest, SecureserverAcceptConnection)
 
 TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 {
+#if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
+#endif
     //  The following certificates are no longer valid.
     //  Need a way to have valid but not meaningful certificates to test against.
     SocketSetUp     setup;
@@ -239,9 +236,7 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
     std::thread  backgound([&]()
     {
         SSLctx          ctx{SSLMethodType::Server,
-                            CertificateInfo{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",
-                                            "/etc/letsencrypt/live/thorsanvil.dev/privkey.pem",
-                                           }
+                            CertificateInfo{CERT_FILE, KEY_FILE}
                            };
         Server  server{SServerInfo{port, std::move(ctx)}, Blocking::Yes};
 
@@ -264,7 +259,7 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 
     CertificateInfo certificateClient{CLIENT_CERT, CLIENT_KEY};
     SSLctx          ctxClient{SSLMethodType::Client, certificateClient};
-    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient, DeferAccept::No});
+    Socket  socket(SSocketInfo{"thors-anvil.com", port, ctxClient, DeferAccept::No});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[50] = {0};

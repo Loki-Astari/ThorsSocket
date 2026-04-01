@@ -1,16 +1,7 @@
 #include <gtest/gtest.h>
 #include "test/SimpleServer.h"
 #include "Socket.h"
-
-
-#define CERT_FILE_TA    "/etc/letsencrypt/live/thors-anvil.com/fullchain.pem"
-#define KEY_FILE_TA     "/etc/letsencrypt/live/thors-anvil.com/privkey.pem"
-#define CERT_FILE       "test/data/server/server.crt"
-#define KEY_FILE        "test/data/server/server.key"
-#define KEY_PASSWD      "TheLongDarkNight"
-
-#define CLIENT_CERT     "test/data/client/client.crt"
-#define CLIENT_KEY      "test/data/client/client.key"
+#include "CertInfo.h"
 
 
 using ThorsAnvil::ThorsSocket::SSocketInfo;
@@ -63,7 +54,7 @@ TEST(SSocketIntegrationTest, ConnectToServerLocal)
 #endif
 
     SSLctx              ctxServer{SSLMethodType::Server,
-                                    CertificateInfo{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}}
+                                    CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     ServerStart         server;
     server.run<SSocketAcceptRequest>(8092, {ctxServer}, [](Socket& socket){
@@ -93,7 +84,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocket)
 #endif
 
     SSLctx              ctxServer{SSLMethodType::Server,
-                                        CertificateInfo{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}}
+                                        CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     ServerStart         server;
     server.run<SSocketAcceptRequest>(8092, {ctxServer}, [](Socket& socket){socket.putMessageData("x", 1);});
@@ -117,7 +108,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLine)
 #endif
 
     SSLctx              ctxServer{SSLMethodType::Server,
-                                        CertificateInfo{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}}
+                                        CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     std::string const message = "This is a line of text\n";
     ServerStart     server;
@@ -151,7 +142,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnection)
     ServerStart     server;
 
     SSLctx              ctxServer{SSLMethodType::Server,
-                                        CertificateInfo{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}}
+                                        CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&message](Socket& socket)
     {
@@ -188,7 +179,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineSlowConnectionNonBlockin
     ServerStart     server;
 
     SSLctx              ctxServer{SSLMethodType::Server,
-                                        CertificateInfo{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}}
+                                        CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&message](Socket& socket)
     {
@@ -228,7 +219,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketReadOneLineCloseEarly)
     ServerStart     server;
 
     SSLctx              ctxServer{SSLMethodType::Server,
-                                        CertificateInfo{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}}
+                                        CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&message](Socket& socket)
     {
@@ -266,7 +257,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteDataUntilYouBlock)
     std::size_t             totalWritten    = 0;
 
     SSLctx              ctxServer{SSLMethodType::Server,
-                                        CertificateInfo{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}}
+                                        CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&mutex, &cond, &finished, &totalWritten](Socket& socket)
     {
@@ -330,7 +321,7 @@ TEST(SSocketIntegrationTest, ConnectToSSocketWriteSmallAmountMakeSureItFlushes)
     bool                    finished = false;
 
     SSLctx              ctxServer{SSLMethodType::Server,
-                                        CertificateInfo{CERT_FILE_TA, KEY_FILE_TA, [](int){return KEY_PASSWD;}}
+                                        CertificateInfo{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}}
                                  };
     server.run<SSocketAcceptRequest>(8092, {ctxServer}, [&mutex, &cond, &finished, &message](Socket& socket)
     {
