@@ -65,7 +65,7 @@ int ProtocolInfo::convertProtocolToOpenSSL(Protocol protocol) const
         case TLS_1_2:    return TLS1_2_VERSION;
         case TLS_1_3:    return TLS1_3_VERSION;
     }
-    throw std::runtime_error("Fix");
+    ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::ThorsSocket::ProtocolInfo", "convertProtocolToOpenSSL", "Fix");
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE

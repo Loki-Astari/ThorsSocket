@@ -93,5 +93,5 @@ int Pipe::getWriteFD() const
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void Pipe::release()
 {
-    throw std::runtime_error("Can't release a pipe");
+    ThorsLogAndThrowError(std::runtime_error, "ThorsAnvil::ThorsSocket::ConnectionType::Pipe", "release", "Can't release a pipe");
 }
