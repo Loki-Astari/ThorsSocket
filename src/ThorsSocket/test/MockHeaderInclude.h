@@ -119,6 +119,10 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(connect);
     MOCK_MEMBER(thorShutdownSocket);
     MOCK_MEMBER(SSL_accept);
+    MOCK_MEMBER(setsockopt);
+    MOCK_MEMBER(bind);
+    MOCK_MEMBER(listen);
+    MOCK_MEMBER(accept);
 // PART-3-End
 
     public:
@@ -189,6 +193,10 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(connect,                               [ ](int, sockaddr const*, unsigned int) {return 0;})
             , MOCK_PARAM(thorShutdownSocket,                    [ ](int)                                {return 0;})
             , MOCK_PARAM(SSL_accept,                            [ ](SSL*)                               {return 1;})
+            , MOCK_PARAM(setsockopt,                            [ ](int, int, int, const void*, socklen_t) {return 0;})
+            , MOCK_PARAM(bind,                                  [ ](int, const struct sockaddr*, socklen_t) {return 0;})
+            , MOCK_PARAM(listen,                                [ ](int, int)                           {return 0;})
+            , MOCK_PARAM(accept,                                [ ](int, struct sockaddr*, socklen_t*)   {return 15;})
 // PART-4-End
         {}
 };

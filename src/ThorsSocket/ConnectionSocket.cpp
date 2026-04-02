@@ -88,7 +88,7 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
     // by in a TIME_WAIT state. This will generate an error in bind (below)
     // Thsi says we don't care about the timed wait state and to continue.
     int yes = 1;
-    status = ::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes));
+    status = MOCK_FUNC(setsockopt)(fd, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes));
     if (status == -1) {
         int saveErrno = thorGetSocketError();
         MOCK_FUNC(thorCloseSocket)(fd);
@@ -107,7 +107,7 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
     serverAddr.sin_family       = AF_INET;
     serverAddr.sin_port         = htons(socketInfo.port);
     serverAddr.sin_addr.s_addr  = INADDR_ANY;
-    status = ::bind(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr));
+    status = MOCK_FUNC(bind)(fd, reinterpret_cast<SocketAddr*>(&serverAddr), sizeof(serverAddr));
     if (status == -1)
     {
         int saveErrno = thorGetSocketError();
@@ -123,7 +123,7 @@ void SocketStandard::setUpServerSocket(ServerInfo const& socketInfo)
                 );
     }
 
-    status = ::listen(fd, 5);
+    status = MOCK_FUNC(listen)(fd, 5);
     if (status == -1)
     {
         int saveErrno = thorGetSocketError();
@@ -518,7 +518,7 @@ int SocketServer::acceptSocket(YieldFunc& yield)
     SOCKET_TYPE acceptedFd = thorInvalidFD();
     while (acceptedFd == thorInvalidFD())
     {
-        acceptedFd = ::accept(socketInfo.getFD(), reinterpret_cast<SocketAddr*>(&serverStorage), &addr_size);
+        acceptedFd = MOCK_FUNC(accept)(socketInfo.getFD(), reinterpret_cast<SocketAddr*>(&serverStorage), &addr_size);
         if (acceptedFd != thorInvalidFD()) {
             break;
         }
