@@ -379,7 +379,7 @@ void SocketStreamBuffer::reserveInputSize(std::size_t size)
     if (inputBuffer.size() < newSizeNeeded)
     {
         inputBuffer.resize(newSizeNeeded);
-        setg(&inputBuffer[0], &inputBuffer[current-begin], &inputBuffer[end-begin]);
+        setg(&inputBuffer[0], &inputBuffer[current-begin], &inputBuffer[newSizeNeeded - 1]);
     }
 }
 
@@ -394,7 +394,7 @@ void SocketStreamBuffer::reserveOutputSize(std::size_t size)
     if (outputBuffer.size() < newSizeNeeded)
     {
         outputBuffer.resize(newSizeNeeded);
-        setp(&outputBuffer[0], &outputBuffer[end-begin]);
+        setp(&outputBuffer[0], &outputBuffer[newSizeNeeded - 1]);
         pbump(current - begin);
     }
 }
