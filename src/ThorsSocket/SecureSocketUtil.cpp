@@ -306,9 +306,9 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
 namespace Private
 {
     THORS_SOCKET_HEADER_ONLY_INCLUDE
-    void loadWindowsCertificateStore()
+    void loadWindowsCertificateStore(SSL_CTX* ctx)
     {
-    #ifdef __WINNT__
+#ifdef __WINNT__
         X509_STORE* store = SSL_CTX_get_cert_store(ctx);
         HCERTSTORE hCertStore = CertOpenSystemStoreA(0, "ROOT");
         if (hCertStore)
@@ -326,7 +326,9 @@ namespace Private
             }
             CertCloseStore(hCertStore, 0);
         }
-    #endif
+#else
+        ((void)ctx);
+#endif
     }
 }
 
@@ -335,7 +337,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)               const {return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);}
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);Private::loadWindowsCertificateStore();}
+int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);Private::loadWindowsCertificateStore(ctx);}
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)              const {return MOCK_FUNC(SSL_CTX_set_default_verify_store)(ctx);}
