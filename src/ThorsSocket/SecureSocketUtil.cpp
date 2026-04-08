@@ -6,6 +6,8 @@
 #include <openssl/err.h>
 #include <openssl/x509.h>
 
+#include <memory>
+
 #ifdef __WINNT__
 #include <wincrypt.h>
 #endif
