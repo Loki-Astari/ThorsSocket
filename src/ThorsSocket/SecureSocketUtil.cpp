@@ -4,6 +4,11 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/x509.h>
+
+#ifdef __WINNT__
+#include <wincrypt.h>
+#endif
 
 
 extern "C"
@@ -453,3 +458,31 @@ SSLctx::~SSLctx()
         MOCK_FUNC(SSL_CTX_free)(ctx);
     }
 }
+
+#ifdef __WINNT__
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSLctx::loadWindowsCertificateStore()
+{
+    X509_STORE* store = SSL_CTX_get_cert_store(ctx);
+    HCERTSTORE hCertStore = CertOpenSystemStoreA(0, "ROOT");
+    if (hCertStore)
+    {
+        PCCERT_CONTEXT pCertContext = nullptr;
+        while ((pCertContext = CertEnumCertificatesInStore(hCertStore, pCertContext)) != nullptr)
+        {
+            const unsigned char* encoded = pCertContext->pbCertEncoded;
+            X509* x509 = d2i_X509(nullptr, &encoded, static_cast<long>(pCertContext->cbCertEncoded));
+            if (x509)
+            {
+                X509_STORE_add_cert(store, x509);
+                X509_free(x509);
+            }
+        }
+        CertCloseStore(hCertStore, 0);
+    }
+}
+#else
+THORS_SOCKET_HEADER_ONLY_INCLUDE
+void SSLctx::loadWindowsCertificateStore()
+{}
+#endif

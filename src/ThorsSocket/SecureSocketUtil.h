@@ -239,6 +239,7 @@ class SSLctx
         SSL_METHOD const*       createClient();
         SSL_METHOD const*       createServer();
         SSL_CTX*                newCtx(SSL_METHOD const* method);
+        void                    loadWindowsCertificateStore();
 };
 
 template<IsMarkType... Args>
@@ -286,6 +287,7 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
             CertifcateAuthorityDir{SystemDefault::Load}.apply(ctx, mark);
             CertifcateAuthorityStore{SystemDefault::Load}.apply(ctx, mark);
             ClientCAListInfo{VerifyPeer::On}.apply(ctx, mark);
+            loadWindowsCertificateStore();
         }
     }
 }
