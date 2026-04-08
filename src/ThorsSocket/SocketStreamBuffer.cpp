@@ -373,7 +373,6 @@ void SocketStreamBuffer::reserveInputSize(std::size_t size)
 {
     char_type* begin    = eback();
     char_type* current  = gptr();
-    char_type* end      = egptr();
 
     std::size_t newSizeNeeded = (current + size) - begin;
     if (inputBuffer.size() < newSizeNeeded)
@@ -388,7 +387,6 @@ void SocketStreamBuffer::reserveOutputSize(std::size_t size)
 {
     char_type* begin    = pbase();
     char_type* current  = pptr();
-    char_type* end      = epptr();
 
     std::size_t newSizeNeeded = (current + size) - begin;
     if (outputBuffer.size() < newSizeNeeded)
