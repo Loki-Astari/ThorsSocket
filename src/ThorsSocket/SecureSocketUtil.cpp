@@ -384,9 +384,11 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
         return nullptr;
     }
 
+    using ThorX509Name = STACK_OF(X509_NAME);
+
     // This macro calls: OPENSSL_sk_new_null (which is mocked).
-    auto X509Deleter = [](STACK_OF(X509_NAME)* list) {MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);};
-    std::unique_ptr<STACK_OF(X509_NAME), decltype(X509Deleter)> list{MOCK_FUNC(sk_X509_NAME_new_null_wrapper)(), X509Deleter};
+    auto X509Deleter = [](ThorX509Name* list) {MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);};
+    std::unique_ptr<ThorX509Name, decltype(X509Deleter)> list{MOCK_FUNC(sk_X509_NAME_new_null_wrapper)(), X509Deleter};
     if (list == nullptr)
     {
         std::string errorMsg = buildOpenSSLErrorMessage();
