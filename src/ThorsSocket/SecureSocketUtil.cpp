@@ -385,21 +385,22 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
     }
 
     // This macro calls: OPENSSL_sk_new_null (which is mocked).
-    STACK_OF(X509_NAME)* list = MOCK_FUNC(sk_X509_NAME_new_null_wrapper)();
+    auto X509Deleter = [](STACK_OF(X509_NAME)* list) {MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);};
+    std::unique_ptr<STACK_OF(X509_NAME), decltype(X509Deleter)> list{MOCK_FUNC(sk_X509_NAME_new_null_wrapper)(), X509Deleter};
     if (list == nullptr)
     {
-        MOCK_FUNC(sk_X509_NAME_free_wrapper)(list);
+        std::string errorMsg = buildOpenSSLErrorMessage();
+        MOCK_FUNC(sk_X509_NAME_free_wrapper)(list.get());
         ThorsLogAndThrowDebug(std::runtime_error,
                               "ThorsAnvil::ThorsSocket::ClientCAListInfo",
                               "buildCAToList",
-                              "sk_X509_NAME_new_null() failed: ", buildOpenSSLErrorMessage());
+                              "sk_X509_NAME_new_null() failed: ", errorMsg);
     }
     for (auto const& item: file.items)
     {
-        int stat = file.addCAToList(list, item.c_str());
+        int stat = file.addCAToList(list.get(), item.c_str());
         if (stat != 1)
         {
-            MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);
             ThorsLogAndThrowDebug(std::runtime_error,
                                   "ThorsAnvil::ThorsSocket::ClientCAListInfo",
                                   "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
@@ -407,10 +408,9 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
     }
     for (auto const& item: dir.items)
     {
-        int stat = dir.addCAToList(list, item.c_str());
+        int stat = dir.addCAToList(list.get(), item.c_str());
         if (stat != 1)
         {
-            MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);
             ThorsLogAndThrowDebug(std::runtime_error,
                                   "ThorsAnvil::ThorsSocket::ClientCAListnfo",
                                   "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
@@ -418,16 +418,15 @@ STACK_OF(X509_NAME)* ClientCAListInfo::buildCAToList() const
     }
     for (auto const& item: store.items)
     {
-        int stat = store.addCAToList(list, item.c_str());
+        int stat = store.addCAToList(list.get(), item.c_str());
         if (stat != 1)
         {
-            MOCK_FUNC(sk_X509_NAME_pop_free_wrapper)(list);
             ThorsLogAndThrowDebug(std::runtime_error,
                                   "ThorsAnvil::ThorsSocket::ClientCAListInfo",
                                   "addCAToList failed: >", item, "< ", buildOpenSSLErrorMessage());
         }
     }
-    return list;
+    return list.release();
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE

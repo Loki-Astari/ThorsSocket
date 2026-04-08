@@ -668,8 +668,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailCTX)
     })
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
-    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .run();
 }
 
@@ -685,8 +685,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailCTX)
     })
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
-    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .run();
 }
 
@@ -702,8 +702,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailCTX)
     })
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
-    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .run();
 }
 
@@ -784,8 +784,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientFileFailSSL)
     })
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_file_cert_subjects_to_stack).toReturn(0)
-    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .run();
 }
 
@@ -798,8 +798,8 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientDirFailSSL)
     })
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_dir_cert_subjects_to_stack).toReturn(0)
-    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .run();
 }
 
@@ -812,7 +812,7 @@ TEST(ConnectionSSocketUtilTest, ClientCAListInfoAddClientStoreFailSSL)
     })
     .expectCallTA(sk_X509_NAME_new_null_wrapper).toReturn(reinterpret_cast<STACK_OF(X509_NAME)*>(0x08))
     .expectCallTA(SSL_add_store_cert_subjects_to_stack).toReturn(0)
-    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .expectCallTA(ERR_get_error).toReturn(0)
+    .expectCallTA(sk_X509_NAME_pop_free_wrapper)
     .run();
 }
