@@ -4,6 +4,11 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/x509.h>
+
+#ifdef __WINNT__
+#include <wincrypt.h>
+#endif
 
 
 extern "C"
@@ -298,12 +303,39 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
     }
 }
 
+namespace Private
+{
+    THORS_SOCKET_HEADER_ONLY_INCLUDE
+    void loadWindowsCertificateStore()
+    {
+    #ifdef __WINNT__
+        X509_STORE* store = SSL_CTX_get_cert_store(ctx);
+        HCERTSTORE hCertStore = CertOpenSystemStoreA(0, "ROOT");
+        if (hCertStore)
+        {
+            PCCERT_CONTEXT pCertContext = nullptr;
+            while ((pCertContext = CertEnumCertificatesInStore(hCertStore, pCertContext)) != nullptr)
+            {
+                const unsigned char* encoded = pCertContext->pbCertEncoded;
+                X509* x509 = d2i_X509(nullptr, &encoded, static_cast<long>(pCertContext->cbCertEncoded));
+                if (x509)
+                {
+                    X509_STORE_add_cert(store, x509);
+                    X509_free(x509);
+                }
+            }
+            CertCloseStore(hCertStore, 0);
+        }
+    #endif
+    }
+}
+
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)               const {return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);}
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);}
+int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);Private::loadWindowsCertificateStore();}
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)              const {return MOCK_FUNC(SSL_CTX_set_default_verify_store)(ctx);}

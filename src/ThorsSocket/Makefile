@@ -8,8 +8,8 @@ EXCLUDE_HEADERS				= $(wildcard Connection[A-Z]*.h)
 
 LDLIBS_EXTERN_BUILD			+= crypto ThorSerialize ZLIB
 LINK_LIBS					+= ThorsLogging
-LDLIBS_MSYS_NT				+= -lws2_32 -lwsock32
-LDLIBS_MINGW64_NT			+= -lws2_32 -lwsock32
+LDLIBS_MSYS_NT				+= -lws2_32 -lwsock32 -lcrypt32
+LDLIBS_MINGW64_NT			+= -lws2_32 -lwsock32 -lcrypt32
 
 UNITTEST_CXXFLAGS			+= -Wno-deprecated-declarations -Wno-writable-strings
 UNITTEST_LDLIBS				+= $(LDLIBS_$(PLATFORM))
