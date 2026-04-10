@@ -275,16 +275,12 @@ template<AuthorityType A>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
 {
-    std::cerr << "CertifcateAuthorityDataInfo::apply\n";
     mark[markType] = true;
     if (loadDefault)
     {
-	std::cerr << "CertifcateAuthorityDataInfo::apply Load Default\n";
         int stat = setDefaultCertifcateAuthorityInfo(ctx);
-	std::cerr << "CertifcateAuthorityDataInfo::apply Load Default: " << stat << "\n";
         if (stat != 1)
         {
-            std::cerr << "CertifcateAuthorityDataInfo::apply Load Default: THROW 1\n";
             ThorsLogAndThrowDebug(std::runtime_error,
                                   "ThorsAnvil::ThorsSocket::CertifcateAuthorityDataInfo",
                                   "apply",
@@ -295,7 +291,6 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
     {
         if (!item.empty())
         {
-            std::cerr << "CertifcateAuthorityDataInfo::apply Load Default: THROW 2\n";
             int stat = setOneCertifcateAuthorityInfo(ctx, item.c_str());
             if (stat != 1)
             {
@@ -306,7 +301,6 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
             }
         }
     }
-    std::cerr << "CertifcateAuthorityDataInfo::apply Load Default: DONE\n";
 }
 
 // SSL_CTX_get_cert_store
@@ -321,15 +315,13 @@ namespace Private
     int loadWindowsCertificateStore(SSL_CTX* ctx)
     {
         X509_STORE* store = MOCK_FUNC(SSL_CTX_get_cert_store)(ctx);
-	if (store == nullptr) {
-	    std::cerr << "Bad Store\n";
-	    return 0;
-	}
+        if (store == nullptr) {
+            return 0;
+        }
         HCERTSTORE hCertStore = CertOpenSystemStoreA(0, "ROOT");
         if (hCertStore == nullptr) {
-	    std::cerr << "Bad Cert\n";
-	    return 0;
-	}
+            return 0;
+        }
         PCCERT_CONTEXT pCertContext = nullptr;
         while ((pCertContext = CertEnumCertificatesInStore(hCertStore, pCertContext)) != nullptr)
         {
@@ -337,14 +329,12 @@ namespace Private
             X509* x509 = MOCK_FUNC(d2i_X509)(nullptr, &encoded, static_cast<long>(pCertContext->cbCertEncoded));
             if (x509)
             {
-		std::cerr << "    Adding Cert\n";
                 MOCK_FUNC(X509_STORE_add_cert)(store, x509);
                 MOCK_FUNC(X509_free)(x509);
             }
         }
         CertCloseStore(hCertStore, 0);
-	std::cerr << "Good\n";
-	return 1;
+        return 1;
     }
 }
 #endif
@@ -353,9 +343,28 @@ template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const
 {
-    std::cerr << "CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo\n";
 #ifdef __WINNT__
-    return ctx != nullptr ? 1 : 0;
+    // On Windows, SSL_CTX_set_default_verify_file may return 1 even when no cert
+    // file exists (it registers a lazy lookup path).  Instead, load the MSYS2 CA
+    // bundle directly — it ships with the ca-certificates package and contains all
+    // modern root CAs that SChannel would fetch lazily but OpenSSL cannot.
+    //
+    // Derive the MSYS2 root from OpenSSL's own compiled-in cert-file path:
+    //   e.g. "C:/msys64/mingw64/etc/ssl/cert.pem" -> root = "C:/msys64"
+    {
+        std::string certFilePath = X509_get_default_cert_file();
+        // Skip drive letter prefix (e.g. "C:/"), then find the next '/'
+        std::size_t start = (certFilePath.size() > 2 && certFilePath[1] == ':') ? 3 : 0;
+        std::size_t slash  = certFilePath.find('/', start);
+        if (slash != std::string::npos) {
+            std::string bundle = certFilePath.substr(0, slash) + "/usr/ssl/certs/ca-bundle.crt";
+            if (SSL_CTX_load_verify_locations(ctx, bundle.c_str(), nullptr) == 1) {
+                return 1;
+            }
+        }
+    }
+    // Fallback: honour SSL_CERT_FILE env var if the user has set it explicitly
+    return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);
 #else
     return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);
 #endif
@@ -364,7 +373,6 @@ template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const
 {
-    std::cerr << "CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo\n";
 #ifdef __WINNT__
     return Private::loadWindowsCertificateStore(ctx);
 #else
@@ -375,7 +383,6 @@ template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const
 {
-    std::cerr << "CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo\n";
 #ifdef __WINNT__
     return ctx != nullptr ? 1 : 0;
 #else
