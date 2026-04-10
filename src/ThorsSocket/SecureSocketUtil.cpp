@@ -354,6 +354,7 @@ namespace Private
                 }
             }
         }
+	return 0;
     }
 }
 #endif
@@ -363,7 +364,7 @@ THORS_SOCKET_HEADER_ONLY_INCLUDE
 int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const
 {
 #ifdef __WINNT__
-    if (loadWindowsCertificateFile(ctx) == 1) {
+    if (Private::loadWindowsCertificateFile(ctx) == 1) {
         return 1;
     }
     // Fallback: honour SSL_CERT_FILE env var if the user has set it explicitly
