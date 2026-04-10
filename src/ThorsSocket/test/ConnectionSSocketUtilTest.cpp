@@ -403,10 +403,22 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
+#if __WINNT__
+    .expectCallTA(X509_get_default_cert_file).toReturn("C:/msys64/mingw64/etc/ssl/cert.pem")
+    .expectCallTA(SSL_CTX_load_verify_locations).toReturn(0)
+#endif
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(1)
     .run();
 }
-
+namespace ThorsAnvil::BuildTools::Mock
+{
+    TA_Object winCreds(build()
+        .expectInitTA(SSL_CTX_get_cert_store).toReturn(reinterpret_cast<X509_STORE*>(0x200))
+        .optionalTA(d2i_X509)
+        .optionalTA(X509_STORE_add_cert)
+        .optionalTA(X509_free)
+    );
+}
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 {
     TA_TestNoThrow([](){
@@ -416,7 +428,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityDirMark]);
     })
+#if __WINNT__
+    .expectCode(ThorsAnvil::BuildTools::Mock::winCreds)
+#else
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(1)
+#endif
     .run();
 }
 
@@ -488,6 +504,10 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
+#ifdef __WINNT__
+    .expectCallTA(X509_get_default_cert_file).toReturn("C:/msys64/mingw64/etc/ssl/cert.pem")
+    .expectCallTA(SSL_CTX_load_verify_locations).toReturn(0)
+#endif
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
@@ -502,7 +522,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityDirMark]);
     })
+#if __WINNT__
+    .expectCallTA(SSL_CTX_get_cert_store).toReturn(nullptr)
+#else
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(0)
+#endif
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
@@ -512,11 +536,15 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
     TA_TestThrow([](){
         MarkArray                   mark;
         CertifcateAuthorityStore    ca{SystemDefault::Load};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+        ca.apply(nullptr, mark);
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityStoreMark]);
     })
+#if __WINNT__
+    // Error achieved by passing in nullptr.
+#else
     .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(0)
+#endif
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }

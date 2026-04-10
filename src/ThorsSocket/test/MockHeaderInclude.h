@@ -123,6 +123,11 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(bind);
     MOCK_MEMBER(listen);
     MOCK_MEMBER(accept);
+    MOCK_MEMBER(d2i_X509);
+    MOCK_MEMBER(SSL_CTX_get_cert_store);
+    MOCK_MEMBER(SSL_CTX_load_verify_locations);
+    MOCK_MEMBER(X509_get_default_cert_file);
+    MOCK_MEMBER(X509_STORE_add_cert);
 // PART-3-End
 
     public:
@@ -197,6 +202,11 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(bind,                                  [ ](int, const struct sockaddr*, socklen_t) {return 0;})
             , MOCK_PARAM(listen,                                [ ](int, int)                           {return 0;})
             , MOCK_PARAM(accept,                                [ ](int, struct sockaddr*, socklen_t*)   {return 15;})
+            , MOCK_PARAM(d2i_X509,                              [ ](X509**, const unsigned char**, int) {return reinterpret_cast<X509*>(0x100);})
+            , MOCK_PARAM(SSL_CTX_get_cert_store,                [ ](const SSL_CTX*)                     {return reinterpret_cast<X509_STORE*>(0x200);})
+            , MOCK_PARAM(SSL_CTX_load_verify_locations,         [ ](SSL_CTX*, const char*, const char*) {return 1;})
+            , MOCK_PARAM(X509_get_default_cert_file,            [ ]()                                   {return "C:/msys64/mingw64/etc/ssl/cert.pem";})
+            , MOCK_PARAM(X509_STORE_add_cert,                   [ ](X509_STORE*, X509*)                 {return 1;})
 // PART-4-End
         {}
 };
