@@ -32,6 +32,8 @@ TA_Object   SSLctx_Client(
                 .optionalTA(SSL_CTX_set_default_verify_file).toReturn(1)
                 .optionalTA(SSL_CTX_set_default_verify_dir).toReturn(1)
                 .optionalTA(SSL_CTX_get_cert_store).toReturn(reinterpret_cast<X509_STORE*>(0x100))
+		.optionalTA(X509_get_default_cert_file).toReturn("C:/msys64/mingw64/etc/ssl/cert.pem")
+		.optionalTA(SSL_CTX_load_verify_locations)
                 .optionalTA(d2i_X509)
                 .optionalTA(X509_STORE_add_cert)
                 .optionalTA(X509_free)

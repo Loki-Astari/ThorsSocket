@@ -403,6 +403,10 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
+#if __WINNT__
+    .expectCallTA(X509_get_default_cert_file).toReturn("C:/msys64/mingw64/etc/ssl/cert.pem")
+    .expectCallTA(SSL_CTX_load_verify_locations).toReturn(0)
+#endif
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(1)
     .run();
 }
@@ -496,15 +500,15 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
     TA_TestThrow([](){
         MarkArray                   mark;
         CertifcateAuthorityFile     ca{SystemDefault::Load};
-        ca.apply(nullptr, mark);
+        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
 #ifdef __WINNT__
-    // Error achieved by passing in nullptr.
-#else
-    .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(0)
+    .expectCallTA(X509_get_default_cert_file).toReturn("C:/msys64/mingw64/etc/ssl/cert.pem")
+    .expectCallTA(SSL_CTX_load_verify_locations).toReturn(0)
 #endif
+    .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(0)
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }

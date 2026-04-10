@@ -352,22 +352,29 @@ int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX
     // Derive the MSYS2 root from OpenSSL's own compiled-in cert-file path:
     //   e.g. "C:/msys64/mingw64/etc/ssl/cert.pem" -> root = "C:/msys64"
     {
-        std::string certFilePath = X509_get_default_cert_file();
+	std::cerr << "Checking File\n";
+        std::string certFilePath = MOCK_FUNC(X509_get_default_cert_file)();
+	std::cerr << "CheckingFile: " << certFilePath << "\n";
         // Skip drive letter prefix (e.g. "C:/"), then find the next '/'
         std::size_t start = (certFilePath.size() > 2 && certFilePath[1] == ':') ? 3 : 0;
         std::size_t slash  = certFilePath.find('/', start);
+	std::cerr << "CheckingFile: " << slash << "\n";
         if (slash != std::string::npos) {
+	    std::cerr << "Slashed\n";
             std::string bundle = certFilePath.substr(0, slash) + "/usr/ssl/certs/ca-bundle.crt";
-            if (SSL_CTX_load_verify_locations(ctx, bundle.c_str(), nullptr) == 1) {
+	    std::cerr << "Slashed: " << bundle << "\n";
+            if (MOCK_FUNC(SSL_CTX_load_verify_locations)(ctx, bundle.c_str(), nullptr) == 1) {
+		std::cerr << "Slashed Good\n";
                 return 1;
             }
+	    std::cerr << "Slashed BAD\n";
         }
+	std::cerr << "Checking File DONE";
     }
     // Fallback: honour SSL_CERT_FILE env var if the user has set it explicitly
-    return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);
-#else
-    return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);
 #endif
+    std::cerr << "SSL_CTX_set_default_verify_file\n";
+    return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);
 }
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
