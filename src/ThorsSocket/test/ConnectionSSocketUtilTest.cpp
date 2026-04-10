@@ -406,7 +406,15 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultFile)
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(1)
     .run();
 }
-
+namespace ThorsAnvil::BuildTools::Mock
+{
+TA_Object winCreds(build()
+		   .expectInitTA(SSL_CTX_get_cert_store).toReturn(reinterpret_cast<X509_STORE*>(0x200))
+		   .optionalTA(d2i_X509)
+		   .optionalTA(X509_STORE_add_cert)
+		   .optionalTA(X509_free)
+	          );
+}
 TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 {
     TA_TestNoThrow([](){
@@ -416,7 +424,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthoritySetDefaultDir)
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityDirMark]);
     })
+#if __WINNT__
+    .expectCode(ThorsAnvil::BuildTools::Mock::winCreds)
+#else
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(1)
+#endif
     .run();
 }
 
@@ -484,11 +496,15 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultFile)
     TA_TestThrow([](){
         MarkArray                   mark;
         CertifcateAuthorityFile     ca{SystemDefault::Load};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+        ca.apply(nullptr, mark);
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityFileMark]);
     })
+#ifdef __WINNT__
+    // Error achieved by passing in nullptr.
+#else
     .expectCallTA(SSL_CTX_set_default_verify_file).toReturn(0)
+#endif
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
@@ -502,7 +518,11 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultDir)
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityDirMark]);
     })
+#if __WINNT__
+    .expectCallTA(SSL_CTX_get_cert_store).toReturn(nullptr)
+#else
     .expectCallTA(SSL_CTX_set_default_verify_dir).toReturn(0)
+#endif
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }
@@ -512,11 +532,15 @@ TEST(ConnectionSSocketUtilTest, CertifcateAuthorityFailedDefaultStore)
     TA_TestThrow([](){
         MarkArray                   mark;
         CertifcateAuthorityStore    ca{SystemDefault::Load};
-        ca.apply(reinterpret_cast<SSL_CTX*>(0x08), mark);
+        ca.apply(nullptr, mark);
 
         EXPECT_EQ(true, mark[MarkUsed::AuthorityStoreMark]);
     })
+#if __WINNT__
+    // Error achieved by passing in nullptr.
+#else
     .expectCallTA(SSL_CTX_set_default_verify_store).toReturn(0)
+#endif
     .expectCallTA(ERR_get_error).toReturn(0)
     .run();
 }

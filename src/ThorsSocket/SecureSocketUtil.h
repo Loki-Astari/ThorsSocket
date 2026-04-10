@@ -273,11 +273,6 @@ SSLctx::SSLctx(SSLMethodType methodType, Args&&... args)
     }
 
     (args.apply(ctx, mark),...);
-    //protocolRange.setProtocolInfo(ctx);
-    //cipherList.setCipherInfo(ctx);
-    //certificate.setCertificateInfo(ctx);
-    //certifcateAuthority.setCertifcateAuthorityInfo(ctx);
-    //clientCAList.setCertifcateAuthorityInfo(ctx);
 
     if (methodType == SSLMethodType::Client) {
         bool check = mark[MarkUsed::AuthorityFileMark] || mark[MarkUsed::AuthorityDirMark] || mark[MarkUsed::AuthorityStoreMark] || mark[MarkUsed::ClientMark];

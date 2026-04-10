@@ -275,12 +275,16 @@ template<AuthorityType A>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
 void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
 {
+    std::cerr << "CertifcateAuthorityDataInfo::apply\n";
     mark[markType] = true;
     if (loadDefault)
     {
+	std::cerr << "CertifcateAuthorityDataInfo::apply Load Default\n";
         int stat = setDefaultCertifcateAuthorityInfo(ctx);
+	std::cerr << "CertifcateAuthorityDataInfo::apply Load Default: " << stat << "\n";
         if (stat != 1)
         {
+            std::cerr << "CertifcateAuthorityDataInfo::apply Load Default: THROW 1\n";
             ThorsLogAndThrowDebug(std::runtime_error,
                                   "ThorsAnvil::ThorsSocket::CertifcateAuthorityDataInfo",
                                   "apply",
@@ -291,6 +295,7 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
     {
         if (!item.empty())
         {
+            std::cerr << "CertifcateAuthorityDataInfo::apply Load Default: THROW 2\n";
             int stat = setOneCertifcateAuthorityInfo(ctx, item.c_str());
             if (stat != 1)
             {
@@ -301,44 +306,82 @@ void CertifcateAuthorityDataInfo<A>::apply(SSL_CTX* ctx, MarkArray& mark) const
             }
         }
     }
+    std::cerr << "CertifcateAuthorityDataInfo::apply Load Default: DONE\n";
 }
 
+// SSL_CTX_get_cert_store
+// d2i_X509
+// X509_STORE_add_cert
+// X509_free
+
+#ifdef __WINNT__
 namespace Private
 {
     THORS_SOCKET_HEADER_ONLY_INCLUDE
-    void loadWindowsCertificateStore()
+    int loadWindowsCertificateStore(SSL_CTX* ctx)
     {
-    #ifdef __WINNT__
-        X509_STORE* store = SSL_CTX_get_cert_store(ctx);
+        X509_STORE* store = MOCK_FUNC(SSL_CTX_get_cert_store)(ctx);
+	if (store == nullptr) {
+	    std::cerr << "Bad Store\n";
+	    return 0;
+	}
         HCERTSTORE hCertStore = CertOpenSystemStoreA(0, "ROOT");
-        if (hCertStore)
+        if (hCertStore == nullptr) {
+	    std::cerr << "Bad Cert\n";
+	    return 0;
+	}
+        PCCERT_CONTEXT pCertContext = nullptr;
+        while ((pCertContext = CertEnumCertificatesInStore(hCertStore, pCertContext)) != nullptr)
         {
-            PCCERT_CONTEXT pCertContext = nullptr;
-            while ((pCertContext = CertEnumCertificatesInStore(hCertStore, pCertContext)) != nullptr)
+            const unsigned char* encoded = pCertContext->pbCertEncoded;
+            X509* x509 = MOCK_FUNC(d2i_X509)(nullptr, &encoded, static_cast<long>(pCertContext->cbCertEncoded));
+            if (x509)
             {
-                const unsigned char* encoded = pCertContext->pbCertEncoded;
-                X509* x509 = d2i_X509(nullptr, &encoded, static_cast<long>(pCertContext->cbCertEncoded));
-                if (x509)
-                {
-                    X509_STORE_add_cert(store, x509);
-                    X509_free(x509);
-                }
+		std::cerr << "    Adding Cert\n";
+                MOCK_FUNC(X509_STORE_add_cert)(store, x509);
+                MOCK_FUNC(X509_free)(x509);
             }
-            CertCloseStore(hCertStore, 0);
         }
-    #endif
+        CertCloseStore(hCertStore, 0);
+	std::cerr << "Good\n";
+	return 1;
     }
 }
+#endif
 
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)               const {return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);}
+int CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const
+{
+    std::cerr << "CertifcateAuthorityDataInfo<File>::setDefaultCertifcateAuthorityInfo\n";
+#ifdef __WINNT__
+    return ctx != nullptr ? 1 : 0;
+#else
+    return MOCK_FUNC(SSL_CTX_set_default_verify_file)(ctx);
+#endif
+}
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)                const {return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);Private::loadWindowsCertificateStore();}
+int CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const
+{
+    std::cerr << "CertifcateAuthorityDataInfo<Dir>::setDefaultCertifcateAuthorityInfo\n";
+#ifdef __WINNT__
+    return Private::loadWindowsCertificateStore(ctx);
+#else
+    return MOCK_FUNC(SSL_CTX_set_default_verify_dir)(ctx);
+#endif
+}
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
-int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx)              const {return MOCK_FUNC(SSL_CTX_set_default_verify_store)(ctx);}
+int CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo(SSL_CTX* ctx) const
+{
+    std::cerr << "CertifcateAuthorityDataInfo<Store>::setDefaultCertifcateAuthorityInfo\n";
+#ifdef __WINNT__
+    return ctx != nullptr ? 1 : 0;
+#else
+    return MOCK_FUNC(SSL_CTX_set_default_verify_store)(ctx);
+#endif
+}
 
 template<>
 THORS_SOCKET_HEADER_ONLY_INCLUDE
