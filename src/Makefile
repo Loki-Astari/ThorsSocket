@@ -1,5 +1,5 @@
 THORSANVIL_ROOT				?= $(realpath ../)
-TARGET						= ThorsSocket
+SUBDIRS						= ThorsSocket
 
 
-include $(THORSANVIL_ROOT)/build/tools/Project.Makefile
+include $(THORSANVIL_ROOT)/build/tools/Makefile
