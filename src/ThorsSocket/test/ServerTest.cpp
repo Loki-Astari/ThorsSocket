@@ -152,6 +152,7 @@ TEST(ServerTest, serverAcceptConnection)
 
 using ThorsAnvil::ThorsSocket::SSLctx;
 using ThorsAnvil::ThorsSocket::CertificateInfo;
+using ThorsAnvil::ThorsSocket::CertifcateAuthorityFile;
 using ThorsAnvil::ThorsSocket::SSLMethodType;
 using ThorsAnvil::ThorsSocket::SServerInfo;
 
@@ -171,7 +172,7 @@ TEST(ServerTest, SecureserverAcceptConnection)
 #endif
     SocketSetUp     setup;
     int             port = 8010;
-    CertificateInfo certificate{CERT_FILE, KEY_FILE, [](int){return KEY_PASSWD;}};
+    CertificateInfo certificate{SERVER_CERT, SERVER_KEY};
 
     std::string     message = "Secure TestMessage";
 
@@ -202,8 +203,8 @@ TEST(ServerTest, SecureserverAcceptConnection)
     condition.wait(lock, [&]{return ready;});
 
     CertificateInfo certificateClient{CLIENT_CERT, CLIENT_KEY};
-    SSLctx          ctxClient{SSLMethodType::Client, certificateClient};
-    Socket  socket(SSocketInfo{"thors-anvil.com", port, ctxClient, DeferAccept::No});
+    SSLctx          ctxClient{SSLMethodType::Client, certificateClient, CertifcateAuthorityFile{ROOT_CA}};
+    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient, DeferAccept::No});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[50] = {0};
@@ -219,13 +220,9 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
 #if defined(THOR_DISABLE_TEST_WITH_INTEGRATION) && (THOR_DISABLE_TEST_WITH_INTEGRATION > 0)
     GTEST_SKIP();
 #endif
-    //  The following certificates are no longer valid.
-    //  Need a way to have valid but not meaningful certificates to test against.
     SocketSetUp     setup;
     int             port = 8011;
-    CertificateInfo certificate{"/etc/letsencrypt/live/thorsanvil.dev/fullchain.pem",
-                                "/etc/letsencrypt/live/thorsanvil.dev/privkey.pem",
-                               };
+    CertificateInfo certificate{SERVER_CERT, SERVER_KEY};
 
     std::string     message = "Secure TestMessage";
 
@@ -236,7 +233,7 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
     std::thread  backgound([&]()
     {
         SSLctx          ctx{SSLMethodType::Server,
-                            CertificateInfo{CERT_FILE, KEY_FILE}
+                            CertificateInfo{SERVER_CERT, SERVER_KEY}
                            };
         Server  server{SServerInfo{port, std::move(ctx)}, Blocking::Yes};
 
@@ -258,8 +255,8 @@ TEST(ServerTest, SecureserverAcceptConnectionNoPassword)
     condition.wait(lock, [&]{return ready;});
 
     CertificateInfo certificateClient{CLIENT_CERT, CLIENT_KEY};
-    SSLctx          ctxClient{SSLMethodType::Client, certificateClient};
-    Socket  socket(SSocketInfo{"thors-anvil.com", port, ctxClient, DeferAccept::No});
+    SSLctx          ctxClient{SSLMethodType::Client, certificateClient, CertifcateAuthorityFile{ROOT_CA}};
+    Socket  socket(SSocketInfo{"127.0.0.1", port, ctxClient, DeferAccept::No});
     ASSERT_NE(0, socket.socketId(Mode::Read));
 
     char    buffer[50] = {0};
