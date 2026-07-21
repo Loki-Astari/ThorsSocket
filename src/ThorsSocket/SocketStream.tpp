@@ -68,6 +68,14 @@ BaseSocketStream<Buffer>::BaseSocketStream(SSocketInfo const& info)
     rdbuf(&buffer);
 }
 
+template<typename Buffer>
+BaseSocketStream<Buffer>::BaseSocketStream(SocketInit const& info)
+    : std::iostream(nullptr)
+    , buffer(info)
+{
+    rdbuf(&buffer);
+}
+
 }
 
 #endif

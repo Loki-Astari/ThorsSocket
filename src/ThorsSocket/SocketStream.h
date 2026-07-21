@@ -20,7 +20,7 @@ class BaseSocketStream: public std::iostream
         BaseSocketStream();
 
         // Create from an existing socket.
-        BaseSocketStream(Socket&& socket);
+        explicit BaseSocketStream(Socket&& socket);
         BaseSocketStream(BaseSocketStream&& move) noexcept;
         BaseSocketStream& operator=(BaseSocketStream&& move) noexcept;
 
@@ -31,6 +31,8 @@ class BaseSocketStream: public std::iostream
         BaseSocketStream(SSocketInfo const& info);
         BaseSocketStream(SocketService const& info);
         BaseSocketStream(SSocketService const& info);
+
+        BaseSocketStream(SocketInit const& info);
 
         // Destructor
         ~BaseSocketStream()                                             = default;
