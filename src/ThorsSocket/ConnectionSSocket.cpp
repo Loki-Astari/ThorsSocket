@@ -402,7 +402,7 @@ void SSocketStandard::close()
                     continue;
                 }
 
-                ThorsLogDebug(
+                ThorsLogNotice(
                     "ThorsAnvil::ThorsSocket::ConnectionType::SSocketStandard",
                     "close",
                     " :Failed on SSL_shutdown(): ",

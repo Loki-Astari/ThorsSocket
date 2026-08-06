@@ -28,7 +28,7 @@ SimpleFile::SimpleFile(FileInfo const& fileInfo, Blocking blocking)
 {
     if (fd == -1)
     {
-        ThorsLogDebug(
+        ThorsLogError(
             "ThorsAnvil::ThorsSocket::ConnectionType::SimpleFile",
             "SimpleFile",
             " :Failed to open.",
