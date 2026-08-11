@@ -65,15 +65,45 @@ struct OpenSocketInfo
     SOCKET_TYPE         fd;
 };
 
+// Want this to be movable (nice to have it copyable).
+// This means ctx as a reference was not a valid design.
+// Still want to take the CTX as a reference but will take store a non owning pointer.
+// This allows this information to be moved. But this requires we write some extra code
+// and break the old interface (in a minor way).
 struct SSocketInfo: public SocketInfo
 {
-    SSLctx const&       ctx;
+    SSocketInfo(std::string_view host, int port, SSLctx const& ctx, DeferAccept defer)
+        : SocketInfo{host, port}
+        , ctxPtr{&ctx}
+        , defer{defer}
+    {}
+    SSocketInfo(SSocketInfo const&)             = default;
+    SSocketInfo(SSocketInfo&&)                  = default;
+    SSocketInfo& operator=(SSocketInfo const&)  = default;
+    SSocketInfo& operator=(SSocketInfo&&)       = default;
+    SSLctx const*       ctxPtr;
+    SSLctx const&       ctx() const             {return *ctxPtr;}
     DeferAccept         defer;
 };
 
+// Want this to be movable (nice to have it copyable).
+// This means ctx as a reference was not a valid design.
+// Still want to take the CTX as a reference but will take store a non owning pointer.
+// This allows this information to be moved. But this requires we write some extra code
+// and break the old interface (in a minor way).
 struct SSocketService: public SocketService
 {
-    SSLctx const&       ctx;
+    SSocketService(std::string_view host, std::string service, SSLctx const& ctx, DeferAccept defer)
+        : SocketService{host, service}
+        , ctxPtr{&ctx}
+        , defer{defer}
+    {}
+    SSocketService(SSocketService const&)             = default;
+    SSocketService(SSocketService&&)                  = default;
+    SSocketService& operator=(SSocketService const&)  = default;
+    SSocketService& operator=(SSocketService&&)       = default;
+    SSLctx const*       ctxPtr;
+    SSLctx const&       ctx() const             {return *ctxPtr;}
     DeferAccept         defer;
 };
 

@@ -7,7 +7,7 @@ SSocketBase::SSocketBase(SSocketInfo const& ssocketInfo, Blocking blocking)
     : SocketClient(ssocketInfo, blocking)
     , ssl(nullptr)
 {
-    initSSocket(ssocketInfo.ctx);
+    initSSocket(ssocketInfo.ctx());
 }
 
 SSocketBase::SSocketBase(OpenSSocketInfo const& ssocketInfo)

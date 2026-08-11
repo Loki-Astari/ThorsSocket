@@ -12,7 +12,7 @@ SSocketStandard::SSocketStandard(SSocketInfo const& ssocketInfo, int fd)
     , connectionFailed{false}
     , deferAction{DeferAction::None}
 {
-    initSSocket(ssocketInfo.ctx, fd);
+    initSSocket(ssocketInfo.ctx(), fd);
     setSNIHostName(ssocketInfo.host);
     if (ssocketInfo.defer == DeferAccept::No)
     {
@@ -30,7 +30,7 @@ SSocketStandard::SSocketStandard(SSocketService const& ssocketInfo, int fd)
     , connectionFailed{false}
     , deferAction{DeferAction::None}
 {
-    initSSocket(ssocketInfo.ctx, fd);
+    initSSocket(ssocketInfo.ctx(), fd);
     setSNIHostName(ssocketInfo.host);
     if (ssocketInfo.defer == DeferAccept::No)
     {
