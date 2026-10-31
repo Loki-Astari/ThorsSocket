@@ -51,7 +51,10 @@ Executable::Executable(ExecutableFile executable, Blocking blocking)
                 ||   MOCK_FUNC(thorSetFDNonBlocking)(childToParent[1]);
         if (result != 0)
         {
-            close();
+            MOCK_FUNC(close)(childToParent[1]);
+            MOCK_FUNC(close)(childToParent[0]);
+            MOCK_FUNC(close)(parentToChild[1]);
+            MOCK_FUNC(close)(parentToChild[0]);
             ThorsLogAndThrowDebug(
                 std::runtime_error,
                 "ThorsAnvil::ThorsSocket::ConnectionType::Executable",

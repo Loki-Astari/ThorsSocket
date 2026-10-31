@@ -24,7 +24,7 @@ TA_Object   Executable_Executable_NormalConstruction(
 using ThorsAnvil::ThorsSocket::ExecutableFile;
 using ThorsAnvil::ThorsSocket::SocketStream;
 
-TEST(ConnectionExecutableTest, DefaultPath)
+TEST(ConnectionExecutableTest, CheckOutput)
 {
 #ifdef __WINNT__
     // Windows does not support non blocking pipes
@@ -40,5 +40,22 @@ TEST(ConnectionExecutableTest, DefaultPath)
         ++count;
     }
     ASSERT_NE(0, count);
+}
+
+TEST(ConnectionExecutableTest, CheckInput)
+{
+#ifdef __WINNT__
+    // Windows does not support non blocking pipes
+    // So this test will fail.
+    // see ConnectionUtil.cpp
+    GTEST_SKIP();
+#endif
+    SocketStream      executable(ExecutableFile{"/bin/bash", {"-c", "bc"}});
+    executable << "5+4\n" << std::flush;
+
+    std::string line;
+    std::getline(executable, line);
+
+    ASSERT_EQ("9", line);
 }
 
