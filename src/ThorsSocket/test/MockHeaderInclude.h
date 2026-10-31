@@ -2,6 +2,7 @@
 #define THORSANVIl_THORS_SOCKET_MOCK_HEADER_INCLUDE
 
 #include <functional>
+#include <fstream>
 
 // Please add includes for all mocked libraries here.
 // PART-1-Start
@@ -128,6 +129,11 @@ class MockAllDefaultFunctions
     MOCK_MEMBER(SSL_CTX_load_verify_locations);
     MOCK_MEMBER(X509_get_default_cert_file);
     MOCK_MEMBER(X509_STORE_add_cert);
+    MOCK_MEMBER(dup2);
+    MOCK_MEMBER(kill);
+    MOCK_MEMBER(waitpid);
+    MOCK_MEMBER(execv);
+    MOCK_MEMBER(fork);
 // PART-3-End
 
     public:
@@ -207,6 +213,11 @@ class MockAllDefaultFunctions
             , MOCK_PARAM(SSL_CTX_load_verify_locations,         [ ](SSL_CTX*, const char*, const char*) {return 1;})
             , MOCK_PARAM(X509_get_default_cert_file,            [ ]()                                   {return "C:/msys64/mingw64/etc/ssl/cert.pem";})
             , MOCK_PARAM(X509_STORE_add_cert,                   [ ](X509_STORE*, X509*)                 {return 1;})
+            , MOCK_PARAM(dup2,                                  [ ](int, int)                           {return 1;})
+            , MOCK_PARAM(kill,                                  [ ](pid_t, int)                         {return 0;})
+            , MOCK_PARAM(waitpid,                               [ ](pid_t, int*, int)                   {return 1;})
+            , MOCK_PARAM(execv,                                 [ ](const char*, char *const[])         {return 1;})
+            , MOCK_PARAM(fork,                                  [ ]()                                   {return 32;})
 // PART-4-End
         {}
 };

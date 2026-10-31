@@ -31,6 +31,7 @@ class BaseSocketStream: public std::iostream
         BaseSocketStream(SSocketInfo const& info);
         BaseSocketStream(SocketService const& info);
         BaseSocketStream(SSocketService const& info);
+        BaseSocketStream(ExecutableFile const& info);
 
         BaseSocketStream(SocketInit const& info);
 

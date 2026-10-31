@@ -40,6 +40,12 @@ struct FileInfo
     FileMode            mode;
 };
 
+struct ExecutableFile
+{
+    std::string                 fileName;
+    std::vector<std::string>    arguments;
+};
+
 struct PipeInfo
 {};
 

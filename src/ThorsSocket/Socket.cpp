@@ -3,6 +3,7 @@
 #include "ConnectionPipe.h"
 #include "ConnectionSocket.h"
 #include "ConnectionSSocket.h"
+#include "ConnectionExecutable.h"
 #include "ThorsLogging/ThorsLogging.h"
 
 using namespace ThorsAnvil::ThorsSocket;
@@ -19,6 +20,7 @@ struct SocketConnectionBuilder
     std::unique_ptr<ConnectionClient> operator()(SSocketInfo const& ssocketInfo)    {return std::make_unique<ConnectionType::SSocketClient>(ssocketInfo, blocking);}
     std::unique_ptr<ConnectionClient> operator()(SocketService const& socketInfo)   {return std::make_unique<ConnectionType::SocketClient>(socketInfo, blocking);}
     std::unique_ptr<ConnectionClient> operator()(SSocketService const& ssocketInfo) {return std::make_unique<ConnectionType::SSocketClient>(ssocketInfo, blocking);}
+    std::unique_ptr<ConnectionClient> operator()(ExecutableFile const& executable)  {return std::make_unique<ConnectionType::Executable>(executable, blocking);}
 };
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE

@@ -159,6 +159,19 @@ SocketStreamBuffer::SocketStreamBuffer(SocketInit const& info)
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
+SocketStreamBuffer::SocketStreamBuffer(ExecutableFile const& info)
+    : std::streambuf{}
+    , socket(info, Blocking::No)
+    , inputBuffer(4 * 1024)
+    , outputBuffer(4 * 1024)
+    , inCount(0)
+    , outCount(0)
+{
+    setg(&inputBuffer[0], &inputBuffer[0], &inputBuffer[0]);
+    setp(&outputBuffer[0], &outputBuffer[0] + outputBuffer.size() - 1);
+}
+
+THORS_SOCKET_HEADER_ONLY_INCLUDE
 SocketStreamBuffer::~SocketStreamBuffer()
 {
     // Force the buffer to be output to the socket

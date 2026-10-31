@@ -6,6 +6,8 @@
 #include <openssl/err.h>
 #include <fcntl.h>
 #include <utility>
+#include <stdlib.h>
+#include <stdio.h>
 
 
 #ifdef  __WINNT__
@@ -40,6 +42,11 @@ char const* getErrMsgWin(int error);
 #include <netdb.h>
 #include <sys/uio.h>
 #include <errno.h>
+
+#include <sys/_types/_pid_t.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 #define PAUSE_AND_WAIT(n)       sleep(n)
 #define NONBLOCKING_FLAG        O_NONBLOCK
