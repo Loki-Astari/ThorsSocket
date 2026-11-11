@@ -111,7 +111,9 @@ IOData Socket::getMessageDataFromStream(void* b, std::size_t size, bool waitWhen
     }
 
     std::size_t dataRead = 0;
-    while (dataRead != size)
+    // If another thread closes the stream while you are waiting for input.
+    // Then the isConnected() may change. So we need to validate it is still good.
+    while (isConnected() && dataRead != size)
     {
         IOData chunk = connection->readFromStream(buffer + dataRead, size - dataRead);
         dataRead += chunk.dataSize;
@@ -128,7 +130,7 @@ IOData Socket::getMessageDataFromStream(void* b, std::size_t size, bool waitWhen
             }
         }
     }
-    return {dataRead, true, false};
+    return {dataRead, isConnected(), false};
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -153,7 +155,9 @@ IOData Socket::putMessageDataToStream(void const* b, std::size_t size, bool wait
     }
 
     std::size_t dataWritten = 0;
-    while (dataWritten != size)
+    // If another thread closes the stream while you are waiting for input.
+    // Then the isConnected() may change. So we need to validate it is still good.
+    while (isConnected() && dataWritten != size)
     {
         IOData chunk = connection->writeToStream(buffer + dataWritten, size - dataWritten);
         dataWritten += chunk.dataSize;
@@ -171,7 +175,7 @@ IOData Socket::putMessageDataToStream(void const* b, std::size_t size, bool wait
             }
         }
     }
-    return {dataWritten, true, false};
+    return {dataWritten, isConnected(), false};
 }
 
 THORS_SOCKET_HEADER_ONLY_INCLUDE
@@ -193,7 +197,7 @@ void Socket::waitForFileDescriptor(int fd, short flag)
     using PollFD = THOR_POLL_TYPE;
     PollFD  fds[1] = {{THOR_SOCKET_ID(fd), static_cast<short>(flag | THOR_POLLPRI), 0}};
 
-    while ((result = THOR_POLL(fds, 1, -1)) <= 0)
+    while (isConnected() && (result = THOR_POLL(fds, 1, 1000)) <= 0)
     {
         if (result == THOR_POLL_ERROR) {
             ThorsLogAndThrowDebug(std::runtime_error, "ThorsAnvil::ThorsSocket::Socket", "waitForFileDescriptor", ": poll return an error");

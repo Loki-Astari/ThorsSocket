@@ -74,6 +74,7 @@ Executable::Executable(ExecutableFile executable, Blocking blocking)
         MOCK_FUNC(close)(parentToChild[0]);
         MOCK_FUNC(close)(childToParent[1]);
 
+        ThorsLogTrack("ThorsAnvil::ThorsSocket::ConnectionType::Executable", "Executable", "Parent: The child processes created: ", executable.fileName);
         return;
     }
 
@@ -103,7 +104,9 @@ Executable::Executable(ExecutableFile executable, Blocking blocking)
     args.emplace_back(nullptr);
 
     // Replace this processes with the executable we want.
+    ThorsLogTrack("ThorsAnvil::ThorsSocket::ConnectionType::Executable", "Executable", "Child: about to exec the processes: ", executable.fileName);
     MOCK_FUNC(execv)(executable.fileName.c_str(), args.data());
+    ThorsLogAlert("ThorsAnvil::ThorsSocket::ConnectionType::Executable", "Executable", "Child: failed to start child processes. errno=", errno, " msg >" << getErrMsgUnix(errno) << "<");
 
     // Nothing below this line should be executed by child process.
     // If we get here it means that the execl function wasn't successful.
@@ -122,16 +125,16 @@ Executable::~Executable()
 
 void Executable::close()
 {
-    MOCK_FUNC(close)(childOut);
-    MOCK_FUNC(close)(childIn);
-
     MOCK_FUNC(kill)(procId, SIGKILL); //send SIGKILL signal to the child process
 
     int status = 25;
     int x = MOCK_FUNC(waitpid)(procId, &status, 0);
-    childIn = -1;
-    childOut = -1;
     procId = 0;
+
+    MOCK_FUNC(close)(childOut);
+    childOut = -1;
+    MOCK_FUNC(close)(childIn);
+    childIn = -1;
 }
 
 void Executable::release()
