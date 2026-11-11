@@ -3,7 +3,7 @@
 
 #include "ThorsSocketConfig.h"
 #include "ConnectionUtil.h"
-#include "ConnectionFileDescriptor.h"
+#include "ConnectionSocketPipe.h"
 
 #include <cstddef>
 
@@ -42,7 +42,7 @@ class SocketServer;
 #ifdef __WINNT__
 class SocketClient: public ConnectionClient
 #else
-class SocketClient: public ConnectionType::FileDescriptor
+class SocketClient: public ConnectionType::ConnectionSocketPipe
 #endif
 {
     SocketStandard  socketInfo;

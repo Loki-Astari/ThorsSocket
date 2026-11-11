@@ -2,12 +2,12 @@
 #define THORSANVIL_THORSSOCKET_CONNECTION_PIPE_H
 
 #include "ThorsSocketConfig.h"
-#include "ConnectionFileDescriptor.h"
+#include "ConnectionSocketPipe.h"
 
 namespace ThorsAnvil::ThorsSocket::ConnectionType
 {
 
-class Pipe: public FileDescriptor
+class Pipe: public ConnectionSocketPipe
 {
     int fd[2];
     public:
